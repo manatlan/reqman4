@@ -45,7 +45,7 @@ RUN:
     
     - call: SCENAR1
       params:               # (was the foreach)
-         - i: 2             # call SCENAR with {"i":2}
-         - i: 4             # call SCENAR with {"i":4}
+         - i: 2             # call SCENAR1 with {"i":2}
+         - i: 4             # call SCENAR1 with {"i":4}
 
 ```
