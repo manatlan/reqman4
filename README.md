@@ -3,6 +3,7 @@
 a complete rewrite
 
 diff:
+- "uv" & (a lot) simpler (less features)
 - scenars(yml/rml) & reqman.conf are yaml/dict only !
 - scenars must have a "RUN:" section (others keys are the global env)
 - tests are python statements
