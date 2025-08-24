@@ -8,6 +8,7 @@ diff:
 - scenars must have a "RUN:" section (others keys are the global env)
 - tests are python statements
 - no more BEGIN/END & .BEGIN/.END
+- no more XML testing
 
 
 ~~currently :~~

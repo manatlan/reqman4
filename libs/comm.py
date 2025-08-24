@@ -1,5 +1,18 @@
 import httpx
 
+KNOWNVERBS = [
+    "GET",
+    "POST",
+    "DELETE",
+    "PUT",
+    "HEAD",
+    "OPTIONS",
+    "TRACE",
+    "PATCH",
+    "CONNECT",
+]
+
+
 AHTTP = httpx.AsyncClient(follow_redirects=True,verify=False)
 
 class ResponseError(httpx.Response):
@@ -23,6 +36,7 @@ class ResponseInvalid(ResponseError):
         ResponseError.__init__(self,f"Invalid {url}")
 
 async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = httpx.Headers(), timeout:int=60_000, proxies=None) -> httpx.Response:
+    assert method in KNOWNVERBS, f"Unknown HTTP verb {method}"
     try:
 
         AHTTP._get_proxy_map(proxies, False)
