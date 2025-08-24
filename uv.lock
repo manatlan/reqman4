@@ -64,11 +64,13 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "click" },
+    { name = "colorama" },
     { name = "pyyaml" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "click", specifier = ">=8.2.1" },
+    { name = "colorama", specifier = ">=0.4.6" },
     { name = "pyyaml", specifier = ">=6.0.2" },
 ]
