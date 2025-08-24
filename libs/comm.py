@@ -22,12 +22,12 @@ class ResponseInvalid(ResponseError):
     def __init__(self,url):
         ResponseError.__init__(self,f"Invalid {url}")
 
-async def call(method, url:str,body:bytes|None=None, headers:dict={}, timeout:int=60, proxies=None) -> httpx.Response:
+async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = httpx.Headers(), timeout:int=60_000, proxies=None) -> httpx.Response:
     try:
 
         AHTTP._get_proxy_map(proxies, False)
 
-        r = await AHTTP.request(
+        return await AHTTP.request(
             method,
             url,
             data=body,
@@ -37,7 +37,6 @@ async def call(method, url:str,body:bytes|None=None, headers:dict={}, timeout:in
 
         # info = "%s %s %s" % (r.http_version, int(r.status_code), r.reason_phrase)
 
-        return r
     except (httpx.TimeoutException):
         return ResponseTimeout()
     except (httpx.ConnectError):
