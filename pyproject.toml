@@ -9,3 +9,8 @@ dependencies = [
     "colorama>=0.4.6",
     "pyyaml>=6.0.2",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+]
