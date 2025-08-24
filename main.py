@@ -1,6 +1,6 @@
 import click
 import sys
-import config
+import libs.config as config
 
 from colorama import init, Fore, Style
 

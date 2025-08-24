@@ -7,8 +7,12 @@ requires-python = ">=3.11"
 dependencies = [
     "click>=8.2.1",
     "colorama>=0.4.6",
+    "httpx>=0.28.1",
     "pyyaml>=6.0.2",
 ]
+
+[project.scripts]
+rq = "main:main"
 
 [dependency-groups]
 dev = [
