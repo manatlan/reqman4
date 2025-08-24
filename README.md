@@ -19,31 +19,33 @@ SCENAR1:
 METHODPY: |
     return x*42
 
+host: https://x.com
+toto: 42
+headers:
+    content-type: application/json
+    user-agent: me
+
 RUN:
     - set:
-        host: https://x.com
-        toto: 42
-        headers:
-            content-type: application/json
-            user-agent: me
-    
+        toto: toto + 1
+
     - POST: /fdgfdgfds
-      doc: fdsqfdsqfds fdsqfdsq <<caisse>>
+      doc: fdsqfdsqfds fdsqfdsq <<toto>>
       headers:
            content-type: application/json
       body:
-         caisse: <<caisse>>
-         idremise: 16616
+         code: <<code>>
+         id: 16616
       tests:
-        - $status == 200
+        - $status == 200    # $status & $headers are the last http status&headers
         - $.result == "ok"
     
     - set:
-        result: $
+        result: $           # '$' is the last http body response
     
     - call: SCENAR1
-      params:
-         - i: 2
-         - i: 4
+      params:               # (was the foreach)
+         - i: 2             # call SCENAR with {"i":2}
+         - i: 4             # call SCENAR with {"i":4}
 
 ```
