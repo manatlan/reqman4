@@ -27,7 +27,7 @@ cw = lambda t: colorize(Fore.WHITE, t)
 @click.command()
 @click.argument('files', type=click.Path(exists=True,), nargs=-1, required=True)
 #@click.option('--count', default=1, help='Number of greetings.')
-def main(files:list) -> int:
+def command(files:list) -> int:
     """Simple program that greets NAME for a total of COUNT times."""
     reqman_conf = config.guess_reqman_conf(files)
     if reqman_conf is None:
@@ -38,5 +38,13 @@ def main(files:list) -> int:
         print(conf)
     return 0
 
+def main():
+    try:
+        x=command()
+    except Exception as e:
+        print(cr(f"FATAL ERROR: {e}"))
+        x=-1
+    sys.exit(x)
+
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

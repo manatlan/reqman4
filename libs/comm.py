@@ -20,8 +20,8 @@ KNOWNVERBS = [
     "CONNECT",
 ]
 
-
-AHTTP = httpx.AsyncClient(follow_redirects=True,verify=False)
+jar=httpx.Cookies()
+AHTTP = httpx.AsyncClient(follow_redirects=True,verify=False,cookies=jar)
 
 class ResponseError(httpx.Response):
     def __init__(self,error):
@@ -69,7 +69,7 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
 if __name__ == "__main__":
     import asyncio
     async def main():
-        x=await call("GET", "https://tools-httpstatus.pickup-services.com/500")
+        x=await call("GET", "https://tools-httpstatus.pickup-services.com/200", proxies="http://77.232.100.132")
         print(x)
         # print(42)
     asyncio.run(main())

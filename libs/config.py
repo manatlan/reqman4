@@ -11,6 +11,14 @@ import yaml
 
 REQMAN_CONF='reqman.conf'
 
+# special keys :
+
+# proxy: <string>
+# timeout: <milliseconds>
+# headers: <dict/mapping>
+# host: <string> 
+
+
 def guess_reqman_conf(paths:list[str]) -> str|None:
     cp = os.path.commonpath([os.path.dirname(os.path.abspath(p)) for p in paths])
 
