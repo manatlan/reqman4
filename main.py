@@ -9,6 +9,7 @@
 import click
 import sys
 import libs.config as config
+import asyncio
 
 from colorama import init, Fore, Style
 
@@ -23,6 +24,10 @@ cg = lambda t: colorize(Fore.GREEN, t)
 cb = lambda t: colorize(Fore.CYAN, t)
 cw = lambda t: colorize(Fore.WHITE, t)
 
+async def run_tests(files:list[str]) -> int:
+    for file in files:
+        print(f"test: {file}")
+    return 0
 
 @click.command()
 @click.argument('files', type=click.Path(exists=True,), nargs=-1, required=True)
@@ -36,6 +41,8 @@ def command(files:list) -> int:
         print(f"Using reqman.conf: {reqman_conf}")
         conf = config.load_reqman_conf(reqman_conf)
         print(conf)
+
+    asyncio.run(run_tests(files))
     return 0
 
 def main():
