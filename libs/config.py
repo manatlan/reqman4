@@ -17,6 +17,7 @@ REQMAN_CONF='reqman.conf'
 # timeout: <milliseconds>
 # headers: <dict/mapping>
 # host: <string> 
+# switchs: <dict/mapping>
 
 
 def guess_reqman_conf(paths:list[str]) -> str|None:
