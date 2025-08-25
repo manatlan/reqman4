@@ -30,20 +30,16 @@ cg = lambda t: colorize(Fore.GREEN, t)
 cb = lambda t: colorize(Fore.CYAN, t)
 cw = lambda t: colorize(Fore.WHITE, t)
 
-def print_stdout(ll:list[scenario.Result]) -> str:
-    for i in ll:
-        print(f"{cy(i.request.method)} {i.request.url} -> {cb(i.response.status_code)}")
-        for t,r in i.tests:
-            print(" -",r and cg("OK") or cr("KO"),":", t)
-        print()
 
 async def run_tests(files:list[str]) -> int:
     ll=[]
     for file in files:
         print(cb(f"--- RUN {file} ---"))
-        ll = await scenario.test(file) 
-
-        print_stdout(ll)
+        async for i in scenario.test(file):
+            print(f"{cy(i.request.method)} {i.request.url} -> {cb(i.response.status_code)}")
+            for t,r in i.tests:
+                print(" -",r and cg("OK") or cr("KO"),":", t)
+            print()
 
     return 0
 

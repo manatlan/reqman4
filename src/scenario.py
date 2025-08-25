@@ -203,33 +203,38 @@ class Scenario(list):
     def __repr__(self):
         return super().__repr__()
 
-async def execute(s:Scenario,e:Env) -> list[Result]:
-    ll=[]
+async def execute(s:Scenario,e:Env) :
     for step in s:
-        ll.extend( await step.execute(e) )
-    return ll
+        ll = await step.execute(e)
+        for i in ll:
+            yield i
 
 def view(file:str) -> Scenario:
     s=Scenario(file)
     return s
 
 
-async def test(file:str) -> list[Result]:
+async def test(file:str):
     s=Scenario(file)
     e=Env( **s.env )
-    ll=await execute(s,e)
-    print("\n\n------>", e)
-    return ll
-
+    async for r in execute(s,e):
+        yield r
+    print("======ENV FINAL==========>",e)
+    
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
     # ll=test("examples/test1.yml")
-    ll = asyncio.run( test("examples/simple.yml") )
 
-    for i in ll:
-        print(f"{i.request.method} {i.request.url} -> {i.response.status_code}")
-        for t,r in i.tests:
-            print(" -",r and "OK" or "KO",":", t)
-        print()
+    async def xxx(f:str):
+        async for i in test(f):
+            print(f"{i.request.method} {i.request.url} -> {i.response.status_code}")
+            for t,r in i.tests:
+                print(" -",r and "OK" or "KO",":", t)
+            print()
+
+
+    asyncio.run( xxx("examples/simple.yml") )
+
+    # for i in ll:
 
