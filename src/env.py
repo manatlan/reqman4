@@ -1,5 +1,5 @@
 
-import re
+import re,os
 import httpx,json
 
 import logging
@@ -36,10 +36,13 @@ class Env(dict):
     
     def eval(self, code: str) -> any:
         logger.debug(f"EVAL: {code}")
-        code = code.replace("$.","_.")
-        code = code.replace("$status","_status")
-        code = code.replace("$headers","_headers")
-        code = code.replace("$","_")
+        if code in os.environ:
+            return os.environ[code]
+        else:
+            code = code.replace("$.","_.")
+            code = code.replace("$status","_status")
+            code = code.replace("$headers","_headers")
+            code = code.replace("$","_")
         return eval(code,{}, dict(self) )
 
     def substitute(self, text: str) -> any:
@@ -107,3 +110,8 @@ if __name__ == "__main__":
     assert e.substitute("val is <<v*2>>") == "val is 84"
 
     assert e.substitute("<<v>>") == 42  # full same type !
+
+
+    e=Env()
+    assert e.substitute("<<USERNAME>>")=="manatlan"
+    assert e.eval("USERNAME")=="manatlan"

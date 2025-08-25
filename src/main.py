@@ -16,6 +16,7 @@ import env
 import config
 import scenario
 import request
+import dotenv; dotenv.load_dotenv()
 
 from colorama import init, Fore, Style
 
@@ -36,10 +37,11 @@ async def run_tests(files:list[str]) -> int:
     for file in files:
         print(cb(f"--- RUN {file} ---"))
         async for i in scenario.test(file):
-            print(f"{cy(i.request.method)} {i.request.url} -> {cb(i.response.status_code)}")
-            for t,r in i.tests:
-                print(" -",r and cg("OK") or cr("KO"),":", t)
-            print()
+            if i:
+                print(f"{cy(i.request.method)} {i.request.url} -> {cb(i.response.status_code)}")
+                for t,r in i.tests:
+                    print(" -",r and cg("OK") or cr("KO"),":", t)
+                print()
 
     return 0
 
@@ -60,7 +62,7 @@ def command(files:list,is_view:bool,is_debug:bool) -> int:
     if is_view:
         for f in files:
             print(cb(f"Analyse {f}"))
-            for i in scenario.view(f):
+            for i in scenario.Scenario(f):
                 print(i)
         return 0
     else:

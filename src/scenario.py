@@ -20,7 +20,7 @@ class Result:
     doc: str = ""
 
 class Step:
-    async def execute(self,e:Env) -> list[Result]:
+    async def process(self,e:Env):
         pass
 
 class StepCall(Step):
@@ -28,8 +28,8 @@ class StepCall(Step):
         self.scenarios = scenarios
         self.iter = params
 
-    async def execute(self,e:Env) -> list[Result]:
-        ll=[]
+    async def process(self,e:Env):
+
         for p in self.iter or [None]:
             if p:
                 # print(":: POUR",p)
@@ -37,8 +37,9 @@ class StepCall(Step):
 
             for s in self.scenarios:
                 # print(f"- CALL {self.scenarios}")
-                ll.extend( await s.execute(e) )
-        return ll
+                async for r in s.process(e):
+                    yield r
+        
 
     def __repr__(self):
         s=""
@@ -66,11 +67,9 @@ class StepHttp(Step):
 
         self.iter = params
 
-    async def execute(self,e:Env) -> list[Result]:
+    async def process(self,e:Env):
         self.results=[]
         # simule l'appel
-
-        ll=[]
 
         for p in self.iter or [None]:
             if p:
@@ -88,6 +87,8 @@ class StepHttp(Step):
                     else:
                         if not self.url.startswith("http"):
                             url = host + "/" + self.url
+            else:
+                url = self.url
 
             url=e.substitute(url)
             doc=e.substitute(self.doc)
@@ -122,9 +123,8 @@ class StepHttp(Step):
                 # print(" -",result and "OK" or "KO",":", t)
                 results.append( (t,result) )
 
-            ll.append( Result(r.request,r, results, doc=doc) )
+            yield Result(r.request,r, results, doc=doc)
 
-        return ll
     
 
     def __repr__(self):
@@ -138,9 +138,10 @@ class StepSet(Step):
         self.key = key
         self.value = value
 
-    async def execute(self,e:Env) -> list[Result]:
+    async def process(self,e:Env):
         e[self.key]=e.eval(self.value)
-        return []
+        yield None
+
 
     def __repr__(self):
         return f"SET {self.key} = {self.value}"
@@ -205,13 +206,9 @@ class Scenario(list):
 
 async def execute(s:Scenario,e:Env) :
     for step in s:
-        ll = await step.execute(e)
-        for i in ll:
+        async for i in step.process(e):
             yield i
 
-def view(file:str) -> Scenario:
-    s=Scenario(file)
-    return s
 
 
 async def test(file:str):
@@ -228,10 +225,11 @@ if __name__ == "__main__":
 
     async def xxx(f:str):
         async for i in test(f):
-            print(f"{i.request.method} {i.request.url} -> {i.response.status_code}")
-            for t,r in i.tests:
-                print(" -",r and "OK" or "KO",":", t)
-            print()
+            if i:
+                print(f"{i.request.method} {i.request.url} -> {i.response.status_code}")
+                for t,r in i.tests:
+                    print(" -",r and "OK" or "KO",":", t)
+                print()
 
 
     asyncio.run( xxx("examples/simple.yml") )

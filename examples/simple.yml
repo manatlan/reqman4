@@ -1,8 +1,12 @@
-host: test
+# host: test
 # host: http://localhost:5000
 toto: 42
+yo: <<USERNAME>>                # <- ca c du yaml ;-(
 
 RUN:
+  - set:
+      USER: USERNAME            # <- ca c du python ;-(
+
   - GET: /testlist?toto={{ toto }}
     doc: test
     tests:
