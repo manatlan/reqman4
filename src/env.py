@@ -33,14 +33,7 @@ def convert(obj):
 class Env(dict):
     def __init__(self, /, **kwargs):
         super().__init__(**kwargs)
-        self.object_substitute(self)
-        self.object_substitute(self)
-        self.object_substitute(self)
-        self.object_substitute(self)
-        self.object_substitute(self)
-        self.object_substitute(self)
-        self.object_substitute(self)
-        self.object_substitute(self)
+        self.update( self.substitute_in_object(self) )
     
     def eval(self, code: str) -> any:
         logger.debug(f"EVAL: {code}")
@@ -68,15 +61,31 @@ class Env(dict):
                     text = text.replace(l, str(val))
         return text
 
-    def object_substitute(self, o: any) -> any:
-        if isinstance(o, str):
-            return self.substitute(o)
-        elif isinstance(o, dict):
-            return {k:self.object_substitute(v) for k,v in o.items()}
-        elif isinstance(o, list):
-            return [self.object_substitute(v) for v in o]
-        else:
-            return o
+    def substitute_in_object(self, o: any) -> any:
+
+        def _sub_in_object( o: any) -> any:
+            if isinstance(o, str):
+                return self.substitute(o)
+            elif isinstance(o, dict):
+                return {k:_sub_in_object(v) for k,v in o.items()}
+            elif isinstance(o, list):
+                return [_sub_in_object(v) for v in o]
+            else:
+                return o
+
+        while True:
+            def default(obj):
+                if callable(obj):
+                    return f"<function {getattr(obj, '__name__', str(obj))}>"
+                raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+            before = json.dumps(o, default=default)
+            o = _sub_in_object(o)
+            after = json.dumps(o, default=default)
+            
+            if before == after:
+                return o
+
+    
 
 
     def setHttpResonse(self, response:httpx.Response): 
@@ -134,3 +143,16 @@ if __name__ == "__main__":
     e=Env()
     assert e.substitute("<<USERNAME>>")=="manatlan"
     assert e.eval("USERNAME")=="manatlan"
+
+    e=Env( v=42 )
+    d=dict( kiki="<< v*2 >>" )
+    d=e.substitute_in_object(d)
+    assert d["kiki"] == 84
+
+    e=Env( v=42 , val="hello <<v>>", dico={"kiki":"<<v*2>>"}, liste=[1,2,"<<v*3>>"] )
+    assert e["val"] == "hello 42"
+    assert e["dico"]["kiki"] == 84
+    assert e["liste"][2] == 126
+
+    e=Env( v=42 , v2="<<v>>", val="hello <<v2>>" )
+    assert e["val"] == "hello 42"

@@ -99,7 +99,7 @@ class StepHttp(Step):
                     body = e.substitute(body)
                 else:
                     if isinstance(body, dict) or isinstance(body, list):
-                        body = e.object_substitute(body)
+                        body = e.substitute_in_object(body)
                     else:
                         body = body
 
@@ -129,7 +129,7 @@ class StepSet(Step):
         self.dico = dico
 
     async def process(self,e:Env):
-        d=e.object_substitute(self.dico)
+        d=e.substitute_in_object(self.dico)
         assert isinstance(d, dict), "SET must be a dictionary"
         e.update(d)
         yield None
@@ -182,8 +182,7 @@ class Scenario(list):
                     assert isinstance(step["call"], str), "CALL must be a string"
                     assert step["call"] in self.env, f"CALL references unknown scenario '{step['call']}'"
                     sub_scenar = self.env[step["call"]]
-                    if isinstance(sub_scenar, dict):
-                        sub_scenar = [sub_scenar]
+                    assert isinstance(sub_scenar, list), "CALL must reference a list of steps"
                     scenaris = self._feed( sub_scenar )
                     self.append( StepCall( scenaris, params ) )
                 else:

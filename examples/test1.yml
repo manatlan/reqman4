@@ -1,17 +1,19 @@
 host: http://test
 
+i: 77
+
 mymethod: |
   return x * 23
 
 scenar1:
-  GET: /testlist?i={{ i }}
-  doc: test
-  tests:
-    - $status == 200
-    - len($) == 3
-    - $[0] == 1
-    - $[1] == 2
-    - $[2].key == "val"
+  - GET: /testlist?i={{ i }}
+    doc: test
+    tests:
+      - $status == 200
+      - len($) == 3
+      - $[0] == 1
+      - $[1] == 2
+      - $[2].key == "val"
 
 scenar2:
 
