@@ -1,4 +1,4 @@
-import libs.comm as comm
+import src.request as comm
 import pytest
 
 @pytest.mark.asyncio

@@ -1,0 +1,34 @@
+host: test
+# host: http://localhost:5000
+toto: 42
+
+RUN:
+  - GET: /testlist?toto={{ toto }}
+    doc: test
+    tests:
+      - len($) == 3
+
+  - set:
+      toto: 43
+
+  - POST: /test
+    body: <<toto>>
+    doc: test
+    tests:
+      - $status == 201
+      - $.result == 43
+
+  - POST: /test
+    body:
+      hello: <<toto>>
+      hello2: "{{ toto }}"
+      hello3: hello {{ toto }}
+      hello4:
+        - test1: <<toto>>
+    doc: test
+    tests:
+      - $status == 201
+      - $.result.hello == 43
+      - $.result.hello2 == 43
+      - $.result.hello3 == "hello 43"
+      - $.result.hello4[0].test1 == 43
