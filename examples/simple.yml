@@ -1,19 +1,21 @@
 host: http://test
 # host: http://localhost:5000
-toto: 42
-yo: <<USERNAME>>                # <- ca c du yaml ;-( (marche pas encore)
+toto1: 42
+yo: <<USERNAME>>
 
 RUN:
   - set:
-      USER: USERNAME            # <- ca c du python ;-(
+      USER: <<USERNAME>>
+      yoyo: <<yo>>
+      test:
+        MYNAME: <<USER>>
+      toto: 43
 
   - GET: /testlist?toto={{ toto }}
     doc: test
     tests:
       - len($) == 3
 
-  - set:
-      toto: 43
 
   - POST: /test
     body: <<toto>>

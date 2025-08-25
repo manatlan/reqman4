@@ -28,15 +28,15 @@ scenar2:
       - $status == 200
       - $.coco == "VAL"
   - set:
-       toto: $.coco
+       toto: <<$.coco>>
 
 tata: 123
 
 RUN:
   - set:
       toto: 42
-      toti: 10 * str(toto)
-      KOKO: mymethod( 42 )
+      toti: <<10 * str(toto)>>
+      KOKO: <<mymethod( 42 )>>
 
   - GET: /test404
     doc: test NF
@@ -70,6 +70,6 @@ RUN:
     - j: 3
 
   - set:
-       lastStatus: $status
+       lastStatus: <<$status>>
 
   

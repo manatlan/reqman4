@@ -99,16 +99,7 @@ class StepHttp(Step):
                     body = e.substitute(body)
                 else:
                     if isinstance(body, dict) or isinstance(body, list):
-                        def substitute(o):
-                            if isinstance(o, str):
-                                return e.substitute(o)
-                            elif isinstance(o, dict):
-                                return {k:substitute(v) for k,v in o.items()}
-                            elif isinstance(o, list):
-                                return [substitute(v) for v in o]
-                            else:
-                                return o
-                        body = substitute(body)
+                        body = e.object_substitute(body)
                     else:
                         body = body
 
@@ -134,17 +125,17 @@ class StepHttp(Step):
             return f"HTTP {self.method} {self.url}"
 
 class StepSet(Step):
-    def __init__(self, key: str, value: str):
-        self.key = key
-        self.value = value
+    def __init__(self, dico:dict):
+        self.dico = dico
 
     async def process(self,e:Env):
-        e[self.key]=e.eval(self.value)
+        d=e.object_substitute(self.dico)
+        assert isinstance(d, dict), "SET must be a dictionary"
+        e.update(d)
         yield None
 
-
     def __repr__(self):
-        return f"SET {self.key} = {self.value}"
+        return f"SET {self.dico}"
 
 class Scenario(list):
     def __init__(self, file_path: str):
@@ -184,8 +175,7 @@ class Scenario(list):
                 assert params is None, "params cannot be used with set"
                 assert isinstance(step["set"], dict), "SET must be a dictionary"
                 assert len(step) == 1, "SET cannot be used with other keys"
-                for k, v in step["set"].items():
-                    ll.append( StepSet( k, str(v) ) )
+                ll.append( StepSet( step["set"] ) )
             else:
                 if "call" in step:
                     # assert len(step) == 1, "call cannot be used with other keys"

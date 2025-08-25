@@ -33,6 +33,14 @@ def convert(obj):
 class Env(dict):
     def __init__(self, /, **kwargs):
         super().__init__(**kwargs)
+        self.object_substitute(self)
+        self.object_substitute(self)
+        self.object_substitute(self)
+        self.object_substitute(self)
+        self.object_substitute(self)
+        self.object_substitute(self)
+        self.object_substitute(self)
+        self.object_substitute(self)
     
     def eval(self, code: str) -> any:
         logger.debug(f"EVAL: {code}")
@@ -59,6 +67,17 @@ class Env(dict):
                 else:
                     text = text.replace(l, str(val))
         return text
+
+    def object_substitute(self, o: any) -> any:
+        if isinstance(o, str):
+            return self.substitute(o)
+        elif isinstance(o, dict):
+            return {k:self.object_substitute(v) for k,v in o.items()}
+        elif isinstance(o, list):
+            return [self.object_substitute(v) for v in o]
+        else:
+            return o
+
 
     def setHttpResonse(self, response:httpx.Response): 
 
