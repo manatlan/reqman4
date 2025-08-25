@@ -36,6 +36,7 @@ class Env(dict):
         self.update( self.substitute_in_object(self) )
     
     def eval(self, code: str) -> any:
+        print(f"EVAL: {code}")
         logger.debug(f"EVAL: {code}")
         if code in os.environ:
             return os.environ[code]
@@ -62,7 +63,6 @@ class Env(dict):
         return text
 
     def substitute_in_object(self, o: any) -> any:
-
         def _sub_in_object( o: any) -> any:
             if isinstance(o, str):
                 return self.substitute(o)
@@ -72,6 +72,8 @@ class Env(dict):
                 return [_sub_in_object(v) for v in o]
             else:
                 return o
+
+        return _sub_in_object(o)
 
         while True:
             def default(obj):

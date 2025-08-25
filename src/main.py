@@ -67,6 +67,11 @@ def command(files:list,is_view:bool,is_debug:bool) -> int:
         return 0
     else:
 
+        # pycode.logger.setLevel(logging.DEBUG)
+        # request.logger.setLevel(logging.DEBUG)
+        # env.logger.setLevel(logging.DEBUG)
+        # scenario.logger.setLevel(logging.DEBUG)
+
         if is_debug:
             pycode.logger.setLevel(logging.DEBUG)
             request.logger.setLevel(logging.DEBUG)
@@ -82,11 +87,7 @@ def command(files:list,is_view:bool,is_debug:bool) -> int:
         return 0
 
 def main():
-    try:
-        x=command()
-    except Exception as e:
-        print(cr(f"FATAL ERROR: {e}"))
-        x=-1
+    x=command()
     sys.exit(x)
 
 if __name__ == "__main__":
