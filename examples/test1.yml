@@ -1,4 +1,4 @@
-# host: test
+host: http://test
 
 mymethod: |
   return x * 23

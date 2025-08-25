@@ -1,7 +1,7 @@
-# host: test
+host: http://test
 # host: http://localhost:5000
 toto: 42
-yo: <<USERNAME>>                # <- ca c du yaml ;-(
+yo: <<USERNAME>>                # <- ca c du yaml ;-( (marche pas encore)
 
 RUN:
   - set:
