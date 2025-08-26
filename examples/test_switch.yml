@@ -1,0 +1,23 @@
+host: http://test
+
+
+switch:
+  env1:
+    doc: for dev
+    host: http://dev/
+
+  env2:
+    doc: for verification
+    host: http://verification/
+
+  env3:
+    doc: for validation
+    host: http://validation/
+
+
+RUN:
+
+  - GET: /testlist
+    doc: test
+    tests:
+      - len($) == 3
