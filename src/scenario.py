@@ -21,11 +21,11 @@ class Result:
     doc: str = ""
 
 class Step:
-    async def process(self,e:Env):
-        pass
+    async def process(self,e:Env) -> AsyncGenerator:
+        ...
 
 class StepCall(Step):
-    def __init__(self, scenario: "Scenario", step: dict, params:list=None):
+    def __init__(self, scenario: "Scenario", step: dict, params:list|None=None):
         self.scenario = scenario
 
         name = step["call"]
@@ -37,30 +37,30 @@ class StepCall(Step):
         assert isinstance(sub_scenar, list), "CALL must reference a list of steps"
 
         self.scenarios = self.scenario._feed( sub_scenar )
-        self.iter = params
+        self.params = params
 
-    async def process(self,e:Env) -> AsyncGenerator[Result, None]:
-        for p in self.iter or [None]:
-            if p:
-                e.update(p)
+    async def process(self,e:Env) -> AsyncGenerator:
+        for param in self.params or [None]:
+            if param:
+                e.update(param)
 
-            for s in self.scenarios:
-                async for r in s.process(e):
+            for step in self.scenarios:
+                async for r in step.process(e):
                     yield r
 
     def __repr__(self):
         s=""
         for i in self.scenarios:
             s+= "  - "+repr(i)+"\n"
-        if self.iter:
-            return f"CALL MULTIPLE with {self.iter}:\n"+s
+        if self.params:
+            return f"CALL MULTIPLE with {self.params}:\n"+s
         else:
             return f"CALL:\n"+s
 
 
 
 class StepHttp(Step):
-    def __init__(self, scenario: "Scenario", step: dict, params: list=None):
+    def __init__(self, scenario: "Scenario", step: dict, params: list|None=None):
         self.scenario = scenario
 
         methods = set(step.keys()) & ehttp.KNOWNVERBS
@@ -74,16 +74,16 @@ class StepHttp(Step):
         self.tests = step.get("tests",[])
         assert all( isinstance(t,str) for t in self.tests ), "tests must be a list of strings"
 
-        self.iter = params
+        self.params = params
 
-    async def process(self,e:Env) -> AsyncGenerator[Result, None]:
+    async def process(self,e:Env) -> AsyncGenerator:
         self.results=[]
         # simule l'appel
 
-        for p in self.iter or [None]:
-            if p:
+        for param in self.params or [None]:
+            if param:
                 # print(":: POUR",p)
-                e.update(p)
+                e.update(param)
 
             host = e.get("host",None)
             if host:
@@ -132,8 +132,8 @@ class StepHttp(Step):
     
 
     def __repr__(self):
-        if self.iter:
-            return f"HTTP MULTIPLE {self.method} {self.url} with {self.iter}"
+        if self.params:
+            return f"HTTP MULTIPLE {self.method} {self.url} with {self.params}"
         else:   
             return f"HTTP {self.method} {self.url}"
 
@@ -146,7 +146,7 @@ class StepSet(Step):
         assert isinstance(dico, dict), "SET must be a dictionary"
         self.dico = dico
 
-    async def process(self,e:Env) -> AsyncGenerator[Result, None]:
+    async def process(self,e:Env) -> AsyncGenerator:
         e.update( self.dico )
         e.update( e.substitute_in_object(self.dico) )
         yield None
@@ -163,7 +163,7 @@ class Scenario(list):
         try:
             with open(self.file_path, 'r') as fid:
                 self._dico = yaml.safe_load(fid)
-        except yaml.parser.ParserError as ex:
+        except yaml.YAMLError as ex:
             raise ScenarException(f"[{self.file_path}] [Bad syntax] [{ex}]")
         list.__init__(self,[])
 
