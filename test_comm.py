@@ -1,4 +1,4 @@
-import src.request as comm
+import ehttp as comm
 import pytest
 
 @pytest.mark.asyncio

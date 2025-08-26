@@ -48,10 +48,13 @@ class ResponseInvalid(ResponseError):
 
 async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = httpx.Headers(), timeout:int=60_000, proxies=None) -> httpx.Response:
     logger.debug(f"CALL {method} {url} with body={body} headers={headers} timeout={timeout} proxies={proxies}")
+
+    hostfake="http://test"
+
     # Simule une réponse HTTP
-    if url.startswith("http://test"):
-        if method == "GET" and url.startswith("http://test/testdict"):
-            return httpx.Response(
+    if url.startswith(hostfake):
+        if method == "GET" and url.startswith(f"{hostfake}/testdict"):
+            r= httpx.Response(
                 status_code=200,
                 headers={"content-type": "application/json"},
                 json={
@@ -60,23 +63,23 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
                 },
                 request=httpx.Request(method, url, headers=headers, content=body and str(body))
             )
-        elif method == "GET" and url.startswith("http://test/testlist"):
-            return httpx.Response(
+        elif method == "GET" and url.startswith(f"{hostfake}/testlist"):
+            r= httpx.Response(
                 status_code=200,
                 headers={"content-type": "application/json"},
                 json=[1, 2, {"key": "val"}]
                 ,
                 request=httpx.Request(method, url, headers=headers, content=body and str(body))
             )
-        elif method == "POST" and url.startswith("http://test/test"):
-            return httpx.Response(
+        elif method == "POST" and url.startswith(f"{hostfake}/test"):
+            r= httpx.Response(
                 status_code=201,
                 headers={"content-type": "application/json"},
                 json=dict(result=body),
                 request=httpx.Request(method, url, headers=headers, content=body and str(body))
             )
         else:
-            return httpx.Response(
+            r= httpx.Response(
                 status_code=404,
                 headers={"content-type": "text/plain"},
                 content=b"Not Found",
@@ -90,7 +93,7 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
             # AHTTP._get_proxy_map(proxies, False)
             AHTTP = httpx.AsyncClient(follow_redirects=True,verify=False,cookies=jar)
 
-            return await AHTTP.request(
+            r= await AHTTP.request(
                 method,
                 url,
                 data=body,
@@ -101,11 +104,14 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
             # info = "%s %s %s" % (r.http_version, int(r.status_code), r.reason_phrase)
 
         except (httpx.TimeoutException):
-            return ResponseTimeout()
+            r= ResponseTimeout()
         except (httpx.ConnectError):
-            return ResponseUnreachable()
+            r= ResponseUnreachable()
         except (httpx.InvalidURL,httpx.UnsupportedProtocol,ValueError):
-            return ResponseInvalid(url)
+            r= ResponseInvalid(url)
+
+    logger.debug(f"RESPONSE {r.status_code} {r.headers} {r.content}")
+    return r
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

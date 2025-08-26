@@ -15,8 +15,9 @@ import pycode
 import env
 import config
 import scenario
-import request
+import ehttp
 import dotenv; dotenv.load_dotenv()
+
 
 from colorama import init, Fore, Style
 
@@ -67,28 +68,16 @@ def command(files:list,is_view:bool,is_debug:bool) -> int:
         return 0
     else:
 
-        # pycode.logger.setLevel(logging.DEBUG)
-        # request.logger.setLevel(logging.DEBUG)
-        # env.logger.setLevel(logging.DEBUG)
-        # scenario.logger.setLevel(logging.DEBUG)
-
         if is_debug:
-            pycode.logger.setLevel(logging.DEBUG)
-            request.logger.setLevel(logging.DEBUG)
-            env.logger.setLevel(logging.DEBUG)
-            scenario.logger.setLevel(logging.DEBUG)
+            logging.basicConfig(level=logging.DEBUG)
         else:
-            pycode.logger.setLevel(logging.ERROR)
-            request.logger.setLevel(logging.ERROR)
-            env.logger.setLevel(logging.ERROR)
-            scenario.logger.setLevel(logging.ERROR)
+            logging.basicConfig(level=logging.ERROR)
 
         asyncio.run(run_tests(files))
         return 0
 
 def main():
-    x=command()
-    sys.exit(x)
+    sys.exit( command() )
 
 if __name__ == "__main__":
     main()

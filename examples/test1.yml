@@ -35,43 +35,43 @@ scenar2:
 tata: 123
 
 RUN:
-  # - set:
-  #     toto: 42
-  #     toti: <<10 * str(toto)>>
-  #     KOKO: <<mymethod( 42 )>>
+  - set:
+      toto: 42
+      toti: <<10 * str(toto)>>
+      KOKO: <<mymethod( 42 )>>
 
   - GET: /test404
     doc: test NF
     tests:
       - $status == 404
-      - $ == "not found"
+      - $ == "Not Found"
 
-  # - call: scenar1
-  #   params:
-  #     - i: 1
-  #     - i: 2
-  #     - i: 3
+  - call: scenar1
+    params:
+      - i: 1
+      - i: 2
+      - i: 3
 
-  # - set:
-  #     HELLO: '"JE SUIS LA"'
+  - set:
+      HELLO: '"JE SUIS LA"'
 
-  # - call: scenar2
+  - call: scenar2
 
-  # - GET: /testdict?val={{ mymethod(toto) * 3 }}&JJJJJ=<<j>>
-  #   doc: test
-  #   tests:
-  #     - $status == 200
-  #     - $headers["content-type"] == "application/json"
-  #     - $headers["content-TYPE"] == "application/json"
-  #     - $.coco == "VAL"
-  #     - $.liste[0] == 1
-  #     - $.liste[2].key == "val"
-  #   params:
-  #   - j: 1
-  #   - j: 2
-  #   - j: 3
+  - GET: /testdict?val={{ mymethod(toto) * 3 }}&JJJJJ=<<j>>
+    doc: test
+    tests:
+      - $status == 200
+      - $headers["content-type"] == "application/json"
+      - $headers["content-TYPE"] == "application/json"
+      - $.coco == "VAL"
+      - $.liste[0] == 1
+      - $.liste[2].key == "val"
+    params:
+    - j: 1
+    - j: 2
+    - j: 3
 
-  # - set:
-  #      lastStatus: <<$status>>
+  - set:
+       lastStatus: <<$status>>
 
   

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import httpx
 
 from env import Env
-import request
+import ehttp
 import pycode
 
 import logging
@@ -54,7 +54,7 @@ class StepCall(Step):
 
 class StepHttp(Step):
     def __init__(self, step: dict, params: list=None):
-        methods = set(step.keys()) & request.KNOWNVERBS
+        methods = set(step.keys()) & ehttp.KNOWNVERBS
         assert len(methods) == 1, f"Step must contain exactly one HTTP method, found {methods}"
         method = methods.pop()
         self.method = method
@@ -103,7 +103,7 @@ class StepHttp(Step):
                     else:
                         body = body
 
-            r = await request.call(self.method, url, body)
+            r = await ehttp.call(self.method, url, body)
             e.setHttpResonse( r )
 
             # print( f"HTTP {self.method} {url} -> {r}" )
