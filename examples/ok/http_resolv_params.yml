@@ -1,0 +1,13 @@
+host: http://test
+
+mylist:
+  - a: 1
+  - a: 2
+
+RUN:
+
+  - GET: /testdict?a=<<a>>
+    tests:
+      - $status == 200
+    params: <<mylist>>
+

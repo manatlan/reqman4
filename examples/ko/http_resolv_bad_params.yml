@@ -1,0 +1,14 @@
+#ERROR: params must be a list of dict]
+host: http://test
+
+mylist:
+  - 1
+  - 2
+
+RUN:
+
+  - GET: /testdict?a=<<a>>
+    tests:
+      - $status == 200
+    params: <<mylist>>
+

@@ -53,7 +53,7 @@ RUN:
       - i: 3
 
   - set:
-      HELLO: '"JE SUIS LA"'
+      HELLO: JE SUIS LA
 
   - call: scenar2
 
@@ -66,6 +66,7 @@ RUN:
       - $.coco == "VAL"
       - $.liste[0] == 1
       - $.liste[2].key == "val"
+      - HELLO == "JE SUIS LA"
     params:
     - j: 1
     - j: 2

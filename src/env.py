@@ -47,6 +47,7 @@ class Env(dict):
         return eval(code,{}, dict(self) )
 
     def substitute(self, text: str) -> any:
+        """ resolve {{expr}} and/or <<expr>> in text """
         ll = re.findall(r"\{\{[^\}]+\}\}", text) + re.findall("<<[^><]+>>", text)
         for l in ll:
             expr = l[2:-2]
@@ -58,6 +59,7 @@ class Env(dict):
                 if l==text: # full same type
                     return val
                 else:
+                    # it's a part of a string, convert to str
                     text = text.replace(l, str(val))
         return text
 

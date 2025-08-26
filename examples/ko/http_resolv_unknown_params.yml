@@ -1,0 +1,10 @@
+#ERROR: name 'mylist' is not defined
+host: http://test
+
+RUN:
+
+  - GET: /testdict?a=<<a>>
+    tests:
+      - $status == 200
+    params: <<mylist>>
+

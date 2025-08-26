@@ -1,0 +1,13 @@
+#ERROR: name 'mylist' is not defined
+host: http://test
+
+
+PROC:
+  - GET: /testdict?a=<<a>>
+    tests:
+      - $status == 200
+
+RUN:
+  - call: PROC
+    params: <<mylist>>
+

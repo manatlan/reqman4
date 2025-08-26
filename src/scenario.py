@@ -21,13 +21,29 @@ class Result:
     doc: str = ""
 
 class Step:
+    params: list|str|None = None
+    
     async def process(self,e:Env) -> AsyncGenerator:
         ...
 
-class StepCall(Step):
-    def __init__(self, scenario: "Scenario", step: dict, params:list|None=None):
-        self.scenario = scenario
+    def extract_params(self,e:Env) -> list:
+        params=self.params
+        if params is None:
+            return [None]
+        elif isinstance(params, str):
+            params = e.substitute(params)
 
+        assert isinstance(params, list), "params must be a list of dict"
+        assert all( isinstance(p, dict) for p in params ), "params must be a list of dict"
+        return params
+
+
+class StepCall(Step):
+    def __init__(self, scenario: "Scenario", step: dict, params:list|str|None=None):
+        self.scenario = scenario
+        self.params = params
+
+        # extract step into local properties
         name = step["call"]
 
         assert isinstance(name, str), "CALL must be a string"
@@ -36,21 +52,23 @@ class StepCall(Step):
         sub_scenar = self.scenario.env[name]
         assert isinstance(sub_scenar, list), "CALL must reference a list of steps"
 
-        self.scenarios = self.scenario._feed( sub_scenar )
-        self.params = params
+        self.steps = self.scenario._feed( sub_scenar )
 
     async def process(self,e:Env) -> AsyncGenerator:
-        for param in self.params or [None]:
+
+        params=self.extract_params(e) 
+
+        for param in params:
             if param:
                 e.update(param)
 
-            for step in self.scenarios:
+            for step in self.steps:
                 async for r in step.process(e):
                     yield r
 
     def __repr__(self):
         s=""
-        for i in self.scenarios:
+        for i in self.steps:
             s+= "  - "+repr(i)+"\n"
         if self.params:
             return f"CALL MULTIPLE with {self.params}:\n"+s
@@ -60,9 +78,11 @@ class StepCall(Step):
 
 
 class StepHttp(Step):
-    def __init__(self, scenario: "Scenario", step: dict, params: list|None=None):
+    def __init__(self, scenario: "Scenario", step: dict, params: list|str|None=None):
         self.scenario = scenario
+        self.params = params
 
+        # extract step into local properties
         methods = set(step.keys()) & ehttp.KNOWNVERBS
         assert len(methods) == 1, f"Step must contain exactly one HTTP method, found {methods}"
         method = methods.pop()
@@ -74,13 +94,14 @@ class StepHttp(Step):
         self.tests = step.get("tests",[])
         assert all( isinstance(t,str) for t in self.tests ), "tests must be a list of strings"
 
-        self.params = params
 
     async def process(self,e:Env) -> AsyncGenerator:
         self.results=[]
         # simule l'appel
 
-        for param in self.params or [None]:
+        params=self.extract_params(e)
+
+        for param in params:
             if param:
                 # print(":: POUR",p)
                 e.update(param)
@@ -190,9 +211,6 @@ class Scenario(list):
                 
                 if "params" in step:
                     params=step["params"]
-                    if isinstance(params, dict):
-                        params=[params]
-                    assert isinstance(params, list), "params must be a list of dict"
                     del step["params"]
                 else:
                     params=None
