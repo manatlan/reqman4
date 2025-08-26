@@ -47,7 +47,7 @@ class ResponseInvalid(ResponseError):
         ResponseError.__init__(self,f"Invalid {url}")
 
 async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = httpx.Headers(), timeout:int=60_000, proxies=None) -> httpx.Response:
-    logger.debug(f"CALL {method} {url} with body={body} headers={headers} timeout={timeout} proxies={proxies}")
+    logger.debug(f"REQUEST {method} {url} with body={body} headers={headers} timeout={timeout} proxies={proxies}")
 
     hostfake="http://test"
 
