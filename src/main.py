@@ -10,13 +10,10 @@ import click
 import sys
 import asyncio
 import logging
+import dotenv; dotenv.load_dotenv()
 
-import pycode
-import env
 import config
 import scenario
-import ehttp
-import dotenv; dotenv.load_dotenv()
 
 
 from colorama import init, Fore, Style
@@ -40,8 +37,8 @@ async def run_tests(files:list[str]) -> int:
         async for i in scenario.test(file):
             if i:
                 print(f"{cy(i.request.method)} {i.request.url} -> {cb(i.response.status_code)}")
-                for t,r in i.tests:
-                    print(" -",r and cg("OK") or cr("KO"),":", t)
+                for test,ok in i.tests:
+                    print(" -",ok and cg("OK") or cr("KO"),":", test)
                 print()
 
     return 0
@@ -54,7 +51,7 @@ def command(files:list,is_view:bool,is_debug:bool) -> int:
     """Simple program that greets NAME for a total of COUNT times."""
     reqman_conf = config.guess_reqman_conf(files)
     if reqman_conf is None:
-        print(cr("No reqman.conf found"))
+        print(cy("No reqman.conf found"))
     else:
         print(f"Using reqman.conf: {reqman_conf}")
         conf = config.load_reqman_conf(reqman_conf)
@@ -67,7 +64,6 @@ def command(files:list,is_view:bool,is_debug:bool) -> int:
                 print(i)
         return 0
     else:
-
         if is_debug:
             logging.basicConfig(level=logging.DEBUG)
         else:
@@ -77,7 +73,13 @@ def command(files:list,is_view:bool,is_debug:bool) -> int:
         return 0
 
 def main():
-    sys.exit( command() )
+    try:
+        sys.exit( command() )
+    except KeyboardInterrupt:
+        sys.exit(0)
+    except scenario.ScenarException as ex:
+        print(cr(f"SCENARIO ERROR: {ex}"))
+        sys.exit(-1)
 
 if __name__ == "__main__":
     main()

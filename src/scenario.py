@@ -2,6 +2,7 @@ import yaml,json
 import asyncio
 from dataclasses import dataclass
 import httpx
+from typing import AsyncGenerator
 
 from env import Env
 import ehttp
@@ -24,22 +25,28 @@ class Step:
         pass
 
 class StepCall(Step):
-    def __init__(self, scenarios:list[Step], params:list=None):
-        self.scenarios = scenarios
+    def __init__(self, scenario: "Scenario", step: dict, params:list=None):
+        self.scenario = scenario
+
+        name = step["call"]
+
+        assert isinstance(name, str), "CALL must be a string"
+        assert name in self.scenario.env, f"CALL references unknown scenario '{name}'"
+        
+        sub_scenar = self.scenario.env[name]
+        assert isinstance(sub_scenar, list), "CALL must reference a list of steps"
+
+        self.scenarios = self.scenario._feed( sub_scenar )
         self.iter = params
 
-    async def process(self,e:Env):
-
+    async def process(self,e:Env) -> AsyncGenerator[Result, None]:
         for p in self.iter or [None]:
             if p:
-                # print(":: POUR",p)
                 e.update(p)
 
             for s in self.scenarios:
-                # print(f"- CALL {self.scenarios}")
                 async for r in s.process(e):
                     yield r
-        
 
     def __repr__(self):
         s=""
@@ -53,7 +60,9 @@ class StepCall(Step):
 
 
 class StepHttp(Step):
-    def __init__(self, step: dict, params: list=None):
+    def __init__(self, scenario: "Scenario", step: dict, params: list=None):
+        self.scenario = scenario
+
         methods = set(step.keys()) & ehttp.KNOWNVERBS
         assert len(methods) == 1, f"Step must contain exactly one HTTP method, found {methods}"
         method = methods.pop()
@@ -67,7 +76,7 @@ class StepHttp(Step):
 
         self.iter = params
 
-    async def process(self,e:Env):
+    async def process(self,e:Env) -> AsyncGenerator[Result, None]:
         self.results=[]
         # simule l'appel
 
@@ -90,7 +99,11 @@ class StepHttp(Step):
             else:
                 url = self.url
 
+
             url=e.substitute(url)
+            headers = self.scenario.env.get("headers",{})
+            headers.update( self.headers )
+            headers = e.substitute_in_object( headers )
             doc=e.substitute(self.doc)
             body = self.body
 
@@ -103,7 +116,7 @@ class StepHttp(Step):
                     else:
                         body = body
 
-            r = await ehttp.call(self.method, url, body)
+            r = await ehttp.call(self.method, url, body, headers=httpx.Headers(headers) )
             e.setHttpResonse( r )
 
             # print( f"HTTP {self.method} {url} -> {r}" )
@@ -125,23 +138,33 @@ class StepHttp(Step):
             return f"HTTP {self.method} {self.url}"
 
 class StepSet(Step):
-    def __init__(self, dico:dict):
+    def __init__(self, scenario: "Scenario", step:dict):
+        self.scenario = scenario
+
+        assert len(step) == 1, "SET cannot be used with other keys"
+        dico = step["set"]
+        assert isinstance(dico, dict), "SET must be a dictionary"
         self.dico = dico
 
-    async def process(self,e:Env):
-        d=e.substitute_in_object(self.dico)
-        assert isinstance(d, dict), "SET must be a dictionary"
-        e.update(d)
+    async def process(self,e:Env) -> AsyncGenerator[Result, None]:
+        e.update( self.dico )
+        e.update( e.substitute_in_object(self.dico) )
         yield None
 
     def __repr__(self):
         return f"SET {self.dico}"
 
+class ScenarException(Exception): pass
+
 class Scenario(list):
     def __init__(self, file_path: str):
-        with open(file_path, 'r') as file:
-            data = yaml.safe_load(file)
-        self._dico = data
+        self.file_path = file_path
+
+        try:
+            with open(self.file_path, 'r') as fid:
+                self._dico = yaml.safe_load(fid)
+        except yaml.parser.ParserError as ex:
+            raise ScenarException(f"[{self.file_path}] [Bad syntax] [{ex}]")
         list.__init__(self,[])
 
         if "RUN" in self._dico:
@@ -153,57 +176,58 @@ class Scenario(list):
 
             self.extend( self._feed( run ) )
         else:
-            raise ValueError("No RUN section in scenario")
+            raise ScenarException("No RUN section in scenario")
 
     @property
-    def env(self):
+    def env(self) -> dict:
         return self._dico
 
-    def _feed(self, liste:list) -> list:
-        ll = []
-        for step in liste:
-            if "params" in step:
-                params=step["params"]
-                if isinstance(params, dict):
-                    params=[params]
-                assert isinstance(params, list), "params must be a list of dict"
-                del step["params"]
-            else:
-                params=None
-
-            if "set" in step:
-                assert params is None, "params cannot be used with set"
-                assert isinstance(step["set"], dict), "SET must be a dictionary"
-                assert len(step) == 1, "SET cannot be used with other keys"
-                ll.append( StepSet( step["set"] ) )
-            else:
-                if "call" in step:
-                    # assert len(step) == 1, "call cannot be used with other keys"
-                    assert isinstance(step["call"], str), "CALL must be a string"
-                    assert step["call"] in self.env, f"CALL references unknown scenario '{step['call']}'"
-                    sub_scenar = self.env[step["call"]]
-                    assert isinstance(sub_scenar, list), "CALL must reference a list of steps"
-                    scenaris = self._feed( sub_scenar )
-                    self.append( StepCall( scenaris, params ) )
+    def _feed(self, liste:list) -> list[Step]:
+        try:
+            ll = []
+            for step in liste:
+                assert isinstance(step, dict), f"Bad step {step}"
+                
+                if "params" in step:
+                    params=step["params"]
+                    if isinstance(params, dict):
+                        params=[params]
+                    assert isinstance(params, list), "params must be a list of dict"
+                    del step["params"]
                 else:
-                    if "GET" in step or "POST" in step:
-                        ll.append( StepHttp( step, params ) )
-        return ll
+                    params=None
+
+                if "set" in step:
+                    assert params is None, "params cannot be used with set"
+                    ll.append( StepSet( self, step ) )
+                else:
+                    if "call" in step:
+                        self.append( StepCall( self, step, params ) )
+                    else:
+                        if set(step.keys()) & ehttp.KNOWNVERBS:
+                            ll.append( StepHttp( self, step, params ) )
+                        else:
+                            raise ScenarException(f"Bad step {step}")
+            return ll
+        except AssertionError as ex:
+            raise ScenarException(f"[{self.file_path}] [Bad step {step}] [{ex}]")
     
     def __repr__(self):
         return super().__repr__()
-
-async def execute(s:Scenario,e:Env) :
-    for step in s:
-        async for i in step.process(e):
-            yield i
-
+    
+    async def execute(self, e:Env) -> AsyncGenerator[Result, None]:
+        for step in self:
+            try:
+                async for i in step.process(e):
+                    yield i
+            except Exception as ex:
+                raise ScenarException(f"[{self.file_path}] [Error Step {step}] [{ex}]")
 
 
 async def test(file:str):
     s=Scenario(file)
     e=Env( **s.env )
-    async for r in execute(s,e):
+    async for r in s.execute(e):
         yield r
     print("======ENV FINAL==========>",e)
     

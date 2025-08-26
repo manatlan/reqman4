@@ -1,0 +1,9 @@
+#ERROR: name 'UNKNOW_VAR' is not defined
+host: http://test
+
+RUN:
+  - POST: /test
+    body: 
+      <<UNKNOW_VAR>>
+    tests:
+      - $status == 201

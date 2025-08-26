@@ -1,0 +1,6 @@
+#ERROR: RUN must be a list
+host: http://test
+
+RUN:
+  GET: /test
+

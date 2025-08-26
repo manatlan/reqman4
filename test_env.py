@@ -38,9 +38,11 @@ def test_substitute():
 
 
 def test_dotenv():
+    import os
+    un = os.environ["USERNAME"]
     e=Env()
-    assert e.substitute("<<USERNAME>>")=="manatlan"
-    assert e.eval("USERNAME")=="manatlan"
+    assert e.substitute("<<USERNAME>>")==un
+    assert e.eval("USERNAME")==un
 
 def test_substitute_in_object():
     e=Env( v=42 )

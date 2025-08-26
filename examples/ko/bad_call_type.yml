@@ -1,0 +1,7 @@
+#ERROR: CALL must be a string
+host: http://test
+
+RUN:
+  - call: 
+      - UNKNOW_PROC
+      - UNKNOW_PROC2

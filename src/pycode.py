@@ -16,7 +16,7 @@ def declare_methods(d):
     if isinstance(d, dict):
         for k,v in d.items():
             if is_python(v):
-                logger.info("*** DECLARE METHOD PYTHON:",k)
+                logger.info("*** DECLARE METHOD PYTHON: %s",k)
                 src= declare(k,v)
                 code = compile( src , "unknown", "exec")
                 x={}

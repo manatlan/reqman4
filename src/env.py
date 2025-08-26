@@ -33,7 +33,7 @@ def convert(obj):
 class Env(dict):
     def __init__(self, /, **kwargs):
         super().__init__(**kwargs)
-        # self.update( self.substitute_in_object(self) )
+        # self.update( self.substitute_in_object(self) )    # <- not a good idea
     
     def eval(self, code: str) -> any:
         logger.debug(f"EVAL: {code}")
@@ -71,8 +71,6 @@ class Env(dict):
                 return [_sub_in_object(v) for v in o]
             else:
                 return o
-
-        return _sub_in_object(o)
 
         while True:
             def default(obj):

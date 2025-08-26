@@ -1,0 +1,6 @@
+#ERROR: Bad step
+host: http://test
+
+RUN:
+  - hello
+

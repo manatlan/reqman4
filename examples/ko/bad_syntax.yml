@@ -1,0 +1,5 @@
+#ERROR: Bad syntax
+host: http://test
+
+- list
+

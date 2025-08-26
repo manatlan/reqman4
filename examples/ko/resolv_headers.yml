@@ -1,0 +1,9 @@
+#ERROR: name 'UNKNOW_VAR' is not defined
+host: http://test
+
+RUN:
+  - GET: /tests
+    headers:
+      X-Var: <<UNKNOW_VAR>>
+    tests:
+      - $status == 201

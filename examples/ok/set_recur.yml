@@ -1,0 +1,10 @@
+host: http://test
+yo: <<USERNAME>>
+
+RUN:
+  - set:
+      USER: <<USERNAME>>
+      yoyo: <<yo>>
+      test:
+        MYNAME: <<USER>>  # <= works fine
+      toto: 43
