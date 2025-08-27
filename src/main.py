@@ -60,7 +60,7 @@ async def run_tests(files:list[str], conf:dict|None, show_env:bool) -> int:
 @click.option('-d',"--debug","is_debug",is_flag=True,default=False,help="debug mode")
 @click.option('-e',"--env","show_env",is_flag=True,default=False,help="Display final environment")
 def command(files:list,is_view:bool,is_debug:bool,show_env:bool) -> int:
-    """Simple program that greets NAME for a total of COUNT times."""
+    """New reqman (rq4) prototype"""
     reqman_conf = config.guess_reqman_conf(files)
     if reqman_conf is None:
         print(cy("No reqman.conf found"))
