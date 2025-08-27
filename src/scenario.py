@@ -191,7 +191,8 @@ class Scenario(list):
         if "RUN" in self._dico:
             run = self._dico["RUN"]
             del self._dico["RUN"]
-            assert isinstance(run, list), "RUN must be a list"
+            if not isinstance(run, list):
+                raise ScenarException(f"[{self.file_path}] [Bad syntax] [RUN must be a list]")
 
             pycode.declare_methods(self._dico)
 
@@ -233,7 +234,7 @@ class Scenario(list):
     def __repr__(self):
         return super().__repr__()
     
-    async def execute(self, e:Env) -> AsyncGenerator[Result, None]:
+    async def execute(self, e:Env) -> AsyncGenerator:
         for step in self:
             try:
                 async for i in step.process(e):
@@ -241,21 +242,23 @@ class Scenario(list):
             except Exception as ex:
                 raise ScenarException(f"[{self.file_path}] [Error Step {step}] [{ex}]")
 
-
-async def test(file:str):
-    s=Scenario(file)
-    e=Env( **s.env )
-    async for r in s.execute(e):
-        yield r
-    print("======ENV FINAL==========>",e)
+class Test:
+    def __init__(self, file:str, conf:dict|None=None):
+        self.scenario = Scenario(file)
+        conf = conf or {}
+        conf.update( self.scenario.env )
+        self.env = Env( **conf )
+    
+    async def run(self) -> AsyncGenerator:
+        async for r in self.scenario.execute(self.env):
+            yield r
     
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
-    # ll=test("examples/test1.yml")
-
-    async def xxx(f:str):
-        async for i in test(f):
+    async def run_a_test(f:str):
+        t=Test(f)
+        async for i in t.run():
             if i:
                 print(f"{i.request.method} {i.request.url} -> {i.response.status_code}")
                 for t,r in i.tests:
@@ -263,7 +266,8 @@ if __name__ == "__main__":
                 print()
 
 
-    asyncio.run( xxx("examples/simple.yml") )
+    # asyncio.run( run_a_test("examples/ok/simple.yml") )
+    asyncio.run( run_a_test("examples/ok/test1.yml") )
 
     # for i in ll:
 

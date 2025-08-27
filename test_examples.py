@@ -5,7 +5,8 @@ from src import scenario
 @pytest.mark.asyncio
 @pytest.mark.parametrize("example_file", glob.glob("examples/ok/*.yml") )
 async def test_scenarios_ok(example_file):
-    async for echange in scenario.test(example_file):
+    s=scenario.Test(example_file)
+    async for echange in s.run():
         if echange:
             for test, ok in echange.tests:
                 assert ok, f"Test failed: {test}"
@@ -19,7 +20,8 @@ async def test_scenarios_ko(example_file):
     assert first_line.startswith("#ERROR:")
     error_message = first_line[len("#ERROR:"):].strip()
 
-    with pytest.raises(Exception) as excinfo:
-        async for echange in scenario.test(example_file):
+    with pytest.raises(scenario.ScenarException) as excinfo:
+        s=scenario.Test(example_file)
+        async for echange in s.run():
             pass
     assert error_message in str(excinfo.value)

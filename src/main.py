@@ -6,15 +6,18 @@
 #
 # https://github.com/manatlan/RQ
 # #############################################################################
-import click
+import os
 import sys
 import asyncio
 import logging
+import json
+
+import click
 import dotenv; dotenv.load_dotenv()
 
 import config
 import scenario
-
+import env
 
 from colorama import init, Fore, Style
 
@@ -30,32 +33,41 @@ cb = lambda t: colorize(Fore.CYAN, t)
 cw = lambda t: colorize(Fore.WHITE, t)
 
 
-async def run_tests(files:list[str]) -> int:
+async def run_tests(files:list[str], conf:dict|None, show_env:bool) -> int:
+    """ Run all tests in files, return number of failed tests """
     ll=[]
+    nb_tests_failed=0
     for file in files:
         print(cb(f"--- RUN {file} ---"))
-        async for i in scenario.test(file):
+        t=scenario.Test(file,conf)
+        async for i in t.run():
             if i:
                 print(f"{cy(i.request.method)} {i.request.url} -> {cb(i.response.status_code)}")
                 for test,ok in i.tests:
+                    if not ok:
+                        nb_tests_failed += 1
                     print(" -",ok and cg("OK") or cr("KO"),":", test)
                 print()
+        if show_env:
+            print(cy("Final environment:"))
+            print(env.jzon_dumps(t.env))
 
-    return 0
+    return nb_tests_failed
 
 @click.command()
 @click.argument('files', type=click.Path(exists=True,), nargs=-1, required=True)
 @click.option('-v',"--view","is_view",is_flag=True,default=False,help="Analyze only, do not execute requests")
 @click.option('-d',"--debug","is_debug",is_flag=True,default=False,help="debug mode")
-def command(files:list,is_view:bool,is_debug:bool) -> int:
+@click.option('-e',"--env","show_env",is_flag=True,default=False,help="Display final environment")
+def command(files:list,is_view:bool,is_debug:bool,show_env:bool) -> int:
     """Simple program that greets NAME for a total of COUNT times."""
     reqman_conf = config.guess_reqman_conf(files)
     if reqman_conf is None:
         print(cy("No reqman.conf found"))
+        conf = None
     else:
-        print(f"Using reqman.conf: {reqman_conf}")
+        print(cy(f"Using reqman.conf: {os.path.relpath(reqman_conf)}"))
         conf = config.load_reqman_conf(reqman_conf)
-        print(conf)
 
     if is_view:
         for f in files:
@@ -69,8 +81,9 @@ def command(files:list,is_view:bool,is_debug:bool) -> int:
         else:
             logging.basicConfig(level=logging.ERROR)
 
-        asyncio.run(run_tests(files))
-        return 0
+        r = asyncio.run(run_tests(files, conf, show_env))
+
+        return r
 
 def main():
     try:

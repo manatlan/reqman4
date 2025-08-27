@@ -29,6 +29,14 @@ def convert(obj):
     else:
         return obj
 
+def jzon_dumps(o):
+    def default(obj):
+        if callable(obj):
+            return f"<function {getattr(obj, '__name__', str(obj))}>"
+        elif isinstance(obj, httpx.Headers):
+            return jzon_dumps(dict(obj))
+        raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+    return json.dumps(o, default=default, indent=2)
 
 class Env(dict):
     def __init__(self, /, **kwargs):
@@ -75,13 +83,9 @@ class Env(dict):
                 return o
 
         while True:
-            def default(obj):
-                if callable(obj):
-                    return f"<function {getattr(obj, '__name__', str(obj))}>"
-                raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
-            before = json.dumps(o, default=default)
+            before = jzon_dumps(o)
             o = _sub_in_object(o)
-            after = json.dumps(o, default=default)
+            after = jzon_dumps(o)
             
             if before == after:
                 return o
