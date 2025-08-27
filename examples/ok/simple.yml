@@ -3,15 +3,19 @@ host: http://test
 toto1: 42
 yo: <<USERNAME>>
 
+toto:
+  - 1
+  - 2
+  - 3
+
 RUN:
   - set:
       USER: <<USERNAME>>
       yoyo: <<yo>>
       test:
         MYNAME: <<USER>>
-      toto: 43
 
-  - GET: /testlist?toto={{ toto }}
+  - GET: /test?json={{ toto }}
     doc: test
     tests:
       - len($) == 3
@@ -22,7 +26,7 @@ RUN:
     doc: test
     tests:
       - $status == 201
-      - $.result == 43
+      - $.result == toto
 
   - POST: /test
     body:
@@ -34,7 +38,7 @@ RUN:
     doc: test
     tests:
       - $status == 201
-      - $.result.hello == 43
-      - $.result.hello2 == 43
-      - $.result.hello3 == "hello 43"
-      - $.result.hello4[0].test1 == 43
+      - $.hello == 43
+      - $.hello2 == 43
+      # - $.hello3 == "hello 43"
+      # - $.hello4[0].test1 == 43

@@ -6,6 +6,7 @@
 #
 # https://github.com/manatlan/RQ
 # #############################################################################
+import json
 import httpx
 import logging
 logger = logging.getLogger(__name__)
@@ -53,23 +54,32 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
 
     # Simule une réponse HTTP
     if url.startswith(hostfake):
-        if method == "GET" and url.startswith(f"{hostfake}/testdict"):
+        # if method == "GET" and url.startswith(f"{hostfake}/testdict"):  # DEPRECATED
+        #     r= httpx.Response(
+        #         status_code=200,
+        #         headers={"content-type": "application/json"},
+        #         json={
+        #             "coco": "VAL",
+        #             "liste": [1, 2, {"key": "val"}]
+        #         },
+        #         request=httpx.Request(method, url, headers=headers, content=body and str(body))
+        #     )
+        # elif method == "GET" and url.startswith(f"{hostfake}/testlist"): # DEPRECATED
+        #     r= httpx.Response(
+        #         status_code=200,
+        #         headers={"content-type": "application/json"},
+        #         json=[1, 2, {"key": "val"}]
+        #         ,
+        #         request=httpx.Request(method, url, headers=headers, content=body and str(body))
+        #     )
+        if method == "GET" and url.startswith(f"{hostfake}/test"):
+            request=httpx.Request(method, url, headers=headers, content=body and str(body))
+            jzon = request.url.params.get("json",None)
             r= httpx.Response(
                 status_code=200,
                 headers={"content-type": "application/json"},
-                json={
-                    "coco": "VAL",
-                    "liste": [1, 2, {"key": "val"}]
-                },
-                request=httpx.Request(method, url, headers=headers, content=body and str(body))
-            )
-        elif method == "GET" and url.startswith(f"{hostfake}/testlist"):
-            r= httpx.Response(
-                status_code=200,
-                headers={"content-type": "application/json"},
-                json=[1, 2, {"key": "val"}]
-                ,
-                request=httpx.Request(method, url, headers=headers, content=body and str(body))
+                json=jzon and json.loads(jzon) or None,
+                request=request
             )
         elif method == "POST" and url.startswith(f"{hostfake}/test"):
             r= httpx.Response(
@@ -117,8 +127,9 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     import asyncio
     async def main():
-        x=await call("GET", "https://tools-httpstatus.pickup-services.com/200", proxies="http://77.232.100.132")
-        print(x)
+        # x=await call("GET", "https://tools-httpstatus.pickup-services.com/200", proxies="http://77.232.100.132")
+        x=await call("GET", "http://test/test?json=[1,2,3]")
+        print(x.json())
         # print(42)
     asyncio.run(main())
 

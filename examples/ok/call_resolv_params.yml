@@ -5,7 +5,7 @@ mylist:
   - a: 2
 
 PROC:
-  - GET: /testdict?a=<<a>>
+  - GET: /test?a=<<a>>
     tests:
       - $status == 200
 
