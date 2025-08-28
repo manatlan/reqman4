@@ -1,0 +1,7 @@
+- set:
+    host: http://test
+    
+- GET: /test
+  tests:
+    - $status == 200
+  

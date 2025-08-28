@@ -188,17 +188,25 @@ class Scenario(list):
             raise ScenarException(f"[{self.file_path}] [Bad syntax] [{ex}]")
         list.__init__(self,[])
 
-        if "RUN" in self._dico:
-            run = self._dico["RUN"]
-            del self._dico["RUN"]
-            if not isinstance(run, list):
-                raise ScenarException(f"[{self.file_path}] [Bad syntax] [RUN must be a list]")
+        if isinstance(self._dico, dict):
+            if "RUN" in self._dico:
+                run = self._dico["RUN"]
+                del self._dico["RUN"]
+                if not isinstance(run, list):
+                    raise ScenarException(f"[{self.file_path}] [Bad syntax] [RUN must be a list]")
 
-            pycode.declare_methods(self._dico)
+                pycode.declare_methods(self._dico)
 
+                self.extend( self._feed( run ) )
+            else:
+                raise ScenarException("No RUN section in scenario")
+        elif isinstance(self._dico, list):
+            run = self._dico
+            self._dico={}
             self.extend( self._feed( run ) )
+
         else:
-            raise ScenarException("No RUN section in scenario")
+            raise ScenarException(f"[{self.file_path}] [Bad syntax] [scenario must be a dict or a list]")
 
     @property
     def env(self) -> dict:
