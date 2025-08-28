@@ -3,8 +3,6 @@ import re,yaml,json
 """
 to be able to run old reqman files with new rq4 engine
 
-**IN CONSTRUCTION** (not used yet)
-
 """
 
 def fix_expr( text: str ) -> str:

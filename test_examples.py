@@ -6,6 +6,9 @@ from src import scenario
 @pytest.mark.parametrize("example_file", glob.glob("examples/ok/*.yml") )
 async def test_scenarios_ok(example_file):
     s=scenario.Test(example_file)
+    print(s.scenario) # test repr
+    for step in s.scenario:
+        print(step) # test step.__repr__
     async for echange in s.run():
         if echange:
             for test, ok in echange.tests:

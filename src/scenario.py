@@ -109,17 +109,14 @@ class StepHttp(Step):
 
             host = e.get("host",None)
             if host:
-                if host == "test":
-                    url = self.url
+                assert host.startswith("http"), f"host must start with http, found {host}"
+                if self.url.startswith("/"):
+                    url = host + self.url
                 else:
-                    assert host.startswith("http"), f"host must start with http, found {host}"
-                    if self.url.startswith("/"):
-                        url = host + self.url
+                    if self.url.startswith("http"):
+                        url = self.url
                     else:
-                        if not self.url.startswith("http"):
-                            url = host + "/" + self.url
-                        else:
-                            url = self.url
+                        url = host + "/" + self.url
             else:
                 url = self.url
 

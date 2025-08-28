@@ -1,4 +1,7 @@
-from src.env import Env, convert, MyList
+from src.env import Env, convert, MyList,jzon_dumps,httpx
+
+def test_jzon_dumps():
+    assert jzon_dumps( dict(method = lambda x: x * 39,headers=httpx.Headers() ) )
 
 def test_eval_python_call():
     e=Env( method = lambda x: x * 39 )
