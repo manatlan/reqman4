@@ -7,6 +7,7 @@ from typing import AsyncGenerator
 from env import Env
 import ehttp
 import pycode
+import compat
 
 import logging
 logger = logging.getLogger(__name__)
@@ -91,7 +92,7 @@ class StepHttp(Step):
         self.doc = step.get("doc","")
         self.headers = step.get("headers",{})
         self.body = step.get("body",None)
-        self.tests = step.get("tests",[])
+        self.tests = compat.fix_tests( step.get("tests",[]) )
         assert all( isinstance(t,str) for t in self.tests ), "tests must be a list of strings"
 
 
@@ -117,6 +118,8 @@ class StepHttp(Step):
                     else:
                         if not self.url.startswith("http"):
                             url = host + "/" + self.url
+                        else:
+                            url = self.url
             else:
                 url = self.url
 
