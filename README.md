@@ -5,6 +5,7 @@ a complete rewrite (prototype)
 diff:
 - licence gnu gpl v2 -> MIT
 - "uv" & (a lot) simpler (less features)
+- use httpx !
 - scenars(yml/rml) & reqman.conf are yaml/dict only !
 - scenars must have a "RUN:" section (others keys are the global env)
 - tests are python statements
