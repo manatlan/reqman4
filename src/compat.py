@@ -1,4 +1,4 @@
-import re,yaml,json
+import re,json
 
 """
 to be able to run old reqman files with new rq4 engine
@@ -21,7 +21,7 @@ def fix_expr( text: str ) -> str:
 
 def fix_tests(tests:dict|list) -> list[str]:
 
-    def fix_comp(k:str,v:any) -> str:
+    def fix_comp(k:str,v) -> str:
         if isinstance(v,str) and v.startswith("<<") and v.endswith(">>"):
             rv = fix_expr(v)[2:-2]
         elif isinstance(v,str) and v.startswith("{{") and v.endswith("}}"):

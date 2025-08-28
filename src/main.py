@@ -10,7 +10,6 @@ import os
 import sys
 import asyncio
 import logging
-import json
 
 import click
 import dotenv; dotenv.load_dotenv()

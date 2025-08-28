@@ -1,6 +1,7 @@
 from src import main
 import pytest
 
+
 def test_find_scenarios():
     assert list(main.find_scenarios("examples"))
 
