@@ -6,7 +6,7 @@ mymethod: |
   return x * 23
 
 scenar1:
-  - GET: /testlist?i={{ i }}
+  - GET: /test?json=[1,2,{"key":"val"}]
     doc: test
     tests:
       - $status == 200
@@ -19,12 +19,12 @@ scenar2:
 
   - call: scenar1
 
-  - GET: /testdict
+  - GET: /test
     doc: test
     tests:
       - $status == 200
       
-  - GET: /testdict
+  - GET: /test?json={ "coco":"VAL" }
     doc: test
     tests:
       - $status == 200
@@ -40,7 +40,7 @@ RUN:
       toti: <<10 * str(toto)>>
       KOKO: <<mymethod( 42 )>>
 
-  - GET: /test404
+  - GET: /404
     doc: test NF
     tests:
       - $status == 404
@@ -57,15 +57,14 @@ RUN:
 
   - call: scenar2
 
-  - GET: /testdict?val={{ mymethod(toto) * 3 }}&JJJJJ=<<j>>
+  - GET: /test?json=[<<mymethod(toto) * 3>>,<<j>>]
     doc: test
     tests:
       - $status == 200
       - $headers["content-type"] == "application/json"
       - $headers["content-TYPE"] == "application/json"
-      - $.coco == "VAL"
-      - $.liste[0] == 1
-      - $.liste[2].key == "val"
+      - $[0] == 2898
+      - $[1] == j
       - HELLO == "JE SUIS LA"
     params:
     - j: 1

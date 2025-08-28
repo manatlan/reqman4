@@ -85,7 +85,7 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
             r= httpx.Response(
                 status_code=201,
                 headers={"content-type": "application/json"},
-                json=dict(result=body),
+                json=body,
                 request=httpx.Request(method, url, headers=headers, content=body and str(body))
             )
         else:

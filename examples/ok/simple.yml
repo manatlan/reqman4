@@ -1,19 +1,21 @@
 host: http://test
 # host: http://localhost:5000
 toto1: 42
-yo: <<USERNAME>>
+yo: <<USER>>
 
 toto:
   - 1
   - 2
   - 3
 
+
 RUN:
   - set:
-      USER: <<USERNAME>>
+      MYUSER: <<USER>>
       yoyo: <<yo>>
       test:
-        MYNAME: <<USER>>
+        MYNAME: <<MYUSER>>
+      tata: 43
 
   - GET: /test?json={{ toto }}
     doc: test
@@ -26,19 +28,19 @@ RUN:
     doc: test
     tests:
       - $status == 201
-      - $.result == toto
+      - $ == toto
 
   - POST: /test
     body:
       hello: <<toto>>
-      hello2: "{{ toto }}"
-      hello3: hello {{ toto }}
+      hello2: "{{ tata }}"
+      hello3: hello {{ tata }}
       hello4:
-        - test1: <<toto>>
+        - test1: <<tata>>
     doc: test
     tests:
       - $status == 201
-      - $.hello == 43
+      - $.hello == toto
       - $.hello2 == 43
-      # - $.hello3 == "hello 43"
-      # - $.hello4[0].test1 == 43
+      - $.hello3 == "hello 43"
+      - $.hello4[0].test1 == 43
