@@ -54,6 +54,15 @@ async def run_tests(files:list[str], conf:dict|None, show_env:bool) -> int:
 
     return nb_tests_failed
 
+def find_scenarios(path_folder: str, filters=(".yml", ".rml")):
+    for folder, subs, files in os.walk(path_folder):
+        if (folder in [".", ".."]) or ( not os.path.basename(folder).startswith((".", "_"))):
+            for filename in files:
+                if filename.lower().endswith(
+                    filters
+                ) and not filename.startswith((".", "_")):
+                    yield os.path.join(folder, filename)
+
 @click.command()
 @click.argument('files', type=click.Path(exists=True,), nargs=-1, required=True)
 @click.option('-v',"--view","is_view",is_flag=True,default=False,help="Analyze only, do not execute requests")
@@ -61,6 +70,16 @@ async def run_tests(files:list[str], conf:dict|None, show_env:bool) -> int:
 @click.option('-e',"--env","show_env",is_flag=True,default=False,help="Display final environment")
 def command(files:list,is_view:bool,is_debug:bool,show_env:bool) -> int:
     """New reqman (rq4) prototype"""
+
+    # fix files : extract files (yml/rml) from potentials directories
+    ll=[]
+    for i in files:
+        if os.path.isdir(i):
+            ll.extend( list(find_scenarios(i)) )
+        else:
+            ll.append(i)
+    files = ll
+
     reqman_conf = config.guess_reqman_conf(files)
     if reqman_conf is None:
         print(cy("No reqman.conf found"))

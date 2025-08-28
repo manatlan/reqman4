@@ -1,4 +1,4 @@
-import yaml,json
+import yaml,json,os
 import asyncio
 from dataclasses import dataclass
 import httpx
@@ -179,6 +179,8 @@ class ScenarException(Exception): pass
 
 class Scenario(list):
     def __init__(self, file_path: str):
+        if not os.path.isfile(file_path):
+            raise ScenarException(f"[{file_path}] [File not found]")
         self.file_path = file_path
 
         try:

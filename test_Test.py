@@ -24,6 +24,8 @@ switch:
     with pytest.raises(AssertionError):
         t.apply_switch("unknown")
 
+    assert t.env["host"] == "http://test"
+
     t.apply_switch("env2")
 
     assert t.env["host"] == "http://verification/"
