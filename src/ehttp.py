@@ -24,8 +24,7 @@ KNOWNVERBS = set([
 ])
 
 jar=httpx.Cookies()
-# AHTTP = httpx.AsyncClient(follow_redirects=True,verify=False,cookies=jar)
-# AHTTP = httpx.Client(follow_redirects=True,verify=False,cookies=jar)
+AHTTP = httpx.AsyncClient(follow_redirects=True,verify=False,cookies=jar)
 
 class ResponseError(httpx.Response):
     def __init__(self,error):
@@ -82,8 +81,7 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
         assert method in KNOWNVERBS, f"Unknown HTTP verb {method}"
         try:
 
-            # AHTTP._get_proxy_map(proxies, False)
-            AHTTP = httpx.AsyncClient(follow_redirects=True,verify=False,cookies=jar)
+            AHTTP._get_proxy_map(proxies, False)
 
             r= await AHTTP.request(
                 method,
