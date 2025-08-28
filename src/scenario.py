@@ -257,6 +257,23 @@ class Test:
         conf.update( self.scenario.env )
         self.env = Env( **conf )
     
+    @property
+    def switchs(self) -> dict:
+        d={}
+        for i in ["switch","switches","switchs"]:   #TODO: compat rq & reqman
+            if i in self.env:
+                switchs = self.env.get(i,{})
+                assert isinstance(switchs, dict), "switch must be a dictionary"
+                for k,v in switchs.items():
+                    assert isinstance(v, dict), "switch item must be a dictionary"
+                    d[k]=v
+                return d
+        return d
+    
+    def apply_switch(self, name:str):
+        assert name in dict(self.switchs), f"Unknown switch '{name}'"
+        self.env.update( self.switchs[name] )
+
     async def run(self) -> AsyncGenerator:
         async for r in self.scenario.execute(self.env):
             yield r
@@ -276,6 +293,3 @@ if __name__ == "__main__":
 
     # asyncio.run( run_a_test("examples/ok/simple.yml") )
     asyncio.run( run_a_test("examples/ok/test1.yml") )
-
-    # for i in ll:
-

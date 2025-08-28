@@ -2,7 +2,6 @@ host: http://test
 
 RUN:
 
-  - GET: /testlist
-    doc: test
+  - GET: /test?json=[1,2,3]
     tests:
       - len($) == 3
