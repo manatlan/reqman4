@@ -16,3 +16,10 @@
   params:
     - val: ok
 
+# - GET: http://test/test?json={"result":"<<USER>>"}
+#   tests:
+#     - status: 200
+#     - json.result: <<MYUSER>>
+#   params:
+#     - MYUSER: <<USER>>
+

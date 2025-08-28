@@ -54,24 +54,6 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
 
     # Simule une réponse HTTP
     if url.startswith(hostfake):
-        # if method == "GET" and url.startswith(f"{hostfake}/testdict"):  # DEPRECATED
-        #     r= httpx.Response(
-        #         status_code=200,
-        #         headers={"content-type": "application/json"},
-        #         json={
-        #             "coco": "VAL",
-        #             "liste": [1, 2, {"key": "val"}]
-        #         },
-        #         request=httpx.Request(method, url, headers=headers, content=body and str(body))
-        #     )
-        # elif method == "GET" and url.startswith(f"{hostfake}/testlist"): # DEPRECATED
-        #     r= httpx.Response(
-        #         status_code=200,
-        #         headers={"content-type": "application/json"},
-        #         json=[1, 2, {"key": "val"}]
-        #         ,
-        #         request=httpx.Request(method, url, headers=headers, content=body and str(body))
-        #     )
         if method == "GET" and url.startswith(f"{hostfake}/test"):
             request=httpx.Request(method, url, headers=headers, content=body and str(body))
             jzon = request.url.params.get("json",None)

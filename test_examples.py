@@ -26,5 +26,5 @@ async def test_scenarios_ko(example_file):
     with pytest.raises(scenario.ScenarException) as excinfo:
         s=scenario.Test(example_file)
         async for echange in s.run():
-            pass
+            ...
     assert error_message in str(excinfo.value)

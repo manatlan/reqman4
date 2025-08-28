@@ -63,12 +63,7 @@ def find_scenarios(path_folder: str, filters=(".yml", ".rml")):
                 ) and not filename.startswith((".", "_")):
                     yield os.path.join(folder, filename)
 
-@click.command()
-@click.argument('files', type=click.Path(exists=True,), nargs=-1, required=True)
-@click.option('-v',"--view","is_view",is_flag=True,default=False,help="Analyze only, do not execute requests")
-@click.option('-d',"--debug","is_debug",is_flag=True,default=False,help="debug mode")
-@click.option('-e',"--env","show_env",is_flag=True,default=False,help="Display final environment")
-def command(files:list,is_view:bool,is_debug:bool,show_env:bool) -> int:
+def reqman(files:list,is_view:bool=False,is_debug:bool=False,show_env:bool=False) -> int:
     """New reqman (rq4) prototype"""
 
     # fix files : extract files (yml/rml) from potentials directories
@@ -103,6 +98,15 @@ def command(files:list,is_view:bool,is_debug:bool,show_env:bool) -> int:
         r = asyncio.run(run_tests(files, conf, show_env))
 
         return r
+
+
+@click.command()
+@click.argument('files', type=click.Path(exists=True,), nargs=-1, required=True)
+@click.option('-v',"--view","is_view",is_flag=True,default=False,help="Analyze only, do not execute requests")
+@click.option('-d',"--debug","is_debug",is_flag=True,default=False,help="debug mode")
+@click.option('-e',"--env","show_env",is_flag=True,default=False,help="Display final environment")
+def command(files:list,is_view:bool,is_debug:bool,show_env:bool) -> int:
+    return reqman(files,is_view,is_debug,show_env)
 
 def main():
     try:
