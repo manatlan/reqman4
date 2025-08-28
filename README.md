@@ -1,6 +1,6 @@
 # RQ (reqman4)
 
-a complete rewrite (prototyp)
+a complete rewrite (prototype)
 
 diff:
 - licence gnu gpl v2 -> MIT
