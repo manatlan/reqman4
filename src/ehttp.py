@@ -23,7 +23,7 @@ KNOWNVERBS = set([
     "CONNECT",
 ])
 
-ASYNCHTTP = httpx.AsyncClient(follow_redirects=True,verify=False,cookies=httpx.Cookies())
+JAR=httpx.Cookies()
 
 class ResponseError(httpx.Response):
     def __init__(self,error):
@@ -45,8 +45,14 @@ class ResponseInvalid(ResponseError):
     def __init__(self,url):
         ResponseError.__init__(self,f"Invalid {url}")
 
-async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = httpx.Headers(), timeout:int=60_000, proxy=None) -> httpx.Response:
+async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = httpx.Headers(), timeout:int=60_000, proxy:str|None=None) -> httpx.Response:
     logger.debug(f"REQUEST {method} {url} with body={body} headers={headers} timeout={timeout} proxy={proxy}")
+
+    # if proxy:
+    #     transport = httpx.HTTPTransport(proxy=proxy)
+    #     proxy_mounts = {"http://": transport, "https://": transport}
+    # else:
+    #     proxy_mounts = None
 
     hostfake="http://test"
 
@@ -80,25 +86,33 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
         assert method in KNOWNVERBS, f"Unknown HTTP verb {method}"
         try:
 
-            #TODO: this thing should not work ... replace
-            ASYNCHTTP._get_proxy_map(proxy, False)
-
-            r= await ASYNCHTTP.request(
-                method,
-                url,
-                data=body,
-                headers=headers,
-                timeout=timeout,   # sec to millisec
-            )
-
+            with httpx.Client(follow_redirects=True,verify=False,cookies=JAR,proxy=proxy) as client:
+                r = client.request(
+                    method,
+                    url,
+                    data=body,
+                    headers=headers,
+                    timeout=timeout/1000,   # seconds!
+                )
+            # async with httpx.AsyncClient(follow_redirects=True,verify=False,cookies=JAR,proxy=proxy) as client:
+            #     r = await client.request(
+            #         method,
+            #         url,
+            #         data=body,
+            #         headers=headers,
+            #         timeout=timeout/1000,   # seconds!
+            #     )
             # info = "%s %s %s" % (r.http_version, int(r.status_code), r.reason_phrase)
 
-        except (httpx.TimeoutException):
-            r= ResponseTimeout()
-        except (httpx.ConnectError):
-            r= ResponseUnreachable()
-        except (httpx.InvalidURL,httpx.UnsupportedProtocol,ValueError):
-            r= ResponseInvalid(url)
+        except httpx.TimeoutException as e:
+            r = ResponseTimeout()
+            r.request = e.request
+        except httpx.ConnectError as e:
+            r = ResponseUnreachable()
+            r.request = httpx.Request(method, url, headers=headers, content=body and str(body))
+        except (httpx.InvalidURL,httpx.UnsupportedProtocol,ValueError) as e:
+            r = ResponseInvalid(url)
+            r.request = httpx.Request(method, url, headers=headers, content=body and str(body))
 
     logger.debug(f"RESPONSE {r.status_code} {r.headers} {r.content}")
     return r

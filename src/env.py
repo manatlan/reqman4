@@ -91,6 +91,18 @@ class Env(dict):
                 return o
 
     
+    @property
+    def switchs(self) -> dict:
+        d={}
+        for i in ["switch","switches","switchs"]:   #TODO: compat rq & reqman
+            if i in self:
+                switchs = self.get(i,{})
+                assert isinstance(switchs, dict), "switch must be a dictionary"
+                for k,v in switchs.items():
+                    assert isinstance(v, dict), "switch item must be a dictionary"
+                    d[k]=v
+                return d
+        return d
 
 
     def setHttpResonse(self, response:httpx.Response): 

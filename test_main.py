@@ -12,6 +12,5 @@ def test_main_view_only():
     assert main.reqman(["examples/test_switch.yml"],is_view=True) == 0
 
 def test_fnf():
-    with pytest.raises(main.scenario.ScenarException):
-        main.reqman(["examples/UNKNOW_FILE.yml"])
+    assert main.reqman(["examples/UNKNOW_FILE.yml"])==-1
 

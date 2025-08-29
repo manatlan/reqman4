@@ -10,6 +10,7 @@ import os
 import sys
 import asyncio
 import logging
+import traceback
 
 import click
 import dotenv; dotenv.load_dotenv()
@@ -32,14 +33,14 @@ cb = lambda t: colorize(Fore.CYAN, t)
 cw = lambda t: colorize(Fore.WHITE, t)
 
 
-async def run_tests(files:list[str], conf:dict|None, show_env:bool) -> int:
+async def run_tests(files:list[str], conf:dict|None, switch:str|None=None, show_env:bool=False) -> int:
     """ Run all tests in files, return number of failed tests """
     ll=[]
     nb_tests_failed=0
     for file in files:
         print(cb(f"--- RUN {file} ---"))
         t=scenario.Test(file,conf)
-        async for i in t.run():
+        async for i in t.run(switch):
             if i:
                 print(f"{cy(i.request.method)} {i.request.url} -> {cb(i.response.status_code)}")
                 for test,ok in i.tests:
@@ -62,17 +63,21 @@ def find_scenarios(path_folder: str, filters=(".yml", ".rml")):
                 ) and not filename.startswith((".", "_")):
                     yield os.path.join(folder, filename)
 
-def reqman(files:list,is_view:bool=False,is_debug:bool=False,show_env:bool=False) -> int:
-    """New reqman (rq4) prototype"""
-
-    # fix files : extract files (yml/rml) from potentials directories
+def expand_files(files:list[str]) -> list[str]:
+    """ Expand files list : if a directory is found, extract all scenarios from it """
     ll=[]
     for i in files:
         if os.path.isdir(i):
             ll.extend( list(find_scenarios(i)) )
         else:
             ll.append(i)
-    files = ll
+    return ll
+
+def reqman(files:list,switch:str|None=None,is_view:bool=False,is_debug:bool=False,show_env:bool=False) -> int:
+    """New reqman (rq4) prototype"""
+
+    # fix files : extract files (yml/rml) from potentials directories
+    ll=expand_files(files)
 
     reqman_conf = config.guess_reqman_conf(files)
     if reqman_conf is None:
@@ -94,27 +99,64 @@ def reqman(files:list,is_view:bool=False,is_debug:bool=False,show_env:bool=False
         else:
             logging.basicConfig(level=logging.ERROR)
 
-        r = asyncio.run(run_tests(files, conf, show_env))
+        try:
+            r = asyncio.run(run_tests(files, conf, switch, show_env))
+        except KeyboardInterrupt:
+            r = 0
+        except scenario.ScenarException as ex:
+            print(cr(f"SCENARIO ERROR: {ex}"))
+            if is_debug:
+                traceback.print_exc()
+            r = -1
+            #TODO: decide if show env or not
+            # if show_env:
+            #     print(cy("Final environment:"))
+            #     print(env.jzon_dumps(t.env))
 
         return r
 
+def guess(args:list):
+    ##########################################################################
+    #WARNING: it returns only switchs from reqman.conf ! (not from scenario!!!!)
+    files = expand_files([i for i in args[1:] if os.path.exists(i)])
+    reqman_conf = config.guess_reqman_conf(files)
+    if reqman_conf:
+        conf = config.load_reqman_conf(reqman_conf)
+        return env.Env(**conf).switchs
+    else:
+        return {}        
+    ##########################################################################
 
-@click.command()
+def options_from_files(opt_name:str):
+    d=guess(sys.argv)
+
+    ll=[dict( name=k, switch=f"-{k}", help=v.get("doc","???") ) for k,v in d.items()]
+
+    def decorator(f):
+        for p in reversed(ll):
+            click.option( p['switch'], opt_name, 
+                is_flag = True,
+                flag_value=p['name'],
+                required = False,
+                help = p['help'],
+            )(f)
+        return f
+    return decorator
+
+
+@click.group()
+def cli():
+    pass
+
+@cli.command()
+# @click.argument('files', nargs=-1, required=True)
 @click.argument('files', type=click.Path(exists=True,), nargs=-1, required=True)
+@options_from_files("switch")
 @click.option('-v',"--view","is_view",is_flag=True,default=False,help="Analyze only, do not execute requests")
 @click.option('-d',"--debug","is_debug",is_flag=True,default=False,help="debug mode")
 @click.option('-e',"--env","show_env",is_flag=True,default=False,help="Display final environment")
-def command(files:list,is_view:bool,is_debug:bool,show_env:bool) -> int:
-    return reqman(files,is_view,is_debug,show_env)
-
-def main():
-    try:
-        sys.exit( command() )
-    except KeyboardInterrupt:
-        sys.exit(0)
-    except scenario.ScenarException as ex:
-        print(cr(f"SCENARIO ERROR: {ex}"))
-        sys.exit(-1)
+def main(files:list,switch:str|None,is_view:bool,is_debug:bool,show_env:bool) -> int:
+    return reqman(files,switch,is_view,is_debug,show_env)
 
 if __name__ == "__main__":
-    main()
+    sys.exit( main() )

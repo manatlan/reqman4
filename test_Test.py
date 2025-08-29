@@ -19,10 +19,10 @@ switch:
 """)
 
     t=scenario.Test("examples/test_switch.yml", conf)
-    assert list(t.switchs.keys()) == [ "env1", "env2", "env3" ]
+    assert list(t.env.switchs.keys()) == [ "env1", "env2", "env3" ]
 
     with pytest.raises(AssertionError):
-        t.apply_switch("unknown")
+      t.apply_switch("unknown")
 
     assert t.env["host"] == "http://test"
 
