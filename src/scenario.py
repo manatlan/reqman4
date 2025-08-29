@@ -107,21 +107,15 @@ class StepHttp(Step):
                 # print(":: POUR",p)
                 e.update(param)
 
-            host = e.get("host",None)
+            url = e.substitute(self.url)
+            host = e.get("host","")
             if host:
                 assert host.startswith("http"), f"host must start with http, found {host}"
-                if self.url.startswith("/"):
-                    url = host + self.url
-                else:
-                    if self.url.startswith("http"):
-                        url = self.url
-                    else:
-                        url = host + "/" + self.url
+                if url.startswith("/"):
+                    url = host + url
             else:
                 url = self.url
-
-
-            url=e.substitute(url)
+                
             headers = self.scenario.env.get("headers",{})
             headers.update( self.headers )
             headers = e.substitute_in_object( headers )
