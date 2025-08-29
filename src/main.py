@@ -162,7 +162,7 @@ def cli():
 #     print(args)
 #     print(kwargs)
 
-def main(files:list,switch:str|None,vars:str|None,is_view:bool,is_debug:bool,show_env:bool) -> int:
+def main(files:list,vars:str|None,is_view:bool,is_debug:bool,show_env:bool,switch:str|None=None) -> int:
     if vars:
         conf_vars = dict( [ i.split("=",1) for i in vars.split(",") if "=" in i ] )
     else:
