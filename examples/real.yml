@@ -1,0 +1,10 @@
+RUN:
+  - GET: https://tools-httpstatus.pickup-services.com/500
+    doc: this is the documentation of the test
+    tests:
+     - $status == 500
+
+  - GET: https://tools-httpstatus.pickup-services.com/200
+    doc: this is the documentation of the test
+    tests:
+     - $status == 200

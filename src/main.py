@@ -11,13 +11,15 @@ import sys
 import asyncio
 import logging
 import traceback
-
+import tempfile
+import webbrowser
 import click
 import dotenv; dotenv.load_dotenv()
 
 import config
 import scenario
 import env
+import output
 
 from colorama import init, Fore, Style
 
@@ -38,6 +40,7 @@ class Output:
         self.nb_tests=0
         self.nb_tests_ok=0
         self.nb_req=0
+        self.htmls=[ output.generate_base() ]
 
     @property
     def nb_tests_ko(self):
@@ -45,6 +48,7 @@ class Output:
 
     def begin(self,file:str):
         print(cb(f"--- RUN {file} ---"))
+        self.htmls.append( output.generate_section(file) )
 
     def write_test(self,r:scenario.Result):
         if r:
@@ -56,9 +60,19 @@ class Output:
                 if ok:
                     self.nb_tests_ok += 1
             print()
+            self.htmls.append( output.generate_request(r) )
 
     def end(self):
         pass
+
+    def open_browser(self):
+
+        with tempfile.NamedTemporaryFile('w', delete=False, suffix='.html') as f:
+            f.write("\n".join(self.htmls))
+            temp_html_path = f.name
+
+        # Ouvre le fichier HTML dans le navigateur par défaut
+        webbrowser.open(f'file://{os.path.abspath(temp_html_path)}')        
 
 async def run_tests(files:list[str], conf:dict|None, switch:str|None=None, show_env:bool=False) -> Output:
     """ Run all tests in files, return number of failed tests """
@@ -100,7 +114,7 @@ def expand_files(files:list[str]) -> list[str]:
             ll.append(i)
     return ll
 
-def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,is_debug:bool=False,show_env:bool=False) -> int:
+def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,is_debug:bool=False,show_env:bool=False,show_html:bool=False) -> int:
     """New reqman (rq4) prototype"""
 
     # fix files : extract files (yml/rml) from potentials directories
@@ -130,6 +144,7 @@ def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,is_de
         try:
             o = asyncio.run(run_tests(files, conf, switch, show_env))
             r = o.nb_tests_ko
+            if show_html: o.open_browser()
             if r==0:
                 print(cg(f"{o.nb_tests_ok}/{o.nb_tests}"))
             else:
@@ -198,6 +213,7 @@ def cli():
 @click.option('-e',"show_env",is_flag=True,default=False,help="Display final environment")
 @click.option('-s',"vars",help="Set variables (ex: -s token=DEADBEAF,id=42)")
 @click.option('-i',"is_shebang",is_flag=True,default=False,help="interactif mode (with shebang)")
+@click.option('-o',"open_browser",is_flag=True,default=False,help="open result in an html page")
 def main(**p):
     if p["vars"]:
         vars = dict( [ i.split("=",1) for i in p["vars"].split(",") if "=" in i ] )
@@ -215,7 +231,7 @@ def main(**p):
             sys.argv=[ cmd, files[0] ] + options
             return main() #redo click parsing !
             
-    return reqman(p["files"],p.get("switch",None),vars,p["is_view"],p["is_debug"],p["show_env"])
+    return reqman(p["files"],p.get("switch",None),vars,p["is_view"],p["is_debug"],p["show_env"],p["open_browser"])
 
 if __name__ == "__main__":
     sys.exit( main() )
