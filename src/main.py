@@ -121,6 +121,14 @@ def guess(args:list):
     ##########################################################################
     #WARNING: it returns only switchs from reqman.conf ! (not from scenario!!!!)
     files = expand_files([i for i in args if os.path.exists(i)])
+    if len(files)==1:
+        # an unique file
+        import yaml
+        d=yaml.safe_load(open(files[0],"r"))
+        if "switch" in d:
+            print(cy(f"Using switches from {files[0]}"))
+            return d["switch"]
+            
     reqman_conf = config.guess_reqman_conf(files)
     if reqman_conf:
         conf = config.load_reqman_conf(reqman_conf)
