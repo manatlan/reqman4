@@ -106,15 +106,6 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
                         headers=headers,
                         timeout=timeout/1000,   # seconds!
                     )
-            # async with httpx.AsyncClient(follow_redirects=True,verify=False,cookies=JAR,proxy=proxy) as client:
-            #     r = await client.request(
-            #         method,
-            #         url,
-            #         data=body,
-            #         headers=headers,
-            #         timeout=timeout/1000,   # seconds!
-            #     )
-            # info = "%s %s %s" % (r.http_version, int(r.status_code), r.reason_phrase)
 
         except httpx.TimeoutException as e:
             r = ResponseTimeout()

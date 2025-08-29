@@ -1,8 +1,18 @@
+# -*- coding: utf-8 -*-
+# #############################################################################
+# Copyright (C) 2025 manatlan manatlan[at]gmail(dot)com
+#
+# MIT licence
+#
+# https://github.com/manatlan/RQ
+# #############################################################################
+
 import re,json
 
 """
 to be able to run old reqman files with new rq4 engine
 
+TODO: redo better
 """
 
 def fix_expr( text: str ) -> str:
