@@ -35,37 +35,51 @@ cw = lambda t: colorize(Fore.WHITE, t)
 
 class Output:
     def __init__(self):
+        self.nb_tests=0
+        self.nb_tests_ok=0
+        self.nb_req=0
+
+    @property
+    def nb_tests_ko(self):
+        return self.nb_tests - self.nb_tests_ok
+
+    def begin(self,file:str):
+        print(cb(f"--- RUN {file} ---"))
+
+    def write_test(self,r:scenario.Result):
+        if r:
+            self.nb_req+=1
+            print(f"{cy(r.request.method)} {r.request.url} -> {cb(r.response.status_code)}")
+            for test,ok in r.tests:
+                print(" -",ok and cg("OK") or cr("KO"),":", test)
+                self.nb_tests += 1
+                if ok:
+                    self.nb_tests_ok += 1
+            print()
+
+    def end(self):
         pass
-    def write(self,r:scenario.Result):
-        print(f"{cy(r.request.method)} {r.request.url} -> {cb(r.response.status_code)}")
-        for test,ok in r.tests:
-            print(" -",ok and cg("OK") or cr("KO"),":", test)
-        print()
 
-
-
-async def run_tests(files:list[str], conf:dict|None, switch:str|None=None, show_env:bool=False) -> int:
+async def run_tests(files:list[str], conf:dict|None, switch:str|None=None, show_env:bool=False) -> Output:
     """ Run all tests in files, return number of failed tests """
     output = Output()
 
-    nb_tests_failed=0
     for file in files:
-        print(cb(f"--- RUN {file} ---"))
+        output.begin( file )
         try:
-
             t=scenario.Test(file,conf)
             async for i in t.run(switch):
-                if i:
-                    output.write(i)
-                    nb_tests_failed += sum([1 for test,ok in i.tests if not ok])
+                output.write_test(i)
         except Exception as ex:
             ex.env = t.env
             raise ex
+        
+        output.end( )
         if show_env:
             print(cy("Final environment:"))
             print(env.jzon_dumps(t.env))
 
-    return nb_tests_failed
+    return output
 
 def find_scenarios(path_folder: str, filters=(".yml", ".rml")):
     for folder, subs, files in os.walk(path_folder):
@@ -92,14 +106,6 @@ def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,is_de
     # fix files : extract files (yml/rml) from potentials directories
     files=expand_files(files)
 
-    # if is_shebang and len(files) == 1:
-    #     with open(files[0], "r") as f:
-    #         first_line = f.readline().strip()
-    #     if first_line.startswith("#!"):
-    #         options = first_line.split(" ")[1:]
-    #         print(cy(f"Use shebang: {options}"))
-    #         if "-"
-
     reqman_conf = config.guess_reqman_conf(files)
     if reqman_conf is None:
         conf = {}
@@ -122,10 +128,13 @@ def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,is_de
             logging.basicConfig(level=logging.ERROR)
 
         try:
-            r = asyncio.run(run_tests(files, conf, switch, show_env))
-        except KeyboardInterrupt:
-            r = 0
-        # except scenario.ScenarException as ex:
+            o = asyncio.run(run_tests(files, conf, switch, show_env))
+            r = o.nb_tests_ko
+            if r==0:
+                print(cg(f"{o.nb_tests_ok}/{o.nb_tests}"))
+            else:
+                print(cr(f"{o.nb_tests_ok}/{o.nb_tests}"))
+    # except scenario.ScenarException as ex:
         except Exception as ex:
             print(cr(f"SCENARIO ERROR: {ex}"))
             if is_debug:
@@ -206,7 +215,7 @@ def main(**p):
             sys.argv=[ cmd, files[0] ] + options
             return main() #redo click parsing !
             
-    return reqman(p["files"],p["switch"],vars,p["is_view"],p["is_debug"],p["show_env"])
+    return reqman(p["files"],p.get("switch",None),vars,p["is_view"],p["is_debug"],p["show_env"])
 
 if __name__ == "__main__":
     sys.exit( main() )
