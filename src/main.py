@@ -73,7 +73,7 @@ def expand_files(files:list[str]) -> list[str]:
             ll.append(i)
     return ll
 
-def reqman(files:list,switch:str|None=None,is_view:bool=False,is_debug:bool=False,show_env:bool=False) -> int:
+def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,is_debug:bool=False,show_env:bool=False) -> int:
     """New reqman (rq4) prototype"""
 
     # fix files : extract files (yml/rml) from potentials directories
@@ -82,10 +82,12 @@ def reqman(files:list,switch:str|None=None,is_view:bool=False,is_debug:bool=Fals
     reqman_conf = config.guess_reqman_conf(files)
     if reqman_conf is None:
         print(cy("No reqman.conf found"))
-        conf = None
+        conf = {}
     else:
         print(cy(f"Using reqman.conf: {os.path.relpath(reqman_conf)}"))
         conf = config.load_reqman_conf(reqman_conf)
+    
+    conf.update(vars)
 
     if is_view:
         for f in files:
@@ -118,7 +120,7 @@ def reqman(files:list,switch:str|None=None,is_view:bool=False,is_debug:bool=Fals
 def guess(args:list):
     ##########################################################################
     #WARNING: it returns only switchs from reqman.conf ! (not from scenario!!!!)
-    files = expand_files([i for i in args[1:] if os.path.exists(i)])
+    files = expand_files([i for i in args if os.path.exists(i)])
     reqman_conf = config.guess_reqman_conf(files)
     if reqman_conf:
         conf = config.load_reqman_conf(reqman_conf)
@@ -128,7 +130,7 @@ def guess(args:list):
     ##########################################################################
 
 def options_from_files(opt_name:str):
-    d=guess(sys.argv)
+    d=guess(sys.argv[1:] or [])
 
     ll=[dict( name=k, switch=f"-{k}", help=v.get("doc","???") ) for k,v in d.items()]
 
@@ -155,8 +157,17 @@ def cli():
 @click.option('-v',"--view","is_view",is_flag=True,default=False,help="Analyze only, do not execute requests")
 @click.option('-d',"--debug","is_debug",is_flag=True,default=False,help="debug mode")
 @click.option('-e',"--env","show_env",is_flag=True,default=False,help="Display final environment")
-def main(files:list,switch:str|None,is_view:bool,is_debug:bool,show_env:bool) -> int:
-    return reqman(files,switch,is_view,is_debug,show_env)
+@click.option('-s',"vars",help="Set variables (ex: -s token=DEADBEAF,id=42)")
+# def main(*args, **kwargs):
+#     print(args)
+#     print(kwargs)
+
+def main(files:list,switch:str|None,vars:str|None,is_view:bool,is_debug:bool,show_env:bool) -> int:
+    if vars:
+        conf_vars = dict( [ i.split("=",1) for i in vars.split(",") if "=" in i ] )
+    else:
+        conf_vars = {}
+    return reqman(files,switch,conf_vars,is_view,is_debug,show_env)
 
 if __name__ == "__main__":
     sys.exit( main() )
