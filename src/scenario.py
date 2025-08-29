@@ -125,7 +125,7 @@ class StepHttp(Step):
             headers = self.scenario.env.get("headers",{})
             headers.update( self.headers )
             headers = e.substitute_in_object( headers )
-            doc=e.substitute(self.doc)
+            
             body = self.body
 
             if body:
@@ -145,6 +145,7 @@ class StepHttp(Step):
                 result = e.eval(t)
                 results.append( (t,result) )
 
+            doc=e.substitute(self.doc)
             yield Result(r.request,r, results, doc=doc)
 
     
