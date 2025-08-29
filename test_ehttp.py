@@ -8,7 +8,7 @@ async def test_invalid_url():
 
 @pytest.mark.asyncio
 async def test_timeout():
-    x=await ehttp.call("GET", "https://tools-httpstatus.pickup-services.com/200?sleep=5000",timeout=1)
+    x=await ehttp.call("GET", "https://tools-httpstatus.pickup-services.com/200?sleep=5000",timeout=1000)
     assert isinstance(x, ehttp.ResponseTimeout)
 
 @pytest.mark.asyncio

@@ -33,21 +33,34 @@ cb = lambda t: colorize(Fore.CYAN, t)
 cw = lambda t: colorize(Fore.WHITE, t)
 
 
+class Output:
+    def __init__(self):
+        pass
+    def write(self,r:scenario.Result):
+        print(f"{cy(r.request.method)} {r.request.url} -> {cb(r.response.status_code)}")
+        for test,ok in r.tests:
+            print(" -",ok and cg("OK") or cr("KO"),":", test)
+        print()
+
+
+
 async def run_tests(files:list[str], conf:dict|None, switch:str|None=None, show_env:bool=False) -> int:
     """ Run all tests in files, return number of failed tests """
-    ll=[]
+    output = Output()
+
     nb_tests_failed=0
     for file in files:
         print(cb(f"--- RUN {file} ---"))
-        t=scenario.Test(file,conf)
-        async for i in t.run(switch):
-            if i:
-                print(f"{cy(i.request.method)} {i.request.url} -> {cb(i.response.status_code)}")
-                for test,ok in i.tests:
-                    if not ok:
-                        nb_tests_failed += 1
-                    print(" -",ok and cg("OK") or cr("KO"),":", test)
-                print()
+        try:
+
+            t=scenario.Test(file,conf)
+            async for i in t.run(switch):
+                if i:
+                    output.write(i)
+                    nb_tests_failed += sum([1 for test,ok in i.tests if not ok])
+        except Exception as ex:
+            ex.env = t.env
+            raise ex
         if show_env:
             print(cy("Final environment:"))
             print(env.jzon_dumps(t.env))
@@ -77,14 +90,21 @@ def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,is_de
     """New reqman (rq4) prototype"""
 
     # fix files : extract files (yml/rml) from potentials directories
-    ll=expand_files(files)
+    files=expand_files(files)
+
+    # if is_shebang and len(files) == 1:
+    #     with open(files[0], "r") as f:
+    #         first_line = f.readline().strip()
+    #     if first_line.startswith("#!"):
+    #         options = first_line.split(" ")[1:]
+    #         print(cy(f"Use shebang: {options}"))
+    #         if "-"
 
     reqman_conf = config.guess_reqman_conf(files)
     if reqman_conf is None:
-        print(cy("No reqman.conf found"))
         conf = {}
     else:
-        print(cy(f"Using reqman.conf: {os.path.relpath(reqman_conf)}"))
+        print(cy(f"Using {os.path.relpath(reqman_conf)}"))
         conf = config.load_reqman_conf(reqman_conf)
     
     conf.update(vars)
@@ -105,15 +125,15 @@ def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,is_de
             r = asyncio.run(run_tests(files, conf, switch, show_env))
         except KeyboardInterrupt:
             r = 0
-        except scenario.ScenarException as ex:
+        # except scenario.ScenarException as ex:
+        except Exception as ex:
             print(cr(f"SCENARIO ERROR: {ex}"))
             if is_debug:
                 traceback.print_exc()
+            if show_env:
+                print(cy("Final environment:"))
+                print(env.jzon_dumps(ex.env))
             r = -1
-            #TODO: decide if show env or not
-            # if show_env:
-            #     print(cy("Final environment:"))
-            #     print(env.jzon_dumps(t.env))
 
         return r
 
@@ -124,10 +144,12 @@ def guess(args:list):
     if len(files)==1:
         # an unique file
         import yaml
-        d=yaml.safe_load(open(files[0],"r"))
-        if "switch" in d:
+        dico = yaml.safe_load(open(files[0],"r"))
+        assert isinstance(dico,dict), f"{files[0]} is not a valid scenario file"
+        d=env.Env( **dico )
+        if d.switchs:
             print(cy(f"Using switches from {files[0]}"))
-            return d["switch"]
+            return d.switchs
             
     reqman_conf = config.guess_reqman_conf(files)
     if reqman_conf:
@@ -140,7 +162,7 @@ def guess(args:list):
 def options_from_files(opt_name:str):
     d=guess(sys.argv[1:] or [])
 
-    ll=[dict( name=k, switch=f"-{k}", help=v.get("doc","???") ) for k,v in d.items()]
+    ll=[dict( name=k, switch=f"--{k}", help=v.get("doc","???") ) for k,v in d.items()]
 
     def decorator(f):
         for p in reversed(ll):
@@ -162,20 +184,29 @@ def cli():
 # @click.argument('files', nargs=-1, required=True)
 @click.argument('files', type=click.Path(exists=True,), nargs=-1, required=True)
 @options_from_files("switch")
-@click.option('-v',"--view","is_view",is_flag=True,default=False,help="Analyze only, do not execute requests")
-@click.option('-d',"--debug","is_debug",is_flag=True,default=False,help="debug mode")
-@click.option('-e',"--env","show_env",is_flag=True,default=False,help="Display final environment")
+@click.option('-v',"is_view",is_flag=True,default=False,help="Analyze only, do not execute requests")
+@click.option('-d',"is_debug",is_flag=True,default=False,help="debug mode")
+@click.option('-e',"show_env",is_flag=True,default=False,help="Display final environment")
 @click.option('-s',"vars",help="Set variables (ex: -s token=DEADBEAF,id=42)")
-# def main(*args, **kwargs):
-#     print(args)
-#     print(kwargs)
-
-def main(files:list,vars:str|None,is_view:bool,is_debug:bool,show_env:bool,switch:str|None=None) -> int:
-    if vars:
-        conf_vars = dict( [ i.split("=",1) for i in vars.split(",") if "=" in i ] )
+@click.option('-i',"is_shebang",is_flag=True,default=False,help="interactif mode (with shebang)")
+def main(**p):
+    if p["vars"]:
+        vars = dict( [ i.split("=",1) for i in p["vars"].split(",") if "=" in i ] )
     else:
-        conf_vars = {}
-    return reqman(files,switch,conf_vars,is_view,is_debug,show_env)
+        vars = {}
+
+    if p["is_shebang"] and len(p["files"])==1:
+        files=p["files"]
+        with open(files[0], "r") as f:
+            first_line = f.readline().strip()
+        if first_line.startswith("#!"): # things like "#!reqman -e -d" should work
+            options = first_line.split(" ")[1:]        
+            print(cy(f"Use shebang {' '.join(options)}"))
+            cmd,*fuck_all_params = sys.argv
+            sys.argv=[ cmd, files[0] ] + options
+            return main() #redo click parsing !
+            
+    return reqman(p["files"],p["switch"],vars,p["is_view"],p["is_debug"],p["show_env"])
 
 if __name__ == "__main__":
     sys.exit( main() )
