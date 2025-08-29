@@ -85,15 +85,27 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
 
         assert method in KNOWNVERBS, f"Unknown HTTP verb {method}"
         try:
-
-            with httpx.Client(follow_redirects=True,verify=False,cookies=JAR,proxy=proxy) as client:
-                r = client.request(
-                    method,
-                    url,
-                    data=body,
-                    headers=headers,
-                    timeout=timeout/1000,   # seconds!
-                )
+            if proxy:
+                logger.debug("Use proxy:",proxy)
+                
+            if isinstance(body, dict) or isinstance(body, list):
+                async with httpx.AsyncClient(follow_redirects=True,verify=False,cookies=JAR,proxy=proxy) as client:
+                    r = await client.request(
+                        method,
+                        url,
+                        json=body,
+                        headers=headers,
+                        timeout=timeout/1000,   # seconds!
+                    )
+            else:
+                async with httpx.AsyncClient(follow_redirects=True,verify=False,cookies=JAR,proxy=proxy) as client:
+                    r = await client.request(
+                        method,
+                        url,
+                        data=body,
+                        headers=headers,
+                        timeout=timeout/1000,   # seconds!
+                    )
             # async with httpx.AsyncClient(follow_redirects=True,verify=False,cookies=JAR,proxy=proxy) as client:
             #     r = await client.request(
             #         method,
@@ -109,7 +121,7 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
             r.request = e.request
         except httpx.ConnectError as e:
             r = ResponseUnreachable()
-            r.request = httpx.Request(method, url, headers=headers, content=body and str(body))
+            r.request = e.request
         except (httpx.InvalidURL,httpx.UnsupportedProtocol,ValueError) as e:
             r = ResponseInvalid(url)
             r.request = httpx.Request(method, url, headers=headers, content=body and str(body))
