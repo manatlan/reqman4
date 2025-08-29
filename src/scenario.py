@@ -106,13 +106,11 @@ class StepHttp(Step):
 
     async def process(self,e:Env) -> AsyncGenerator:
         self.results=[]
-        # simule l'appel
 
         params=self.extract_params(e)
 
         for param in params:
             if param:
-                # print(":: POUR",p)
                 e.update(param)
 
             url = e.substitute(self.url)
@@ -142,12 +140,9 @@ class StepHttp(Step):
             r = await ehttp.call(self.method, url, body, headers=httpx.Headers(headers), proxy=e.get("proxy",None) )
             e.setHttpResonse( r )
 
-            # print( f"HTTP {self.method} {url} -> {r}" )
-
             results=[]
             for t in self.tests:
                 result = e.eval(t)
-                # print(" -",result and "OK" or "KO",":", t)
                 results.append( (t,result) )
 
             yield Result(r.request,r, results, doc=doc)
