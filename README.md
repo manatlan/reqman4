@@ -13,44 +13,10 @@ diff:
 - no more BEGIN/END & .BEGIN/.END
 - no more XML testing
 
+## to tests
 
-~~currently :~~
+    uvx --from git+https://github.com/manatlan/RQ rq --help
 
-```yaml
-SCENAR1:
-    - GET: /gfdsgfdsg
-    - GET: /gfdsgfdsg?a=a
-    
-METHODPY: |
-    return x*42
+## to test a scenario (new version)
 
-host: https://x.com
-toto: 42
-headers:
-    content-type: application/json
-    user-agent: me
-
-RUN:
-    - set:
-        toto: toto + 1
-
-    - POST: /fdgfdgfds
-      doc: fdsqfdsqfds fdsqfdsq <<toto>>
-      headers:
-           content-type: application/json
-      body:
-         code: <<code>>
-         id: 16616
-      tests:
-        - $status == 200    # $status & $headers are the last http status&headers
-        - $.result == "ok"
-    
-    - set:
-        result: $           # '$' is the last http body response
-    
-    - call: SCENAR1
-      params:               # (was the foreach)
-         - i: 2             # call SCENAR1 with {"i":2}
-         - i: 4             # call SCENAR1 with {"i":4}
-
-```
+    uvx --from git+https://github.com/manatlan/RQ rq scenario.yml -o
