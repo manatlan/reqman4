@@ -41,31 +41,6 @@ REQUEST="""
 </div>
 """
 
-def generate_base() -> str:
-    return """
-<style>
-body {font-family: 'Inter', sans-serif;}
-h1 {color:blue}
-h3 {width:100%;padding:0px;margin:0px}
-div.request {margin-left:10px}
-div.request > div {cursor:pointer;background:#F0F0F0}
-div.request.hide div.detail {display:None}
-div.detail {padding-left:10px}
-
-pre {padding:4px;border:1px solid #CCC;max-height:300px;margin:2px;width:95%;display:block;overflow:auto;background:#F8F8F8}
-pre.request {}
-pre.response {}
-div.doc {}
-span.status {float:right}
-ul.tests li.True {color:green}
-ul.tests li.False {color:red}
-
-
-</style>
-"""
-def generate_section(file:str) -> str:
-    return f"<h1>{file}</h1>"
-
 def prettify(body:bytes) -> str:
     try:
         return json.dumps(json.loads(body), indent=2, sort_keys=True)
@@ -75,10 +50,34 @@ def prettify(body:bytes) -> str:
         except:
             return str(body)
 
+def generate_base() -> str:
+    return """
+<style>
+body {font-family: 'Inter', sans-serif;}
+h2 {color:blue}
+h3 {width:100%;padding:0px;margin:0px}
+div.request {margin-left:10px}
+div.request > div {cursor:pointer;background:#F0F0F0;border-radius:4px}
+div.request.hide div.detail {display:None}
+div.detail {padding-left:10px}
+
+pre {padding:4px;border:1px solid #CCC;max-height:300px;margin:2px;width:99%;display:block;overflow:auto;background:#F8F8F8;font-size:0.8em}
+pre.request {}
+pre.response {}
+div.doc {}
+span.status {float:right;color:#888}
+ul.tests li.True {color:green}
+ul.tests li.False {color:red}
+</style>
+"""
+
+def generate_section(file:str) -> str:
+    return f"<h2>{file}</h2>"
+
 def generate_request(r:scenario.Result) -> str:
     def h(d:dict) -> str:
         ll = list(dict(d).items())
-        return "\n".join( [f"{k}: {v}" for k,v in ll] )
+        return "\n".join( [f"{k:30s}: {v}" for k,v in ll] )
     def c(body:bytes) -> str:
         return prettify(body)
     def t(ll:list) -> str:

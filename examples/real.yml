@@ -1,6 +1,6 @@
 RUN:
   - GET: https://tools-httpstatus.pickup-services.com/500
-    doc: this is the documentation of the test
+    doc: this is the documentation of the test ... result is <b><i><<$status>></i></b>
     tests:
      - $status == 500
 
@@ -8,3 +8,12 @@ RUN:
     doc: this is the documentation of the test
     tests:
      - $status == 200
+
+  - POST: https://tools-httpstatus.pickup-services.com/201
+    doc: this is the documentation of the test
+    body:
+      item:
+        id: 42
+        label: toto
+    tests:
+     - $status == 201
