@@ -137,7 +137,7 @@ class StepHttp(Step):
                     else:
                         body = body
 
-            r = await ehttp.call(self.method, url, body, headers=httpx.Headers(headers) )
+            r = await ehttp.call(self.method, url, body, headers=httpx.Headers(headers), proxy=e.get("proxy",None) )
             e.setHttpResonse( r )
 
             # print( f"HTTP {self.method} {url} -> {r}" )
