@@ -23,4 +23,4 @@ def test_switch_apply_unknown():
     assert main.reqman(["examples/classic/test_switch.yml"],"toto") == -1
 
 if __name__=="__main__":
-    main.reqman(["examples/classic/test_switch.yml"],"toto")
+    ...
