@@ -145,24 +145,9 @@ class Env(dict):
                 return d
         return d
 
-
     def setHttpResonse(self, response:httpx.Response): 
         self["R"] = R(response.status_code, response.headers, response.content)
-        # try:
-        #     # json content ?
-        #     content = json.loads(response.content)
-        # except:
-        #     try:
-        #         # text content ?
-        #         content = response.content.decode()
-        #     except:
-        #         # byte content !
-        #         content = response.content
 
-
-        # self["_status"]=response.status_code
-        # self["_"]=convert(content)
-        # self["_headers"]=response.headers
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

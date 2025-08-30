@@ -82,6 +82,7 @@ class StepCall(Step):
             for step in self.steps:
                 async for r in step.process(e):
                     yield r
+            #TODO: perhaps remove added params from scope
 
     def __repr__(self):
         s=""
@@ -161,6 +162,8 @@ class StepHttp(Step):
 
             doc=e.substitute(self.doc)
             yield Result(r.request,r, results, doc=doc)
+
+            #TODO: perhaps remove added params from scope
 
     
 
