@@ -18,19 +18,20 @@ from dataclasses import dataclass
 class R:
     status: int
     headers: httpx.Headers
-    bytes: bytes
+    content: bytes
+    time: int
 
     @property
     def json(self):
-        if self.bytes:
-            return convert( json.loads(self.bytes) )
+        if self.content:
+            return convert( json.loads(self.content) )
         else:
             return {} # empty thing
 
     @property
-    def content(self):
-        if self.bytes:
-            return self.bytes.decode()
+    def text(self):
+        if self.content:
+            return self.content.decode()
         else:
             return ""
 
@@ -38,7 +39,23 @@ class MyDict(dict):
     def __init__(self, dico: dict):
         super().__init__(dico)
     def __getattr__(self, key):
+        # fix=lambda x: x and x.lower().strip().replace("-","_") or None
+        # for k,v in super().items():
+        #     print("=================",k,v)
+        #     if fix(k)==fix(key):
+        #         return v
         return super().__getitem__(key)
+    
+class MyHeaders(httpx.Headers):
+    # def __init__(self, dico: dict):
+    #     super().__init__(dico)
+    def __getattr__(self, key):
+        fix=lambda x: x and x.lower().strip().replace("-","_") or None
+        for k,v in super().items():
+            print("=================",k,v)
+            if fix(k)==fix(key):
+                return v
+        return super().__getitem__(key)    
 class MyList(list):
     def __init__(self, liste: list):
         super().__init__(liste)
@@ -65,7 +82,7 @@ def jzon_dumps(o):
         elif isinstance(obj, httpx.Headers):
             return jzon_dumps(dict(obj))
         elif isinstance(obj,R):
-            return dict(status=obj.status, headers=dict(obj.headers), content=f"[{obj.content and len(obj.content) or '0'}bytes]")
+            return dict(status=obj.status, headers=dict(obj.headers), content=f"[[ {obj.content and len(obj.content) or '0'} bytes ]]")
         raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
     return json.dumps(o, default=default, indent=2)
 
@@ -85,6 +102,7 @@ class Env(dict):
         if with_context:
             try:
                 vars_in_expr = {node.id for node in ast.walk(ast.parse(code)) if isinstance(node, ast.Name)}
+                # print(":::::",code,"::::=>",vars_in_expr)
                 values = {var: env.get(var, None) for var in vars_in_expr}
             except:
                 values = {}
@@ -145,8 +163,8 @@ class Env(dict):
                 return d
         return d
 
-    def setHttpResonse(self, response:httpx.Response): 
-        self["R"] = R(response.status_code, response.headers, response.content)
+    def setHttpResonse(self, response:httpx.Response, time): 
+        self["R"] = R(response.status_code, MyHeaders(response.headers), response.content, time)
 
 
 if __name__ == "__main__":

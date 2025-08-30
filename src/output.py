@@ -8,7 +8,7 @@
 # #############################################################################
 import scenario
 import logging
-import json
+import json,html
 from urllib.parse import unquote
 logger = logging.getLogger(__name__)
 
@@ -91,7 +91,7 @@ def generate_request(r:scenario.Result) -> str:
         items = []
         for tr in ll:
             status = 'OK' if tr.ok else 'KO'
-            items.append(f"""<li class={tr.ok} title="{tr.ctx}">{status} : {tr.text}</li>""")
+            items.append(f"""<li class={tr.ok} title="{html.escape(tr.ctx)}">{status} : {tr.text}</li>""")
         return "\n".join(items)
 
     return REQUEST.format(

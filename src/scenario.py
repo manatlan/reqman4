@@ -6,7 +6,7 @@
 #
 # https://github.com/manatlan/RQ
 # #############################################################################
-import yaml,json,os
+import yaml,os,time
 import asyncio
 from dataclasses import dataclass
 import httpx
@@ -146,19 +146,18 @@ class StepHttp(Step):
                     else:
                         body = body
 
+            start = time.time()
             r = await ehttp.call(self.method, url, body, headers=httpx.Headers(headers), proxy=e.get("proxy",None) )
-            e.setHttpResonse( r )
+            diff_ms = round((time.time() - start) * 1000)  # différence en millisecondes
+            e.setHttpResonse( r, diff_ms )
 
             results=[]
             for t in self.tests:
                 ok, dico = e.eval(t, with_context=True)
-                if ok:
-                    results.append( TestResult(True,t,"") )
-                else:
-                    context=""
-                    for k,v in dico.items():
-                        context+= f"{k}: {v}\n"
-                    results.append( TestResult(False,t,context) )
+                context=""
+                for k,v in dico.items():
+                    context+= f"{k}: {v}\n" #TODO: make better here (only the needed data !!!)
+                results.append( TestResult(ok,t,context) )
 
             doc=e.substitute(self.doc)
             yield Result(r.request,r, results, doc=doc)

@@ -44,7 +44,8 @@ RUN:
     doc: test NF
     tests:
       - R.status == 404
-      - R.content == "Not Found"
+      - R.text == "Not Found"
+      - R.content == b"Not Found"
 
   - call: scenar1
     params:
@@ -63,6 +64,7 @@ RUN:
       - R.status == 200
       - R.headers["content-type"] == "application/json"
       - R.headers["content-TYPE"] == "application/json"
+      - R.headers.content_type == "application/json"  # can't work
       - R.json[0] == 2898
       - R.json[1] == j
       - HELLO == "JE SUIS LA"
