@@ -156,7 +156,7 @@ class StepHttp(Step):
                 else:
                     context=""
                     for k,v in dico.items():
-                        context+= f"{k} = {v}\n"
+                        context+= f"{k}: {v}\n"
                     results.append( TestResult(False,t,context) )
 
             doc=e.substitute(self.doc)
