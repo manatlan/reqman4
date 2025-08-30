@@ -205,7 +205,6 @@ def cli():
     pass
 
 @cli.command()
-# @click.argument('files', nargs=-1, required=True)
 @click.argument('files', type=click.Path(exists=True,), nargs=-1, required=True)
 @options_from_files("switch")
 @click.option('-v',"is_view",is_flag=True,default=False,help="Analyze only, do not execute requests")
@@ -215,6 +214,8 @@ def cli():
 @click.option('-i',"is_shebang",is_flag=True,default=False,help="interactif mode (with shebang)")
 @click.option('-o',"open_browser",is_flag=True,default=False,help="open result in an html page")
 def main(**p):
+    """Test an http service with pre-made scenarios, whose are simple yaml files
+(More info on https://github.com/manatlan/RQ)"""
     if p["vars"]:
         vars = dict( [ i.split("=",1) for i in p["vars"].split(",") if "=" in i ] )
     else:
