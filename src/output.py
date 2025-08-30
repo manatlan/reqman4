@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 
 REQUEST="""
 <div class="request hide">
-    <div onclick="this.parentElement.classList.toggle('hide')" title="Click to show/hide details">
-        <h3>{r.request.method} {r.request.url} <span class="status">{r.response.status_code}</span></h3>
+    <div class="click" onclick="this.parentElement.classList.toggle('hide')" title="Click to show/hide details">
+        <h3>{r.request.method} {r.request.url} <span class="status">➔ {r.response.status_code}</span></h3>
         <div class="doc">{r.doc}</div>
     </div>
 
@@ -26,9 +26,8 @@ REQUEST="""
 
 {rqc}
 </pre>
-
+➔ {r.response.http_version} {r.response.status_code} {r.response.reason_phrase} 
 <pre class="response" title="response">
-{r.response.http_version} {r.response.status_code} {r.response.reason_phrase} 
 {rph}
 
 {rpc}
@@ -57,7 +56,7 @@ body {font-family: 'Inter', sans-serif;}
 h2 {color:blue}
 h3 {width:100%;padding:0px;margin:0px}
 div.request {margin-left:10px}
-div.request > div {cursor:pointer;background:#F0F0F0;border-radius:4px}
+div.click {cursor:pointer;background:#F0F0F0;border-radius:4px}
 div.request.hide div.detail {display:None}
 div.detail {padding-left:10px}
 
