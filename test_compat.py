@@ -72,3 +72,32 @@ tests:
     - $.result == "ok"
 """)
     assert compat.fix_tests(d["tests"]) == ['$status == 200', '$.result == "ok"']," ???"
+
+
+def test_fix_tests_comparaison():
+    d=yaml.safe_load("""
+tests:
+    status:    .>= 200
+    status:    .>200 
+    json.result: ok
+""")
+    assert compat.fix_tests(d["tests"]) == ['$status > 200', '$.result == "ok"']
+
+    d=yaml.safe_load("""
+tests:
+    - status:    .>= 200
+    - status:    .>200 
+    - json.result: ok
+""")
+    assert compat.fix_tests(d["tests"]) == ['$status >= 200', '$status > 200', '$.result == "ok"']
+
+
+def test_fix_tests_comparaison_more():
+    d=yaml.safe_load("""
+tests:
+    - status:    .!= 200
+    - status:    .  <=   200 
+    - json.result: .? ok
+    - json.result: . !? ko
+""")
+    assert compat.fix_tests(d["tests"]) == ['$status != 200', '$status <= 200', '"ok" in $.result', '"ko" not in $.result']

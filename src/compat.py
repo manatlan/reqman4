@@ -35,27 +35,19 @@ def fix_tests(tests:dict|list) -> list[str]:
         op = "=="
 
         if isinstance(v,str):
-            # g = re.match(r"^\. *([\?!=<>]{1,2}) *(.+)$", v)
-            # if g:
-            #     op, v = g.groups()            
-            ops = [
-                (".>=", ">="),
-                (".>", ">"),
-                (".<=", "<="),
-                (".<", "<"),
-                (".!=", "!="),
-                (".==", "=="),
-                (".=", "=="),
-            ]
-            for prefix, operator in ops:
-                if v.startswith(prefix + " "):
-                    op = operator
-                    v = v[len(prefix) + 1:]
-                    break            
-            try:
-                v=int(v)
-            except:
-                pass
+            g = re.match(r"^\. *([\?!=<>]{1,2}) *(.+)$", v)
+            if g:
+                op, v = g.groups()
+
+                if op == "?":
+                    op = "in"
+                elif op == "!?":
+                    op = "not in"
+
+                try:
+                    v=int(v)
+                except:
+                    pass
 
         if isinstance(v,str) and v.startswith("<<") and v.endswith(">>"):
             rv = fix_expr(v)[2:-2]
@@ -73,7 +65,10 @@ def fix_tests(tests:dict|list) -> list[str]:
         if isinstance(v, list):
             return f"{rk} in {rv}"
         else:
-            return f"{rk} {op} {rv}"
+            if op in ["in","not in"]:
+                return f"{rv} {op} {rk}"
+            else:
+                return f"{rk} {op} {rv}"
 
 
     if isinstance(tests, dict):
@@ -97,15 +92,5 @@ def fix_tests(tests:dict|list) -> list[str]:
 
 if __name__ == "__main__":
     assert fix_expr("{{var}}") == "<<var>>"
-
-    import yaml
-    d=yaml.safe_load("""
-tests:
-    status:    .> 200
-    ## status:    .>200 # not working yet
-    json.result: ok
-""")
-    print( fix_tests(d["tests"]) )
-    assert fix_tests(d["tests"]) == ['$status > 200', '$.result == "ok"']
 
 
