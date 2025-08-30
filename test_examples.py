@@ -11,8 +11,8 @@ async def test_scenarios_ok(example_file):
         print(step) # test step.__repr__
     async for echange in s.run():
         if echange:
-            for test, ok in echange.tests:
-                assert ok, f"Test failed: {test}"
+            for tr in echange.tests:
+                assert tr.ok, f"Test failed: {tr.text}"
 
 
 @pytest.mark.asyncio

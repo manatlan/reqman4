@@ -8,6 +8,7 @@
 # #############################################################################
 import re,os
 import httpx,json
+import ast
 
 import logging
 logger = logging.getLogger(__name__)
@@ -45,12 +46,13 @@ def jzon_dumps(o):
         raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
     return json.dumps(o, default=default, indent=2)
 
+
 class Env(dict):
     def __init__(self, /, **kwargs):
         super().__init__(**kwargs)
         # self.update( self.substitute_in_object(self) )    # <- not a good idea
     
-    def eval(self, code: str) -> any:
+    def eval(self, code: str, with_context:bool=False) -> any:
         logger.debug(f"EVAL: {code}")
         if code in os.environ:
             return os.environ[code]
@@ -59,7 +61,30 @@ class Env(dict):
             code = code.replace("$status","_status")
             code = code.replace("$headers","_headers")
             code = code.replace("$","_")
-        return eval(code,{}, dict(self) )
+        env = dict(self)
+        result = eval(code, {}, env )
+        if with_context:
+            def fix(key):
+                d={
+                    "_.":"$.",
+                    "_status":"$status",
+                    "_headers":"$headers",
+                    "_":"$",
+                }
+                for k,v in d.items():
+                    key = key.replace(k,v)
+                return key
+            try:
+                vars_in_expr = {node.id for node in ast.walk(ast.parse(code)) if isinstance(node, ast.Name)}
+                values = {fix(var): env.get(var, None) for var in vars_in_expr}
+            except:
+                values = {}
+
+            return result, values
+        else:
+            return result
+
+
 
     def substitute(self, text: str) -> any:
         """ resolve {{expr}} and/or <<expr>> in text """

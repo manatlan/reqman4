@@ -74,6 +74,7 @@ div.doc {}
 span.status {float:right;color:#888}
 ul.tests li.True {color:green}
 ul.tests li.False {color:red}
+div.final {position:fixed; top:0px;right:0px;background:white;padding:4px;border-radius:4px}
 </style>
 """
 
@@ -86,8 +87,12 @@ def generate_request(r:scenario.Result) -> str:
         return "\n".join( [f"<b>{k}:</b> {v}" for k,v in ll] )
     def c(body:bytes) -> str:
         return prettify(body)
-    def t(ll:list) -> str:
-        return "\n".join( [f"<li class={v}>{v and 'OK' or 'KO'} : {k}</li>" for k,v in ll] )
+    def t(ll:list[scenario.TestResult]) -> str:
+        items = []
+        for tr in ll:
+            status = 'OK' if tr.ok else 'KO'
+            items.append(f"""<li class={tr.ok} title="{tr.ctx}">{status} : {tr.text}</li>""")
+        return "\n".join(items)
 
     return REQUEST.format(
         r=r,
@@ -102,6 +107,10 @@ def generate_request(r:scenario.Result) -> str:
         tests = t(r.tests)
 
     )
+
+def generate_final(switch:str|None, nb_ok:int, nb_tests:int) -> str:
+    title = f"<title>{switch or ''} {nb_ok}/{nb_tests}</title>"
+    return f"<div class='final'>{switch+'<br>' if switch else ''}{nb_ok}/{nb_tests}</div>" + title
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

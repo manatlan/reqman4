@@ -17,3 +17,4 @@ RUN:
         label: toto
     tests:
      - $status == 201
+     - $status == 202

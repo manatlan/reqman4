@@ -20,14 +20,22 @@ import compat
 import logging
 logger = logging.getLogger(__name__)
 
+@dataclass
+class TestResult:
+    ok: bool
+    text : str
+    ctx : str
+
 
 @dataclass
 class Result:
     request: httpx.Request
     response: httpx.Response
-    tests: list[tuple[str,bool]]  # (test, result)
+    tests: list[TestResult]
     file: str = ""
     doc: str = ""
+
+
 
 class Step:
     params: list|str|None = None
@@ -142,8 +150,14 @@ class StepHttp(Step):
 
             results=[]
             for t in self.tests:
-                result = e.eval(t)
-                results.append( (t,result) )
+                ok, dico = e.eval(t, with_context=True)
+                if ok:
+                    results.append( TestResult(True,t,"") )
+                else:
+                    context=""
+                    for k,v in dico.items():
+                        context+= f"{k} = {v}\n"
+                    results.append( TestResult(False,t,context) )
 
             doc=e.substitute(self.doc)
             yield Result(r.request,r, results, doc=doc)
@@ -275,8 +289,8 @@ if __name__ == "__main__":
         async for i in t.run():
             if i:
                 print(f"{i.request.method} {i.request.url} -> {i.response.status_code}")
-                for t,r in i.tests:
-                    print(" -",r and "OK" or "KO",":", t)
+                for tr in i.tests:
+                    print(" -",tr.ok and "OK" or "KO",":", tr.text)
                 print()
 
 

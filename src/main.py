@@ -36,7 +36,8 @@ cw = lambda t: colorize(Fore.WHITE, t)
 
 
 class Output:
-    def __init__(self):
+    def __init__(self,switch:str|None):
+        self.switch = switch
         self.nb_tests=0
         self.nb_tests_ok=0
         self.nb_req=0
@@ -46,24 +47,27 @@ class Output:
     def nb_tests_ko(self):
         return self.nb_tests - self.nb_tests_ok
 
-    def begin(self,file:str):
+    def begin_scenario(self,file:str):
         print(cb(f"--- RUN {file} ---"))
         self.htmls.append( output.generate_section(file) )
 
-    def write_test(self,r:scenario.Result):
+    def write_a_test(self,r:scenario.Result):
         if r:
             self.nb_req+=1
             print(f"{cy(r.request.method)} {r.request.url} -> {cb(r.response.status_code)}")
-            for test,ok in r.tests:
-                print(" -",ok and cg("OK") or cr("KO"),":", test)
+            for tr in r.tests:
+                print(" -",tr.ok and cg("OK") or cr("KO"),":", tr.text)
                 self.nb_tests += 1
-                if ok:
+                if tr.ok:
                     self.nb_tests_ok += 1
             print()
             self.htmls.append( output.generate_request(r) )
 
-    def end(self):
+    def end_scenario(self):
         pass
+
+    def end_tests(self):
+        self.htmls.append( output.generate_final( self.switch, self.nb_tests_ok, self.nb_tests) )
 
     def open_browser(self):
 
@@ -76,23 +80,24 @@ class Output:
 
 async def run_tests(files:list[str], conf:dict|None, switch:str|None=None, show_env:bool=False) -> Output:
     """ Run all tests in files, return number of failed tests """
-    output = Output()
+    output = Output( switch)
 
     for file in files:
-        output.begin( file )
+        output.begin_scenario( file )
         try:
             t=scenario.Test(file,conf)
-            async for i in t.run(switch):
-                output.write_test(i)
+            async for req in t.run(switch):
+                output.write_a_test(req)
         except Exception as ex:
             ex.env = t.env
             raise ex
         
-        output.end( )
+        output.end_scenario( )
         if show_env:
             print(cy("Final environment:"))
             print(env.jzon_dumps(t.env))
 
+    output.end_tests()
     return output
 
 def find_scenarios(path_folder: str, filters=(".yml", ".rml")):
