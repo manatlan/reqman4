@@ -24,13 +24,11 @@ REQUEST="""
 <pre class="request" title="request">
 {r.request.method} {url}
 {rqh}
-
 {rqc}
 </pre>
 ➔ {r.response.http_version} {r.response.status_code} {r.response.reason_phrase} 
 <pre class="response" title="response">
 {rph}
-
 {rpc}
 </pre>
     </div>
