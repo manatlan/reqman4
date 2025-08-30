@@ -12,7 +12,7 @@ from dataclasses import dataclass
 import httpx
 from typing import AsyncGenerator
 
-from env import Env
+from env import Env,R
 import ehttp
 import pycode
 import compat
@@ -147,20 +147,40 @@ class StepHttp(Step):
                         body = body
 
             start = time.time()
-            r = await ehttp.call(self.method, url, body, headers=httpx.Headers(headers), proxy=e.get("proxy",None) )
+            response = await ehttp.call(self.method, url, body, headers=httpx.Headers(headers), proxy=e.get("proxy",None) )
             diff_ms = round((time.time() - start) * 1000)  # différence en millisecondes
-            e.setHttpResonse( r, diff_ms )
+            e.setHttpResonse( response, diff_ms )
 
             results=[]
             for t in self.tests:
                 ok, dico = e.eval(t, with_context=True)
                 context=""
                 for k,v in dico.items():
-                    context+= f"{k}: {v}\n" #TODO: make better here (only the needed data !!!)
+                    if k=="R":      #TODO: make better
+                        if "R.time" in t:
+                            r:R=e["R"]
+                            k,v="R.time",r.time
+                        if "R.status" in t:
+                            r:R=e["R"]
+                            k,v="R.status",r.status
+                        if "R.headers" in t:
+                            r:R=e["R"]
+                            k,v="R.headers",r.headers
+                        if "R.content" in t:
+                            r:R=e["R"]
+                            k,v="R.content",r.content
+                        if "R.text" in t:
+                            r:R=e["R"]
+                            k,v="R.text",r.text
+                        if "R.json" in t:
+                            r:R=e["R"]
+                            k,v="R.json",r.json
+                        
+                    context+= f"{k}: {v}\n"
                 results.append( TestResult(ok,t,context) )
 
             doc=e.substitute(self.doc)
-            yield Result(r.request,r, results, doc=doc)
+            yield Result(response.request,response, results, doc=doc)
 
             #TODO: perhaps remove added params from scope
 
