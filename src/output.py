@@ -9,19 +9,20 @@
 import scenario
 import logging
 import json
+from urllib.parse import unquote
 logger = logging.getLogger(__name__)
 
 
 REQUEST="""
 <div class="request hide">
     <div class="click" onclick="this.parentElement.classList.toggle('hide')" title="Click to show/hide details">
-        <h3>{r.request.method} {r.request.url} <span class="status">➔ {r.response.status_code}</span></h3>
+        <h3>{r.request.method} {url} <span class="status">➔ {r.response.status_code}</span></h3>
         <div class="doc">{r.doc}</div>
     </div>
 
     <div class="detail">
 <pre class="request" title="request">
-{r.request.method} {r.request.url}
+{r.request.method} {url}
 {rqh}
 
 {rqc}
@@ -41,13 +42,19 @@ REQUEST="""
 """
 
 def prettify(body:bytes) -> str:
-    try:
-        return json.dumps(json.loads(body), indent=2, sort_keys=True)
-    except:
+    if not body:
+        return ""
+    else:
         try:
-            return body.decode()
+            return json.dumps(eval(body.decode()), indent=2, sort_keys=True)
         except:
-            return str(body)
+            try:
+                return json.dumps(json.loads(body), indent=2, sort_keys=True)
+            except:
+                try:
+                    return body.decode()
+                except:
+                    return str(body)
 
 def generate_base() -> str:
     return """
@@ -56,11 +63,11 @@ body {font-family: 'Inter', sans-serif;}
 h2 {color:blue}
 h3 {width:100%;padding:0px;margin:0px}
 div.request {margin-left:10px}
-div.click {cursor:pointer;background:#F0F0F0;border-radius:4px}
+div.click {cursor:pointer;background:#F0F0F0;border-radius:4px;padding:4px}
 div.request.hide div.detail {display:None}
 div.detail {padding-left:10px}
 
-pre {padding:4px;border:1px solid #CCC;max-height:300px;margin:2px;width:99%;display:block;overflow:auto;background:#F8F8F8;font-size:0.8em}
+pre {padding:4px;border:1px solid #CCC;max-height:300px;margin:2px;width:99%;display:block;overflow:auto;background:#F8F8F8;font-size:0.8em;border-radius:4px}
 pre.request {}
 pre.response {}
 div.doc {}
@@ -76,7 +83,7 @@ def generate_section(file:str) -> str:
 def generate_request(r:scenario.Result) -> str:
     def h(d:dict) -> str:
         ll = list(dict(d).items())
-        return "\n".join( [f"{k:30s}: {v}" for k,v in ll] )
+        return "\n".join( [f"<b>{k}:</b> {v}" for k,v in ll] )
     def c(body:bytes) -> str:
         return prettify(body)
     def t(ll:list) -> str:
@@ -84,6 +91,7 @@ def generate_request(r:scenario.Result) -> str:
 
     return REQUEST.format(
         r=r,
+        url = unquote( str(r.request.url) ),
 
         rqh = h(r.request.headers),
         rqc = c(r.request.content),

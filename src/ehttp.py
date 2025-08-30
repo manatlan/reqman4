@@ -64,7 +64,7 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
             r= httpx.Response(
                 status_code=200,
                 headers={"content-type": "application/json"},
-                json=jzon and json.loads(jzon) or None,
+                json=json.loads(jzon) if jzon else None,
                 request=request
             )
         elif method == "POST" and url.startswith(f"{hostfake}/test"):
