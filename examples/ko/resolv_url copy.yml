@@ -4,4 +4,4 @@ host: http://test
 RUN:
   - GET: /test?var=<<UNKNOW_VAR>>
     tests:
-      - $status == 201
+      - R.status == 201

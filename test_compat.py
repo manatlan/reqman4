@@ -22,7 +22,7 @@ tests:
     status: 200
     json.result: ok
 """)
-    assert compat.fix_tests(d["tests"]) == ['$status == 200', '$.result == "ok"']
+    assert compat.fix_tests(d["tests"]) == ['R.status == 200', 'R.json.result == "ok"']
 
     d=yaml.safe_load("""
 tests:
@@ -31,14 +31,14 @@ tests:
         - 201
     json.result: ok
 """)
-    assert compat.fix_tests(d["tests"]) == ['$status in [200, 201]', '$.result == "ok"']
+    assert compat.fix_tests(d["tests"]) == ['R.status in [200, 201]', 'R.json.result == "ok"']
 
     d=yaml.safe_load("""
 tests:
     - status: 200
     - json.result: ok
 """)
-    assert compat.fix_tests(d["tests"]) == ['$status == 200', '$.result == "ok"']
+    assert compat.fix_tests(d["tests"]) == ['R.status == 200', 'R.json.result == "ok"']
 
     d=yaml.safe_load("""
 tests:
@@ -47,7 +47,7 @@ tests:
         - 201
     - json.result: ok
 """)
-    assert compat.fix_tests(d["tests"]) == ['$status in [200, 201]', '$.result == "ok"']
+    assert compat.fix_tests(d["tests"]) == ['R.status in [200, 201]', 'R.json.result == "ok"']
 
 
 def test_fix_tests_more():
@@ -55,23 +55,23 @@ def test_fix_tests_more():
 tests:
     - content: hello
 """)
-    assert compat.fix_tests(d["tests"]) == ['$ == "hello"']
+    assert compat.fix_tests(d["tests"]) == ['R.content == "hello"'] # BAD by design
 
     d=yaml.safe_load("""
 tests:
     - json.result1: <<val>>
     - json.result2: <<val|transform>>
 """)
-    assert compat.fix_tests(d["tests"]) == ['$.result1 == val', '$.result2 == transform(val)']
+    assert compat.fix_tests(d["tests"]) == ['R.json.result1 == val', 'R.json.result2 == transform(val)']
 
 
 def test_fix_tests_compatible_new_version():
     d=yaml.safe_load("""
 tests:
-    - $status == 200
-    - $.result == "ok"
+    - R.status == 200
+    - R.json.result == "ok"
 """)
-    assert compat.fix_tests(d["tests"]) == ['$status == 200', '$.result == "ok"']," ???"
+    assert compat.fix_tests(d["tests"]) == ['R.status == 200', 'R.json.result == "ok"']," ???"
 
 
 def test_fix_tests_comparaison():
@@ -81,7 +81,7 @@ tests:
     status:    .>200 
     json.result: ok
 """)
-    assert compat.fix_tests(d["tests"]) == ['$status > 200', '$.result == "ok"']
+    assert compat.fix_tests(d["tests"]) == ['R.status > 200', 'R.json.result == "ok"']
 
     d=yaml.safe_load("""
 tests:
@@ -89,7 +89,7 @@ tests:
     - status:    .>200 
     - json.result: ok
 """)
-    assert compat.fix_tests(d["tests"]) == ['$status >= 200', '$status > 200', '$.result == "ok"']
+    assert compat.fix_tests(d["tests"]) == ['R.status >= 200', 'R.status > 200', 'R.json.result == "ok"']
 
 
 def test_fix_tests_comparaison_more():
@@ -100,4 +100,4 @@ tests:
     - json.result: .? ok
     - json.result: . !? ko
 """)
-    assert compat.fix_tests(d["tests"]) == ['$status != 200', '$status <= 200', '"ok" in $.result', '"ko" not in $.result']
+    assert compat.fix_tests(d["tests"]) == ['R.status != 200', 'R.status <= 200', '"ok" in R.json.result', '"ko" not in R.json.result']

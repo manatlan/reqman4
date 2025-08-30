@@ -9,11 +9,11 @@ scenar1:
   - GET: /test?json=[1,2,{"key":"val"}]
     doc: test
     tests:
-      - $status == 200
-      - len($) == 3
-      - $[0] == 1
-      - $[1] == 2
-      - $[2].key == "val"
+      - R.status == 200
+      - len(R.json) == 3
+      - R.json[0] == 1
+      - R.json[1] == 2
+      - R.json[2].key == "val"
 
 scenar2:
 
@@ -22,15 +22,15 @@ scenar2:
   - GET: /test
     doc: test
     tests:
-      - $status == 200
+      - R.status == 200
       
   - GET: /test?json={ "coco":"VAL" }
     doc: test
     tests:
-      - $status == 200
-      - $.coco == "VAL"
+      - R.status == 200
+      - R.json.coco == "VAL"
   - set:
-       toto: <<$.coco>>
+       toto: <<R.json.coco>>
 
 tata: 123
 
@@ -43,8 +43,8 @@ RUN:
   - GET: /404
     doc: test NF
     tests:
-      - $status == 404
-      - $ == "Not Found"
+      - R.status == 404
+      - R.content == "Not Found"
 
   - call: scenar1
     params:
@@ -60,11 +60,11 @@ RUN:
   - GET: /test?json=[<<mymethod(toto) * 3>>,<<j>>]
     doc: test
     tests:
-      - $status == 200
-      - $headers["content-type"] == "application/json"
-      - $headers["content-TYPE"] == "application/json"
-      - $[0] == 2898
-      - $[1] == j
+      - R.status == 200
+      - R.headers["content-type"] == "application/json"
+      - R.headers["content-TYPE"] == "application/json"
+      - R.json[0] == 2898
+      - R.json[1] == j
       - HELLO == "JE SUIS LA"
     params:
     - j: 1
@@ -72,6 +72,6 @@ RUN:
     - j: 3
 
   - set:
-       lastStatus: <<$status>>
+       lastStatus: <<R.status>>
 
   

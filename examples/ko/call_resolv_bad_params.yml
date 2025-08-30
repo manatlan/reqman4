@@ -8,7 +8,7 @@ mylist:
 PROC:
   - GET: /testdict?a=<<a>>
     tests:
-      - $status == 200
+      - R.status == 200
 
 RUN:
   - call: PROC

@@ -6,4 +6,4 @@ RUN:
     body: 
       <<UNKNOW_VAR>>
     tests:
-      - $status == 201
+      - R.status == 201

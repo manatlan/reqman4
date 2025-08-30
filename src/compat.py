@@ -56,11 +56,11 @@ def fix_tests(tests:dict|list) -> list[str]:
         else:
             rv=json.dumps(v)
         if k == "status":
-            rk="$status"
+            rk="R.status"
         elif k == "content":
-            rk="$"
+            rk="R.content"
         elif k.startswith("json."):
-            rk = "$"+k[4:]
+            rk = "R.json"+k[4:]
 
         if isinstance(v, list):
             return f"{rk} in {rv}"

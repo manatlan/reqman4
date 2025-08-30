@@ -61,3 +61,12 @@ def test_substitute_in_object_at_constructor(): # bad idea
 
     e=Env( v=42 , v2="<<v>>", val="hello <<v2>>" )
     # assert e["val"] == "hello 42"
+
+if __name__=="__main__":
+
+    e=Env( _status = 200,content=b"hello")
+    x=e.eval("_status == 200")
+    assert x is True        
+    x,info=e.eval("content == 'hello'",True)
+    print(x,info)
+    assert x is True        

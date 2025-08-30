@@ -13,6 +13,27 @@ import ast
 import logging
 logger = logging.getLogger(__name__)
 
+from dataclasses import dataclass
+@dataclass
+class R:
+    status: int
+    headers: httpx.Headers
+    bytes: bytes
+
+    @property
+    def json(self):
+        if self.bytes:
+            return convert( json.loads(self.bytes) )
+        else:
+            return {} # empty thing
+
+    @property
+    def content(self):
+        if self.bytes:
+            return self.bytes.decode()
+        else:
+            return ""
+
 class MyDict(dict):
     def __init__(self, dico: dict):
         super().__init__(dico)
@@ -43,6 +64,8 @@ def jzon_dumps(o):
             return f"<function {getattr(obj, '__name__', str(obj))}>"
         elif isinstance(obj, httpx.Headers):
             return jzon_dumps(dict(obj))
+        elif isinstance(obj,R):
+            return dict(status=obj.status, headers=dict(obj.headers), content=f"[{obj.content and len(obj.content) or '0'}bytes]")
         raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
     return json.dumps(o, default=default, indent=2)
 
@@ -56,27 +79,13 @@ class Env(dict):
         logger.debug(f"EVAL: {code}")
         if code in os.environ:
             return os.environ[code]
-        else:
-            code = code.replace("$.","_.")
-            code = code.replace("$status","_status")
-            code = code.replace("$headers","_headers")
-            code = code.replace("$","_")
+        
         env = dict(self)
         result = eval(code, {}, env )
         if with_context:
-            def fix(key):
-                d={
-                    "_.":"$.",
-                    "_status":"$status",
-                    "_headers":"$headers",
-                    "_":"$",
-                }
-                for k,v in d.items():
-                    key = key.replace(k,v)
-                return key
             try:
                 vars_in_expr = {node.id for node in ast.walk(ast.parse(code)) if isinstance(node, ast.Name)}
-                values = {fix(var): env.get(var, None) for var in vars_in_expr}
+                values = {var: env.get(var, None) for var in vars_in_expr}
             except:
                 values = {}
 
@@ -138,22 +147,22 @@ class Env(dict):
 
 
     def setHttpResonse(self, response:httpx.Response): 
+        self["R"] = R(response.status_code, response.headers, response.content)
+        # try:
+        #     # json content ?
+        #     content = json.loads(response.content)
+        # except:
+        #     try:
+        #         # text content ?
+        #         content = response.content.decode()
+        #     except:
+        #         # byte content !
+        #         content = response.content
 
-        try:
-            # json content ?
-            content = json.loads(response.content)
-        except:
-            try:
-                # text content ?
-                content = response.content.decode()
-            except:
-                # byte content !
-                content = response.content
 
-
-        self["_status"]=response.status_code
-        self["_"]=convert(content)
-        self["_headers"]=response.headers
+        # self["_status"]=response.status_code
+        # self["_"]=convert(content)
+        # self["_headers"]=response.headers
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

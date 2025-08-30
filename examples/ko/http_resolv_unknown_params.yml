@@ -5,6 +5,6 @@ RUN:
 
   - GET: /testdict?a=<<a>>
     tests:
-      - $status == 200
+      - R.status == 200
     params: <<mylist>>
 

@@ -20,15 +20,15 @@ RUN:
   - GET: /test?json={{ toto }}
     doc: test
     tests:
-      - len($) == 3
+      - len(R.json) == 3
 
 
   - POST: /test
     body: <<toto>>
     doc: test
     tests:
-      - $status == 201
-      - $ == toto
+      - R.status == 201
+      - R.json == toto
 
   - POST: /test
     body:
@@ -39,8 +39,8 @@ RUN:
         - test1: <<tata>>
     doc: test
     tests:
-      - $status == 201
-      - $.hello == toto
-      - $.hello2 == 43
-      - $.hello3 == "hello 43"
-      - $.hello4[0].test1 == 43
+      - R.status == 201
+      - R.json.hello == toto
+      - R.json.hello2 == 43
+      - R.json.hello3 == "hello 43"
+      - R.json.hello4[0].test1 == 43

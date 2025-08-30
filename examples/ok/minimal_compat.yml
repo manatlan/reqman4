@@ -3,5 +3,5 @@
     
 - GET: /test
   tests:
-    - $status == 200
+    - R.status == 200
   

@@ -28,7 +28,7 @@ JAR=httpx.Cookies()
 class ResponseError(httpx.Response):
     def __init__(self,error):
         self.error = error
-        super().__init__(0,headers={},content=error.encode())
+        super().__init__(0,headers={})
         
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.error}>"
