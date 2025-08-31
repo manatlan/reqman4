@@ -1,3 +1,7 @@
+
+color:
+  return f"<b style='color:orange'>{x}</b>"
+
 RUN:
   - GET: https://tools-httpstatus.pickup-services.com/500
     doc: this is the documentation of the test ... time in ms = <b><i><<R.time>></i></b>
@@ -19,5 +23,32 @@ RUN:
         label: toto
     tests:
      - R.status == 201
-     - R.status == 202
+     - R.status == 202  # to make a false test
      - R.time < 500
+
+  - GET: https://tools-httpstatus.pickup-services.com/unknown
+    tests:
+      - R.status == 404
+
+  - GET: https://unknownnnxsqcsqd.com/toto
+    doc: Test <<color('ResponseUnreachable')>>
+    tests:
+      - R.status == 0   
+      - R.text == ""
+      - R.content == b""
+
+  - GET: httpsunknownnnxsqcsqd.com/toto
+    doc: Test <<color('ResponseInvalid')>>
+    tests:
+      - R.status == 0    
+      - R.text == ""
+      - R.content == b""
+         
+  - GET: https://tools-httpstatus.pickup-services.com/200?sleep=1000
+    doc: Test <<color('ResponseTimeout')>>
+    tests:
+      - R.status == 0        
+      - R.text == ""
+      - R.content == b""
+    params:
+      - timeout: 500

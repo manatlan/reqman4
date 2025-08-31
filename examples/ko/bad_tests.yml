@@ -1,0 +1,7 @@
+#ERROR: tests must be a list of strings
+root: http://test
+
+RUN:
+  - GET: /test
+    tests:
+      R.status == 201   

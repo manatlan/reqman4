@@ -22,7 +22,8 @@ import env
 import output
 
 from colorama import init, Fore, Style
-
+from urllib.parse import unquote
+logger = logging.getLogger(__name__)
 init()
 
 def colorize(color: str, t: str) -> str|None:
@@ -54,7 +55,7 @@ class Output:
     def write_a_test(self,r:scenario.Result):
         if r:
             self.nb_req+=1
-            print(f"{cy(r.request.method)} {r.request.url} -> {cb(r.response.status_code)}")
+            print(f"{cy(r.request.method)} {r.request.url} -> {cb(r.response.status_code) if r.response.status_code else cr('X')}")
             for tr in r.tests:
                 print(" -",tr.ok and cg("OK") or cr("KO"),":", tr.text)
                 self.nb_tests += 1
@@ -89,7 +90,11 @@ async def run_tests(files:list[str], conf:dict|None, switch:str|None=None, show_
             async for req in t.run(switch):
                 output.write_a_test(req)
         except Exception as ex:
-            ex.env = t.env
+            try:
+                ex.env = t.env 
+            except:
+                logger.error(f"Can't get the env on exception {ex}")
+                ex.env = None
             raise ex
         
         output.end_scenario( )
@@ -161,7 +166,7 @@ def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,is_de
                 traceback.print_exc()
             if show_env:
                 print(cy("Final environment:"))
-                print(env.jzon_dumps(ex.env))
+                print(env.jzon_dumps(ex.env) if hasattr(ex,"env") else "no env")
             r = -1
 
         return r

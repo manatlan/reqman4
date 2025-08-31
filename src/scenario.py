@@ -110,6 +110,7 @@ class StepHttp(Step):
         self.headers = step.get("headers",{})
         self.body = step.get("body",None)
         self.tests = compat.fix_tests( step.get("tests",[]) )
+        assert isinstance(self.tests,list), "tests must be a list of strings"
         assert all( isinstance(t,str) for t in self.tests ), "tests must be a list of strings"
 
 

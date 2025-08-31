@@ -8,36 +8,11 @@
 # #############################################################################
 import scenario
 import logging
-import json,html
+import json,html,httpx
 from urllib.parse import unquote
 logger = logging.getLogger(__name__)
 
 
-REQUEST="""
-<div class="request hide">
-    <div class="click" onclick="this.parentElement.classList.toggle('hide')" title="Click to show/hide details">
-        <h3>{r.request.method} {url} <span class="status">➔ {r.response.status_code}</span></h3>
-        <div class="doc">{r.doc}</div>
-    </div>
-
-    <div class="detail">
-<pre class="request" title="request">
-{r.request.method} {url}
-{rqh}
-{rqc}
-</pre>
-➔ {r.response.http_version} {r.response.status_code} {r.response.reason_phrase} 
-<pre class="response" title="response">
-{rph}
-{rpc}
-</pre>
-    </div>
-
-    <ul class="tests">
-        {tests}
-    </ul>
-</div>
-"""
 
 def prettify(body:bytes) -> str:
     if not body:
@@ -80,7 +55,7 @@ def generate_section(file:str) -> str:
     return f"<h2>{file}</h2>"
 
 def generate_request(r:scenario.Result) -> str:
-    def h(d:dict) -> str:
+    def h(d:httpx.Headers) -> str:
         ll = list(dict(d).items())
         return "\n".join( [f"<b>{k}:</b> {v}" for k,v in ll] )
     def c(body:bytes) -> str:
@@ -92,19 +67,35 @@ def generate_request(r:scenario.Result) -> str:
             items.append(f"""<li class={tr.ok} title="{html.escape(tr.ctx)}">{status} : {tr.text}</li>""")
         return "\n".join(items)
 
-    return REQUEST.format(
-        r=r,
-        url = unquote( str(r.request.url) ),
+    status = "❌" if r.response.status_code<=0 else str(r.response.status_code)
 
-        rqh = h(r.request.headers),
-        rqc = c(r.request.content),
+    return f"""
+<div class="request hide">
+    <div class="click" onclick="this.parentElement.classList.toggle('hide')" title="Click to show/hide details">
+        <h3>{r.request.method} {unquote( str(r.request.url) )} <span class="status">{status}</span></h3>
+        <div class="doc">{r.doc}</div>
+    </div>
 
-        rph = h(r.response.headers),
-        rpc = c(r.response.content),
+    <div class="detail">
+<pre class="request" title="request">
+{r.request.method} {unquote( str(r.request.url) )}
+{h(r.request.headers)}
 
-        tests = t(r.tests)
+{c(r.request.content)}
+</pre>
+➔ {r.response.http_version} {r.response.status_code} {r.response.reason_phrase} 
+<pre class="response" title="response">
+{h(r.response.headers)}
 
-    )
+{c(r.response.content)}
+</pre>
+    </div>
+
+    <ul class="tests">
+        {t(r.tests)}
+    </ul>
+</div>
+"""
 
 def generate_final(switch:str|None, nb_ok:int, nb_tests:int) -> str:
     title = f"<title>{switch or ''} {nb_ok}/{nb_tests}</title>"
