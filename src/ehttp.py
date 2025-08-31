@@ -25,25 +25,26 @@ KNOWNVERBS = set([
 
 JAR=httpx.Cookies()
 
-class ResponseError(httpx.Response):
+class _ResponseError_(httpx.Response):
     def __init__(self,error):
         self.error = error
         super().__init__(0,headers={})
+        # super().__init__(0,headers={},content=error)
         
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.error}>"
 
-class ResponseTimeout(ResponseError):
+class ResponseTimeout(_ResponseError_):
     def __init__(self):
-        ResponseError.__init__(self,"Timeout")
+        _ResponseError_.__init__(self,"Timeout")
 
-class ResponseUnreachable(ResponseError):
+class ResponseUnreachable(_ResponseError_):
     def __init__(self):
-        ResponseError.__init__(self,"Unreachable")
+        _ResponseError_.__init__(self,"Unreachable")
 
-class ResponseInvalid(ResponseError):
-    def __init__(self,url):
-        ResponseError.__init__(self,f"Invalid {url}")
+class ResponseInvalid(_ResponseError_):
+    def __init__(self):
+        _ResponseError_.__init__(self,f"Invalid url")
 
 async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = httpx.Headers(), timeout:int=60_000, proxy:str|None=None) -> httpx.Response:
     logger.debug(f"REQUEST {method} {url} with body={body} headers={headers} timeout={timeout} proxy={proxy}")
@@ -114,19 +115,37 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
             r = ResponseUnreachable()
             r.request = e.request
         except (httpx.InvalidURL,httpx.UnsupportedProtocol,ValueError) as e:
-            r = ResponseInvalid(url)
+            r = ResponseInvalid()
             r.request = httpx.Request(method, url, headers=headers, content=body and str(body))
 
     logger.debug(f"RESPONSE {r.status_code} {r.headers} {r.content}")
     return r
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+#    logging.basicConfig(level=logging.DEBUG)
     import asyncio
     async def main():
-        # x=await call("GET", "https://tools-httpstatus.pickup-services.com/200", proxies="http://77.232.100.132")
-        x=await call("GET", "http://test/test?json=[1,2,3]")
-        print(x.json())
-        # print(42)
+        x=await call("GET", "https://tools-httpstatus.pickup-services.com/500")
+        assert x.status_code==500
+        assert isinstance(x, httpx.Response)
+
+        x=await call("GET", "https://tools-httpstatus.pickup-services.com/unknown")
+        assert x.status_code==404
+        assert isinstance(x, httpx.Response)
+        
+        x=await call("GET", "https://unknownnnxsqcsqd.com/toto")
+        assert x.status_code==0
+        assert isinstance(x, ResponseUnreachable)
+        print("===>",x)
+
+        x=await call("GET", "httpsunknownnnxsqcsqd.com/toto")
+        assert x.status_code==0
+        assert isinstance(x, ResponseInvalid)
+        print("===>",x)
+
+        x=await call("GET", "https://tools-httpstatus.pickup-services.com/200?sleep=5000",timeout=100)
+        assert x.status_code==0
+        assert isinstance(x, ResponseTimeout)
+        print("===>",x)
     asyncio.run(main())
 

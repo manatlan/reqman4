@@ -147,7 +147,11 @@ class StepHttp(Step):
                         body = body
 
             start = time.time()
-            response = await ehttp.call(self.method, url, body, headers=httpx.Headers(headers), proxy=e.get("proxy",None) )
+            response = await ehttp.call(self.method, url, body, 
+                headers=httpx.Headers(headers),
+                proxy=e.get("proxy",None),
+                timeout=e.get("timeout",60_000) # 60 sec
+            )
             diff_ms = round((time.time() - start) * 1000)  # différence en millisecondes
             e.setHttpResonse( response, diff_ms )
 
