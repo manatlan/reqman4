@@ -2,20 +2,20 @@ import pytest, yaml
 from src import scenario
 
 def test_switch():
-    conf=yaml.safe_load("""host: http://test
+    conf=yaml.safe_load("""root: http://test
 
 switch:
   env1:
     doc: for dev
-    host: http://dev/
+    root: http://dev/
 
   env2:
     doc: for verification
-    host: http://verification/
+    root: http://verification/
 
   env3:
     doc: for validation
-    host: http://validation/
+    root: http://validation/
 """)
 
     t=scenario.Test("examples/classic/test_switch.yml", conf)
@@ -24,8 +24,8 @@ switch:
     with pytest.raises(AssertionError):
       t.apply_switch("unknown")
 
-    assert t.env["host"] == "http://test"
+    assert t.env["root"] == "http://test"
 
     t.apply_switch("env2")
 
-    assert t.env["host"] == "http://verification/"
+    assert t.env["root"] == "http://verification/"

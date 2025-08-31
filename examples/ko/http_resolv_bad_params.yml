@@ -1,5 +1,5 @@
 #ERROR: params must be a list of dict
-host: http://test
+root: http://test
 
 mylist:
   - 1

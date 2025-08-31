@@ -1,5 +1,5 @@
 - set:
-    host: http://test
+    root: http://test
     
 - GET: /test
   tests:

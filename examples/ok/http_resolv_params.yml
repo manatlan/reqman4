@@ -1,4 +1,4 @@
-host: http://test
+root: http://test
 
 mylist:
   - a: 1

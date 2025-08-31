@@ -1,5 +1,4 @@
-host: http://test
-# host: http://localhost:5000
+root: http://test
 toto1: 42
 yo: <<USER>>
 

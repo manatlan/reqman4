@@ -1,5 +1,5 @@
 #ERROR: RUN must be a list
-host: http://test
+root: http://test
 
 RUN:
   GET: /test

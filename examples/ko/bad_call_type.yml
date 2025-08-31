@@ -1,5 +1,5 @@
 #ERROR: CALL must be a string
-host: http://test
+root: http://test
 
 RUN:
   - call: 

@@ -1,5 +1,5 @@
 #ERROR: Bad step
-host: http://test
+root: http://test
 
 RUN:
   - toto: /test

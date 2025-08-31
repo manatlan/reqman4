@@ -2,5 +2,5 @@
   tests:
     - R.status == 200
   params:
-    - host: http://test
+    - root: http://test
   

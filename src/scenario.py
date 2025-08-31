@@ -123,11 +123,11 @@ class StepHttp(Step):
                 e.update(param)
 
             url = e.substitute(self.url)
-            host = e.get("host","")
-            if host:
-                assert host.startswith("http"), f"host must start with http, found {host}"
+            root = e.get("root","")
+            if root:
+                assert root.startswith("http"), f"root must start with http, found {root}"
                 if url.startswith("/"):
-                    url = host + url
+                    url = root + url
             else:
                 url = self.url
                 

@@ -1,5 +1,5 @@
 #ERROR: CALL references unknown
-host: http://test
+root: http://test
 
 RUN:
   - call: UNKNOW_PROC

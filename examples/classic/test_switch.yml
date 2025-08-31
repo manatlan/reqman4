@@ -1,4 +1,4 @@
-host: http://test
+root: http://test
 
 RUN:
 
