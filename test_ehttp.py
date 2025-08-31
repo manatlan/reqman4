@@ -1,37 +1,38 @@
-import ehttp 
+from src import ehttp 
 import pytest
+import httpx
 
 @pytest.mark.asyncio
-def test_http_500():
+async def test_http_500():
     x=await ehttp.call("GET", "https://tools-httpstatus.pickup-services.com/500")
     assert x.status_code==500
     assert isinstance(x, httpx.Response)
 
 @pytest.mark.asyncio
-def test_http_404():
+async def test_http_404():
     x=await ehttp.call("GET", "https://tools-httpstatus.pickup-services.com/unknown")
     assert x.status_code==404
     assert isinstance(x, httpx.Response)
         
 @pytest.mark.asyncio
-def test_http_ResponseUnreachable():
+async def test_http_ResponseUnreachable():
     x=await ehttp.call("GET", "https://unknownnnxsqcsqd.com/toto")
     assert x.status_code==0
-    assert isinstance(x, ResponseUnreachable)
+    assert isinstance(x, ehttp.ResponseUnreachable)
     print("===>",x)
 
 @pytest.mark.asyncio
-def test_http_ResponseInvalid():
+async def test_http_ResponseInvalid():
     x=await ehttp.call("GET", "httpsunknownnnxsqcsqd.com/toto")
     assert x.status_code==0
-    assert isinstance(x, ResponseInvalid)
+    assert isinstance(x, ehttp.ResponseInvalid)
     print("===>",x)
 
 @pytest.mark.asyncio
-def test_http_ResponseTimeout():
+async def test_http_ResponseTimeout():
     x=await ehttp.call("GET", "https://tools-httpstatus.pickup-services.com/200?sleep=5000",timeout=100)
     assert x.status_code==0
-    assert isinstance(x, ResponseTimeout)
+    assert isinstance(x, ehttp.ResponseTimeout)
     print("===>",x)
 
 @pytest.mark.asyncio
