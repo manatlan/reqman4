@@ -160,10 +160,10 @@ class Env(dict):
     def setHttpResonse(self, response:httpx.Response, time): 
         self["R"] = R(response.status_code, MyHeaders(response.headers), response.content, time)
 
-    def scope_update(self,d):
+    def scope_update(self,params:dict):
         # save current same keys
-        self.__keep_scope={k:self.get(k,None) for k in d.keys()}
-        self.update(d)
+        self.__keep_scope={k:self.get(k,None) for k in params.keys()}
+        self.update(params)
 
     def scope_revert(self):
         if self.__keep_scope:

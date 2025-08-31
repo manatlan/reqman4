@@ -161,12 +161,12 @@ def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,is_de
                 print(cr(f"{o.nb_tests_ok}/{o.nb_tests}"))
     # except scenario.ScenarException as ex:
         except Exception as ex:
-            print(cr(f"SCENARIO ERROR: {ex}"))
             if is_debug:
                 traceback.print_exc()
             if show_env:
                 print(cy("Final environment:"))
                 print(env.jzon_dumps(ex.env) if hasattr(ex,"env") else "no env")
+            print(cr(f"SCENARIO ERROR: {ex}"))
             r = -1
 
         return r
