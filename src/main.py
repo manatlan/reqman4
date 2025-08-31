@@ -55,7 +55,7 @@ class Output:
     def write_a_test(self,r:scenario.Result):
         if r:
             self.nb_req+=1
-            print(f"{cy(r.request.method)} {r.request.url} -> {cb(r.response.status_code) if r.response.status_code else cr('X')}")
+            print(f"{cy(r.request.method)} {unquote(str(r.request.url))} -> {cb(r.response.status_code) if r.response.status_code else cr('X')}")
             for tr in r.tests:
                 print(" -",tr.ok and cg("OK") or cr("KO"),":", tr.text)
                 self.nb_tests += 1

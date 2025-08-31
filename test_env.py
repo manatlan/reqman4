@@ -62,5 +62,27 @@ def test_substitute_in_object_at_constructor(): # bad idea
     e=Env( v=42 , v2="<<v>>", val="hello <<v2>>" )
     # assert e["val"] == "hello 42"
 
+
+def test_protect_scope():
+    d = Env(**dict(a=42, b=list("abc"), z=1, x=dict(z=1,l=list("AZ"))))
+
+    assert d["a"]==42
+    assert d["z"]==1
+    assert d["x"]==dict(z=1,l=list("AZ"))
+
+    # update dict
+    d.scope_update(dict(z=99,x=dict(z=2,l=list("ZA"))))
+    assert d["a"]==42
+    assert d["z"]==99
+    assert d["x"]==dict(z=2,l=list("ZA"))
+
+    print(jzon_dumps(d))
+
+    # revert all before update ^
+    d.scope_revert()
+    assert d["a"]==42
+    assert d["z"]==1
+    assert d["x"]==dict(z=1,l=list("AZ"))    
+
 if __name__=="__main__":
     ...      

@@ -83,6 +83,7 @@ def jzon_dumps(o):
 class Env(dict):
     def __init__(self, /, **kwargs):
         super().__init__(**kwargs)
+        self.__keep_scope={}
         # self.update( self.substitute_in_object(self) )    # <- not a good idea
     
     def eval(self, code: str, with_context:bool=False) -> any:
@@ -159,6 +160,20 @@ class Env(dict):
     def setHttpResonse(self, response:httpx.Response, time): 
         self["R"] = R(response.status_code, MyHeaders(response.headers), response.content, time)
 
+    def scope_update(self,d):
+        # save current same keys
+        self.__keep_scope={k:self.get(k,None) for k in d.keys()}
+        self.update(d)
+
+    def scope_revert(self):
+        if self.__keep_scope:
+            for k,v in self.__keep_scope.items():
+                # restore the same keys before scope_update()
+                if v is None:
+                    del self[k]
+                else:
+                    self[k]=v
+            self.__keep_scope={}
 
 if __name__ == "__main__":
     ...
