@@ -1,8 +1,8 @@
-#ERROR: name 'UNKNOW_VAR' is not defined
+#KO: 1
 root: http://test
 
 RUN:
   - GET: /test
     tests:
-      - R.status == 201
+      - R.status == 200
       - UNKNOW_VAR == "ok"

@@ -47,6 +47,7 @@ div.doc {}
 span.status {float:right;color:#888}
 ul.tests li.True {color:green}
 ul.tests li.False {color:red}
+ul.tests li.None {color:#D00;font-weight:800}
 div.final {position:fixed; top:0px;right:0px;background:white;padding:4px;border-radius:4px}
 </style>
 """
@@ -64,8 +65,7 @@ def generate_request(r:scenario.Result) -> str:
     def t(ll:list[scenario.TestResult]) -> str:
         items = []
         for tr in ll:
-            status = 'OK' if tr.ok else 'KO'
-            items.append(f"""<li class={tr.ok} title="{html.escape(tr.ctx)}">{status} : {tr.text}</li>""")
+            items.append(f"""<li class={tr.ok} title="{html.escape(tr.ctx)}">{str(tr)} : {tr.text}</li>""")
         return "\n".join(items)
 
     if r.response.status_code<=0:

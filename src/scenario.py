@@ -26,6 +26,15 @@ class TestResult:
     text : str
     ctx : str
 
+    def __repr__(self):
+        if self.ok is None:
+            return "BUG"
+        else:
+            if self.ok:
+                return "OK"
+            else:
+                return "KO"
+
 
 @dataclass
 class Result:
@@ -159,31 +168,36 @@ class StepHttp(Step):
             
             results=[]
             for t in self.tests:
-                ok, dico = e.eval(t, with_context=True)
-                context=""
-                for k,v in dico.items():
-                    if k=="R":      #TODO: make better
-                        if "R.time" in t:
-                            r:R=e["R"]
-                            k,v="R.time",r.time
-                        if "R.status" in t:
-                            r:R=e["R"]
-                            k,v="R.status",r.status
-                        if "R.headers" in t:
-                            r:R=e["R"]
-                            k,v="R.headers",r.headers
-                        if "R.content" in t:
-                            r:R=e["R"]
-                            k,v="R.content",r.content
-                        if "R.text" in t:
-                            r:R=e["R"]
-                            k,v="R.text",r.text
-                        if "R.json" in t:
-                            r:R=e["R"]
-                            k,v="R.json",r.json
-                        
-                    context+= f"{k}: {v}\n"
-                results.append( TestResult(ok,t,context) )
+                try:
+                    ok, dico = e.eval(t, with_context=True)
+                    context=""
+                    for k,v in dico.items():
+                        if k=="R":      #TODO: make better
+                            if "R.time" in t:
+                                r:R=e["R"]
+                                k,v="R.time",r.time
+                            if "R.status" in t:
+                                r:R=e["R"]
+                                k,v="R.status",r.status
+                            if "R.headers" in t:
+                                r:R=e["R"]
+                                k,v="R.headers",r.headers
+                            if "R.content" in t:
+                                r:R=e["R"]
+                                k,v="R.content",r.content
+                            if "R.text" in t:
+                                r:R=e["R"]
+                                k,v="R.text",r.text
+                            if "R.json" in t:
+                                r:R=e["R"]
+                                k,v="R.json",r.json
+                            
+                        context+= f"{k}: {v}\n"
+                    results.append( TestResult(ok,t,context) )
+                except Exception as ex:
+                    logger.error("Can't eval test [{t}] : {ex}")
+                    results.append( TestResult(None,t,f"ERROR: {ex}") )
+
 
             doc=e.substitute(self.doc)
             yield Result(response.request,response, results, doc=doc)

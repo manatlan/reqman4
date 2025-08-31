@@ -57,7 +57,8 @@ class Output:
             self.nb_req+=1
             print(f"{cy(r.request.method)} {unquote(str(r.request.url))} -> {cb(r.response.status_code) if r.response.status_code else cr('X')}")
             for tr in r.tests:
-                print(" -",tr.ok and cg("OK") or cr("KO"),":", tr.text)
+                color = {True:cg,False:cr,None:cr}[tr.ok]
+                print(" -",color(str(tr)),":", tr.text)
                 self.nb_tests += 1
                 if tr.ok:
                     self.nb_tests_ok += 1
