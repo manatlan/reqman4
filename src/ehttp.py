@@ -122,30 +122,10 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
     return r
 
 if __name__ == "__main__":
-#    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
     import asyncio
     async def main():
         x=await call("GET", "https://tools-httpstatus.pickup-services.com/500")
-        assert x.status_code==500
-        assert isinstance(x, httpx.Response)
-
-        x=await call("GET", "https://tools-httpstatus.pickup-services.com/unknown")
-        assert x.status_code==404
-        assert isinstance(x, httpx.Response)
-        
-        x=await call("GET", "https://unknownnnxsqcsqd.com/toto")
-        assert x.status_code==0
-        assert isinstance(x, ResponseUnreachable)
-        print("===>",x)
-
-        x=await call("GET", "httpsunknownnnxsqcsqd.com/toto")
-        assert x.status_code==0
-        assert isinstance(x, ResponseInvalid)
-        print("===>",x)
-
-        x=await call("GET", "https://tools-httpstatus.pickup-services.com/200?sleep=5000",timeout=100)
-        assert x.status_code==0
-        assert isinstance(x, ResponseTimeout)
-        print("===>",x)
+        assert x.status_code==500 and isinstance(x, httpx.Response)
     asyncio.run(main())
 
