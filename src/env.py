@@ -75,7 +75,7 @@ def jzon_dumps(o):
         elif isinstance(obj, httpx.Headers):
             return jzon_dumps(dict(obj))
         elif isinstance(obj,R):
-            return dict(status=obj.status, headers=dict(obj.headers), content=f"[[ {obj.content and len(obj.content) or '0'} bytes ]]")
+            return dict(status=obj.status, headers=dict(obj.headers), time=obj.time, content=f"<<{obj.content and len(obj.content) or '0'} bytes>>")
         raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
     return json.dumps(o, default=default, indent=2)
 
