@@ -35,8 +35,8 @@ class _ResponseError_(httpx.Response):
         return f"<{self.__class__.__name__} {self.error}>"
 
 class ResponseTimeout(_ResponseError_):
-    def __init__(self):
-        _ResponseError_.__init__(self,"Timeout")
+    def __init__(self,err):
+        _ResponseError_.__init__(self,err)
 
 class ResponseUnreachable(_ResponseError_):
     def __init__(self):
@@ -109,7 +109,7 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
                     )
 
         except httpx.TimeoutException as e:
-            r = ResponseTimeout()
+            r = ResponseTimeout(f"Timeout (> {timeout}ms)")
             r.request = e.request
         except httpx.ConnectError as e:
             r = ResponseUnreachable()

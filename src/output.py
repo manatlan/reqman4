@@ -78,7 +78,10 @@ def generate_request(r:scenario.Result) -> str:
     try:
         elapsed = r.response.elapsed
     except:
-        elapsed = r.response.__class__.__name__
+        try:
+            elapsed = r.response.error  #TODO: do better here
+        except:
+            elapsed = "test-server"
     return f"""
 <div class="request hide">
     <div class="click" onclick="this.parentElement.classList.toggle('hide')" title="Click to show/hide details">
