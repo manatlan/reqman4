@@ -1,3 +1,4 @@
+# this is a real test, need access to the internet !
 
 color:
   return f"<b style='color:orange'>{x}</b>"
@@ -31,6 +32,7 @@ RUN:
   - GET: https://tools-httpstatus.pickup-services.com/unknown
     tests:
       - R.status == 404
+      - R.headers.server == "pickup-webserver"
 
   - GET: https://unknownnnxsqcsqd.com/toto
     doc: Test <<color('ResponseUnreachable')>>
@@ -38,6 +40,7 @@ RUN:
       - R.status == 0   
       - R.text == ""
       - R.content == b""
+      - not R.headers
       - 0 < R.time < 100
 
   - GET: https:/unknownnnxsqcsqd.com/toto
@@ -46,14 +49,16 @@ RUN:
       - R.status == 0    
       - R.text == ""
       - R.content == b""
+      - not R.headers
       - 0 < R.time < 10
          
   - GET: https://tools-httpstatus.pickup-services.com/200?sleep=1000
-    doc: Test <<color('ResponseTimeout')>>
+    doc: Test <<color('ResponseTimeout')>>, with a timeout=<<timeout>>ms
     tests:
       - R.status == 0        
       - R.text == ""
       - R.content == b""
-      - 500 < R.time < 1000
+      - not R.headers
+      - timeout < R.time < 1000
     params:
-      - timeout: 500
+      - timeout: 500 #ms
