@@ -45,7 +45,6 @@ class MyHeaders(httpx.Headers):
     def __getattr__(self, key):
         fix=lambda x: x and x.lower().strip().replace("-","_") or None
         for k,v in super().items():
-            print("=================",k,v)
             if fix(k)==fix(key):
                 return v
         return super().__getitem__(key)    
