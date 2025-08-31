@@ -15,7 +15,6 @@ REQMAN_CONF='reqman.conf'
 
 # proxy: <string>
 # timeout: <milliseconds>
-# headers: <dict/mapping>
 # root: <string> 
 # switchs: <dict/mapping>
 

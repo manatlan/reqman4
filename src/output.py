@@ -39,7 +39,7 @@ div.request {margin-left:10px}
 div.click {cursor:pointer;background:#F0F0F0;border-radius:4px;padding:4px}
 div.request.hide div.detail {display:None}
 div.detail {padding-left:10px}
-
+.hideresponse {display:None}
 pre {padding:4px;border:1px solid #CCC;max-height:300px;margin:2px;width:99%;display:block;overflow:auto;background:#F8F8F8;font-size:0.8em;border-radius:4px}
 pre.request {}
 pre.response {}
@@ -67,12 +67,21 @@ def generate_request(r:scenario.Result) -> str:
             items.append(f"""<li class={tr.ok} title="{html.escape(tr.ctx)}">{status} : {tr.text}</li>""")
         return "\n".join(items)
 
-    status = "❌" if r.response.status_code<=0 else str(r.response.status_code)
+    if r.response.status_code<=0:
+        status = "❌"  
+        hide_response="hideresponse"
+    else: 
+        status = str(r.response.status_code)
+        hide_response=""
 
+    try:
+        elapsed = r.response.elapsed
+    except:
+        elapsed = r.response.__class__.__name__
     return f"""
 <div class="request hide">
     <div class="click" onclick="this.parentElement.classList.toggle('hide')" title="Click to show/hide details">
-        <h3>{r.request.method} {unquote( str(r.request.url) )} <span class="status">{status}</span></h3>
+        <h3>{r.request.method} {unquote( str(r.request.url) )} <span class="status" title="{elapsed}">{status}</span></h3>
         <div class="doc">{r.doc}</div>
     </div>
 
@@ -80,15 +89,14 @@ def generate_request(r:scenario.Result) -> str:
 <pre class="request" title="request">
 {r.request.method} {unquote( str(r.request.url) )}
 {h(r.request.headers)}
-
 {c(r.request.content)}
 </pre>
-➔ {r.response.http_version} {r.response.status_code} {r.response.reason_phrase} 
+<span class='{hide_response}'>➔ {r.response.http_version} {r.response.status_code} {r.response.reason_phrase}
 <pre class="response" title="response">
 {h(r.response.headers)}
-
 {c(r.response.content)}
 </pre>
+</span>
     </div>
 
     <ul class="tests">
