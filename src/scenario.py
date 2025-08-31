@@ -309,17 +309,18 @@ class Test:
             yield r
     
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    ...
+    # logging.basicConfig(level=logging.DEBUG)
 
-    async def run_a_test(f:str):
-        t=Test(f)
-        async for i in t.run():
-            if i:
-                print(f"{i.request.method} {i.request.url} -> {i.response.status_code}")
-                for tr in i.tests:
-                    print(" -",tr.ok and "OK" or "KO",":", tr.text)
-                print()
+    # async def run_a_test(f:str):
+    #     t=Test(f)
+    #     async for i in t.run():
+    #         if i:
+    #             print(f"{i.request.method} {i.request.url} -> {i.response.status_code}")
+    #             for tr in i.tests:
+    #                 print(" -",tr.ok and "OK" or "KO",":", tr.text)
+    #             print()
 
 
-    # asyncio.run( run_a_test("examples/ok/simple.yml") )
-    asyncio.run( run_a_test("examples/ok/test1.yml") )
+    # # asyncio.run( run_a_test("examples/ok/simple.yml") )
+    # asyncio.run( run_a_test("examples/ok/test1.yml") )

@@ -22,5 +22,8 @@ def test_switch_apply_unknown():
     # error unknow switch
     assert main.reqman(["examples/classic/test_switch.yml"],"toto") == -1
 
+def test_real():
+    assert main.reqman(["examples/real.yml"]) == 1 # 1 failed test, to test
+
 if __name__=="__main__":
     ...

@@ -161,8 +161,9 @@ class Env(dict):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    ...
+    # logging.basicConfig(level=logging.DEBUG)
 
-    e=Env( method = lambda x: x * 39 )
-    x=e.eval("method(3)")
-    assert x == 117
+    # e=Env( method = lambda x: x * 39 )
+    # x=e.eval("method(3)")
+    # assert x == 117

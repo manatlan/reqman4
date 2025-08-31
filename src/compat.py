@@ -91,6 +91,7 @@ def fix_tests(tests:dict|list) -> list[str]:
 
 
 if __name__ == "__main__":
-    assert fix_expr("{{var}}") == "<<var>>"
+    ...
+    # assert fix_expr("{{var}}") == "<<var>>"
 
 
