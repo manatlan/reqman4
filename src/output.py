@@ -31,6 +31,7 @@ def prettify(body:bytes) -> str:
 
 def generate_base() -> str:
     return """
+<meta charset="UTF-8">
 <style>
 body {font-family: 'Inter', sans-serif;}
 h2 {color:blue}

@@ -73,7 +73,7 @@ class Output:
 
     def open_browser(self):
 
-        with tempfile.NamedTemporaryFile('w', delete=False, suffix='.html') as f:
+        with tempfile.NamedTemporaryFile('w', delete=False, suffix='.html', encoding="utf-8") as f:
             f.write("\n".join(self.htmls))
             temp_html_path = f.name
 
