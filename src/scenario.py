@@ -22,18 +22,12 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class TestResult:
-    ok: bool
+    ok: bool        # bool with 3 states : see __repr__
     text : str
     ctx : str
 
     def __repr__(self):
-        if self.ok is None:
-            return "BUG"
-        else:
-            if self.ok:
-                return "OK"
-            else:
-                return "KO"
+        return {True:"OK",False:"KO",None:"BUG"}[self.ok]
 
 
 @dataclass
