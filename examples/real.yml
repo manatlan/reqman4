@@ -66,3 +66,9 @@ RUN:
       - not R.headers
       - 0 < R.time < 10
       - "'timeout' not in locals()"         
+
+  # - GET: "https://tools-httpstatus.pickup-services.com/<<i>>"
+  #   doc: ... <<i>> ... 
+  #   tests:
+  #    - R.status == i
+  #   params: <<[dict(i=j) for j in range(201,206)]>>
