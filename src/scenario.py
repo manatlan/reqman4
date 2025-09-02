@@ -130,11 +130,9 @@ class StepHttp(Step):
             url = e.substitute(self.url)
             root = e.get("root","")
             if root:
-                assert root.startswith("http"), f"root must start with http, found {root}"
                 if url.startswith("/"):
                     url = root + url
-            else:
-                url = self.url
+            assert url.startswith("http"), f"url must start with http, found {url}"
                 
             headers = self.scenario.env.get("headers",{})
             headers.update( self.headers )
