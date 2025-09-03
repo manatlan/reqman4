@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def declare(k:str,code:str) -> str:
-    return f"def {k}(x):\n" + ("\n".join(["  " + i for i in code.splitlines()]))
+    return f"def {k}(x=None):\n" + ("\n".join(["  " + i for i in code.splitlines()]))
 
 def is_python(x):
     if type(x) == str and "return" in x:

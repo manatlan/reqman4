@@ -1,6 +1,9 @@
 #! --env2
 root: http://test
 
+METHOD: |
+  return 3
+
 switch:
   env1:
     doc: for dev
@@ -19,4 +22,4 @@ RUN:
 
   - GET: /test?json=[1,2,3]
     tests:
-      - len($) == 3
+      - len(R.json) == METHOD()

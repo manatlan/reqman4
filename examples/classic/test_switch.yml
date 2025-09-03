@@ -6,4 +6,4 @@ RUN:
 
   - GET: /test?json=[1,2,3]
     tests:
-      - len(R.json) == 3
+      - len(R.json) == MYMETHOD()

@@ -187,7 +187,7 @@ class StepHttp(Step):
                         context+= f"{k}: {v}\n"
                     results.append( TestResult(ok,t,context) )
                 except Exception as ex:
-                    logger.error("Can't eval test [{t}] : {ex}")
+                    logger.error(f"Can't eval test [{t}] : {ex}")
                     results.append( TestResult(None,t,f"ERROR: {ex}") )
 
 
@@ -225,6 +225,7 @@ class ScenarException(Exception): pass
 
 class Scenario(list):
     def __init__(self, file_path: str, env:Env):
+        pycode.declare_methods(env)
         self.env = env
         if not os.path.isfile(file_path):
             raise ScenarException(f"[{file_path}] [File not found]")
