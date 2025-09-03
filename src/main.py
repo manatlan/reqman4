@@ -80,6 +80,9 @@ class Output:
         # Ouvre le fichier HTML dans le navigateur par défaut
         webbrowser.open(f'file://{os.path.abspath(temp_html_path)}')        
 
+class RuntimeException(Exception):
+    env: env.Env|None
+
 async def run_tests(files:list[str], conf:dict|None, switch:str|None=None, show_env:bool=False) -> Output:
     """ Run all tests in files, return number of failed tests """
     output = Output( switch)
@@ -87,12 +90,13 @@ async def run_tests(files:list[str], conf:dict|None, switch:str|None=None, show_
     for file in files:
         output.begin_scenario( file )
         try:
-            t=scenario.Scenario(file,conf)
-            async for req in t.execute(switch):
+            scenar=scenario.Scenario(file,conf)
+            async for req in scenar.execute(switch):
                 output.write_a_test(req)
         except Exception as ex:
+            ex=RuntimeException(ex)
             try:
-                ex.env = t.env 
+                ex.env = scenar.env 
             except:
                 logger.error(f"Can't get the env on exception {ex}")
                 ex.env = None
@@ -101,7 +105,7 @@ async def run_tests(files:list[str], conf:dict|None, switch:str|None=None, show_
         output.end_scenario( )
         if show_env:
             print(cy("Final environment:"))
-            print(env.jzon_dumps(t.scenario.env))
+            print(env.jzon_dumps(scenar.env))
 
     output.end_tests()
     return output
@@ -161,7 +165,7 @@ def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,is_de
             else:
                 print(cr(f"{o.nb_tests_ok}/{o.nb_tests}"))
     # except scenario.ScenarException as ex:
-        except Exception as ex:
+        except RuntimeException as ex:
             if is_debug:
                 traceback.print_exc()
             if show_env:

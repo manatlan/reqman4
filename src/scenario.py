@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class TestResult:
-    ok: bool        # bool with 3 states : see __repr__
+    ok: bool|None        # bool with 3 states : see __repr__
     text : str
     ctx : str
 
@@ -225,8 +225,10 @@ class ScenarException(Exception): pass
 
 class Scenario(list):
     def __init__(self, file_path: str, conf:dict|None=None):
+        if conf:
+            pycode.declare_methods(conf)
         self.env=Env(**(conf or {}))
-        pycode.declare_methods(self.env)
+            
 
         if not os.path.isfile(file_path):
             raise ScenarException(f"[{file_path}] [File not found]")
@@ -315,8 +317,8 @@ if __name__ == "__main__":
     # logging.basicConfig(level=logging.DEBUG)
 
     # async def run_a_test(f:str):
-    #     t=Test(f)
-    #     async for i in t.run():
+    #     t=Scenario(f)
+    #     async for i in t.execute():
     #         if i:
     #             print(f"{i.request.method} {i.request.url} -> {i.response.status_code}")
     #             for tr in i.tests:
