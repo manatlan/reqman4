@@ -5,11 +5,11 @@ from src import scenario,main
 @pytest.mark.asyncio
 @pytest.mark.parametrize("example_file", glob.glob("examples/ok/*.yml") )
 async def test_scenarios_ok(example_file):
-    s=scenario.Test(example_file)
-    print(s.scenario) # test repr
-    for step in s.scenario:
+    s=scenario.Scenario(example_file)
+    print(s) # test repr
+    for step in s:
         print(step) # test step.__repr__
-    async for echange in s.run():
+    async for echange in s.execute():
         if echange:
             for tr in echange.tests:
                 assert tr.ok, f"Test failed: {tr.text}"
@@ -24,8 +24,8 @@ async def test_scenarios_err(example_file):
     error_message = first_line[len("#ERROR:"):].strip()
 
     with pytest.raises(scenario.ScenarException) as excinfo:
-        s=scenario.Test(example_file)
-        async for echange in s.run():
+        s=scenario.Scenario(example_file)
+        async for echange in s.execute():
             ...
     assert error_message in str(excinfo.value)
 

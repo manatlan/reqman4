@@ -224,9 +224,10 @@ class StepSet(Step):
 class ScenarException(Exception): pass
 
 class Scenario(list):
-    def __init__(self, file_path: str, env:Env):
-        pycode.declare_methods(env)
-        self.env = env
+    def __init__(self, file_path: str, conf:dict|None=None):
+        self.env=Env(**(conf or {}))
+        pycode.declare_methods(self.env)
+
         if not os.path.isfile(file_path):
             raise ScenarException(f"[{file_path}] [File not found]")
         self.file_path = file_path
@@ -293,7 +294,7 @@ class Scenario(list):
     def __repr__(self):
         return super().__repr__()
     
-    async def execute(self,switch:str|None) -> AsyncGenerator:
+    async def execute(self,switch:str|None=None) -> AsyncGenerator:
 
         if switch:
             assert switch in dict(self.env.switchs), f"Unknown switch '{switch}'"
@@ -307,13 +308,7 @@ class Scenario(list):
             except Exception as ex:
                 raise ScenarException(f"[{self.file_path}] [Error Step {step}] [{ex}]")
 
-class Test:
-    def __init__(self, file:str, conf:dict|None=None):
-        self.scenario = Scenario(file,Env(**(conf or {})))
 
-    async def run(self,switch:str|None=None) -> AsyncGenerator:
-        async for r in self.scenario.execute( switch ):
-            yield r
     
 if __name__ == "__main__":
     ...

@@ -87,8 +87,8 @@ async def run_tests(files:list[str], conf:dict|None, switch:str|None=None, show_
     for file in files:
         output.begin_scenario( file )
         try:
-            t=scenario.Test(file,conf)
-            async for req in t.run(switch):
+            t=scenario.Scenario(file,conf)
+            async for req in t.execute(switch):
                 output.write_a_test(req)
         except Exception as ex:
             try:
@@ -143,7 +143,7 @@ def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,is_de
     if is_view:
         for f in files:
             print(cb(f"Analyse {f}"))
-            for i in scenario.Scenario(f, env.Env(**conf)):
+            for i in scenario.Scenario(f, conf):
                 print(i)
         return 0
     else:
