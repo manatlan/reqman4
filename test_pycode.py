@@ -1,5 +1,5 @@
 import yaml
-from src import pycode
+from src import env
 
 
 def test_declare_methods():
@@ -22,9 +22,10 @@ def test_declare_methods():
 
     d=yaml.safe_load(t)
 
-    pycode.declare_methods(d)
+    x=env.Env(**d)
+    x.compile()
 
-    assert d["mymethod2"]( 1 ) == 42    
-    assert d["toto"]["mymethod"]( 1 ) == 23
-    assert d["myval"] == 123
-    assert d["toto"]["myval"] == "abc"
+    assert x["mymethod2"]( 1 ) == 42    
+    assert x["toto"]["mymethod"]( 1 ) == 23
+    assert x["myval"] == 123
+    assert x["toto"]["myval"] == "abc"

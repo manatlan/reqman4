@@ -158,6 +158,7 @@ class StepHttp(Step):
             diff_ms = round((time.time() - start) * 1000)  # différence en millisecondes
             e.setHttpResonse( response, diff_ms )
             
+            
             results=[]
             for t in self.tests:
                 try:
@@ -225,9 +226,8 @@ class ScenarException(Exception): pass
 
 class Scenario(list):
     def __init__(self, file_path: str, conf:dict|None=None):
-        if conf:
-            pycode.declare_methods(conf)
         self.env=Env(**(conf or {}))
+        self.env.compile()
             
 
         if not os.path.isfile(file_path):
@@ -247,8 +247,8 @@ class Scenario(list):
                 del yml["RUN"]
                 conf = yml
 
-                pycode.declare_methods(conf)
                 self.env.update( **conf )
+                self.env.compile()
 
                 self.extend( self._feed( scenar ) )
             else:

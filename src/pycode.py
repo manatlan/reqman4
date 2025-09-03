@@ -25,20 +25,6 @@ def is_python(k,v) -> CodeType|None:
             logging.error("Python Compilation Error : %s",e)
             return None
 
-def declare_methods(d):
-    if isinstance(d, dict):
-        for k,v in d.items():
-            code=is_python(k,v)
-            if code:
-                x={}
-                exec(code, {},  x)
-                d[k] = x[k]
-            else:
-                declare_methods(v)
-    elif isinstance(d, list):
-        for i in range(len(d)):
-            declare_methods(d[i])
-
 
 if __name__=="__main__":
     ...

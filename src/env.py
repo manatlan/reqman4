@@ -10,6 +10,8 @@ import re,os
 import httpx,json
 import ast
 
+from typing import Any
+import pycode
 import logging
 logger = logging.getLogger(__name__)
 
@@ -85,7 +87,8 @@ class Env(dict):
         self.__keep_scope={}
         # self.update( self.substitute_in_object(self) )    # <- not a good idea
     
-    def eval(self, code: str, with_context:bool=False) -> any:
+    
+    def eval(self, code: str, with_context:bool=False) -> Any:
         logger.debug(f"EVAL: {code}")
         if code in os.environ:
             return os.environ[code]
@@ -106,7 +109,7 @@ class Env(dict):
 
 
 
-    def substitute(self, text: str) -> any:
+    def substitute(self, text: str) -> Any:
         """ resolve {{expr}} and/or <<expr>> in text """
         ll = re.findall(r"\{\{[^\}]+\}\}", text) + re.findall("<<[^><]+>>", text)
         for l in ll:
@@ -123,8 +126,8 @@ class Env(dict):
                     text = text.replace(l, str(val))
         return text
 
-    def substitute_in_object(self, o: any) -> any:
-        def _sub_in_object( o: any) -> any:
+    def substitute_in_object(self, o: Any) -> Any:
+        def _sub_in_object( o: Any) -> Any:
             if isinstance(o, str):
                 return self.substitute(o)
             elif isinstance(o, dict):
@@ -173,6 +176,23 @@ class Env(dict):
                 else:
                     self[k]=v
             self.__keep_scope={}
+
+    def compile(self):
+        """ Compile python method found in the dict and children """
+        def declare_methods(d):
+            if isinstance(d, dict):
+                for k,v in d.items():
+                    code=pycode.is_python(k,v)
+                    if code:
+                        x={}
+                        exec(code, dict(ENV=self),  x)
+                        d[k] = x[k]
+                    else:
+                        declare_methods(v)
+            elif isinstance(d, list):
+                for i in range(len(d)):
+                    declare_methods(d[i])
+        declare_methods( self )
 
 if __name__ == "__main__":
     ...
