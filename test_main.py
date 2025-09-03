@@ -6,8 +6,8 @@ def test_find_scenarios():
     assert list(main.find_scenarios("examples"))
 
 def test_main():
-    assert main.reqman(["examples/classic/test_switch.yml"]) == main.reqman(["examples/single/test_switch.yml"])
-
+    assert main.reqman(["examples/classic/test_switch.yml"]) == main.reqman(["examples/single/test_switch.yml"]) == 0
+    
 def test_main_view_only():
     assert main.reqman(["examples/classic/test_switch.yml"],is_view=True) == 0
 
