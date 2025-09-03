@@ -9,5 +9,5 @@ RUN:
   - GET: /testdict?a=<<a>>
     tests:
       - R.status == 200
-    params: <<mylist>>
+    params: "{{mylist}}"
 
