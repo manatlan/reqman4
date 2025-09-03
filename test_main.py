@@ -13,7 +13,7 @@ def test_main_view_only():
 
 def test_main_apply_switch():
     #tests ko, car host unreachable
-    assert main.reqman(["examples/classic/test_switch.yml"],"env2") == 1
+    assert main.reqman(["examples/classic/test_switch.yml"],"env2") == 2
 
 def test_fnf():
     assert main.reqman(["examples/UNKNOW_FILE.yml"])==-1

@@ -101,7 +101,7 @@ async def run_tests(files:list[str], conf:dict|None, switch:str|None=None, show_
         output.end_scenario( )
         if show_env:
             print(cy("Final environment:"))
-            print(env.jzon_dumps(t.env))
+            print(env.jzon_dumps(t.scenario.env))
 
     output.end_tests()
     return output
@@ -143,7 +143,7 @@ def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,is_de
     if is_view:
         for f in files:
             print(cb(f"Analyse {f}"))
-            for i in scenario.Scenario(f):
+            for i in scenario.Scenario(f, env.Env(**conf)):
                 print(i)
         return 0
     else:

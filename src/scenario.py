@@ -224,43 +224,45 @@ class StepSet(Step):
 class ScenarException(Exception): pass
 
 class Scenario(list):
-    def __init__(self, file_path: str):
+    def __init__(self, file_path: str, env:Env):
+        self.env = env
         if not os.path.isfile(file_path):
             raise ScenarException(f"[{file_path}] [File not found]")
         self.file_path = file_path
 
         try:
             with open(self.file_path, 'r') as fid:
-                self._dico = yaml.safe_load(fid)
+                yml = yaml.safe_load(fid)
         except yaml.YAMLError as ex:
             raise ScenarException(f"[{self.file_path}] [Bad syntax] [{ex}]")
         list.__init__(self,[])
 
-        if isinstance(self._dico, dict):
-            if "RUN" in self._dico:
-                run = self._dico["RUN"]
-                del self._dico["RUN"]
-                if not isinstance(run, list):
-                    raise ScenarException(f"[{self.file_path}] [Bad syntax] [RUN must be a list]")
+        if isinstance(yml, dict):
+            if "RUN" in yml:
+                scenar = yml["RUN"]
+                del yml["RUN"]
+                conf = yml
 
-                pycode.declare_methods(self._dico)
+                pycode.declare_methods(conf)
+                self.env.update( **conf )
 
-                self.extend( self._feed( run ) )
+                self.extend( self._feed( scenar ) )
             else:
                 raise ScenarException("No RUN section in scenario")
-        elif isinstance(self._dico, list):
-            run = self._dico
-            self._dico={}
-            self.extend( self._feed( run ) )
+        elif isinstance(yml, list):
+            scenar = yml
+            conf={}
+            self.extend( self._feed( scenar ) )
 
         else:
             raise ScenarException(f"[{self.file_path}] [Bad syntax] [scenario must be a dict or a list]")
 
-    @property
-    def env(self) -> dict:
-        return self._dico
+
 
     def _feed(self, liste:list) -> list[Step]:
+        if not isinstance(liste, list):
+            raise ScenarException(f"[{self.file_path}] [Bad syntax] [RUN must be a list]")
+
         try:
             ll = []
             for step in liste:
@@ -290,29 +292,26 @@ class Scenario(list):
     def __repr__(self):
         return super().__repr__()
     
-    async def execute(self, e:Env) -> AsyncGenerator:
+    async def execute(self,switch:str|None) -> AsyncGenerator:
+
+        if switch:
+            assert switch in dict(self.env.switchs), f"Unknown switch '{switch}'"
+            self.env.update( self.env.switchs[switch] )
+
+
         for step in self:
             try:
-                async for i in step.process(e):
+                async for i in step.process(self.env):
                     yield i
             except Exception as ex:
                 raise ScenarException(f"[{self.file_path}] [Error Step {step}] [{ex}]")
 
 class Test:
     def __init__(self, file:str, conf:dict|None=None):
-        self.scenario = Scenario(file)
-        conf = conf or {}
-        conf.update( self.scenario.env )
-        self.env = Env( **conf )
-
-    def apply_switch(self, name:str):
-        assert name in dict(self.env.switchs), f"Unknown switch '{name}'"
-        self.env.update( self.env.switchs[name] )
+        self.scenario = Scenario(file,Env(**(conf or {})))
 
     async def run(self,switch:str|None=None) -> AsyncGenerator:
-        if switch:
-            self.apply_switch(switch)
-        async for r in self.scenario.execute(self.env):
+        async for r in self.scenario.execute( switch ):
             yield r
     
 if __name__ == "__main__":
