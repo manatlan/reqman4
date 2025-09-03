@@ -86,7 +86,7 @@ class Env(dict):
         super().__init__(**kwargs)
         self.__keep_scope={}
         # self.update( self.substitute_in_object(self) )    # <- not a good idea
-    
+        self._compile_py_methods()
     
     def eval(self, code: str, with_context:bool=False) -> Any:
         logger.debug(f"EVAL: {code}")
@@ -159,15 +159,17 @@ class Env(dict):
                 return d
         return d
 
-    def setHttpResonse(self, response:httpx.Response, time): 
+    def set_R_response(self, response:httpx.Response, time): 
         self["R"] = R(response.status_code, MyHeaders(response.headers), response.content, time)
 
+    #/-------------------------------------------------
     def scope_update(self,params:dict):
-        # save current same keys
+        # save current same keys, revert with scope_revert()
         self.__keep_scope={k:self.get(k,None) for k in params.keys()}
         self.update(params)
 
     def scope_revert(self):
+        # revert inserted params with scope_update()
         if self.__keep_scope:
             for k,v in self.__keep_scope.items():
                 # restore the same keys before scope_update()
@@ -176,17 +178,23 @@ class Env(dict):
                 else:
                     self[k]=v
             self.__keep_scope={}
+    #\-------------------------------------------------
 
-    def compile(self):
+    def update(self,dico):
+        super().update(dico)
+        self._compile_py_methods()
+
+
+    def _compile_py_methods(self):
         """ Compile python method found in the dict and children """
         def declare_methods(d):
             if isinstance(d, dict):
                 for k,v in d.items():
                     code=pycode.is_python(k,v)
                     if code:
-                        x={}
-                        exec(code, dict(ENV=self),  x)
-                        d[k] = x[k]
+                        scope={}
+                        exec(code, dict(ENV=self),  scope)  # declare ENV in method!
+                        d[k] = scope[k]
                     else:
                         declare_methods(v)
             elif isinstance(d, list):

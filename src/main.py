@@ -80,7 +80,7 @@ class Output:
         # Ouvre le fichier HTML dans le navigateur par défaut
         webbrowser.open(f'file://{os.path.abspath(temp_html_path)}')        
 
-class RuntimeException(Exception):
+class ReqmanException(Exception):
     env: env.Env|None
 
 async def run_tests(files:list[str], conf:dict|None, switch:str|None=None, show_env:bool=False) -> Output:
@@ -94,7 +94,7 @@ async def run_tests(files:list[str], conf:dict|None, switch:str|None=None, show_
             async for req in scenar.execute(switch):
                 output.write_a_test(req)
         except Exception as ex:
-            ex=RuntimeException(ex)
+            ex=ReqmanException(ex)
             try:
                 ex.env = scenar.env 
             except:
@@ -165,7 +165,7 @@ def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,is_de
             else:
                 print(cr(f"{o.nb_tests_ok}/{o.nb_tests}"))
     # except scenario.ScenarException as ex:
-        except RuntimeException as ex:
+        except ReqmanException as ex:
             if is_debug:
                 traceback.print_exc()
             if show_env:
@@ -182,13 +182,10 @@ def guess(args:list):
     files = expand_files([i for i in args if os.path.exists(i)])
     if len(files)==1:
         # an unique file
-        import yaml
-        dico = yaml.safe_load(open(files[0],"r"))
-        assert isinstance(dico,dict), f"{files[0]} is not a valid scenario file"
-        d=env.Env( **dico )
-        if d.switchs:
+        s = scenario.Scenario(files[0])
+        if s.env.switchs:
             print(cy(f"Using switches from {files[0]}"))
-            return d.switchs
+            return s.env.switchs
             
     reqman_conf = config.guess_reqman_conf(files)
     if reqman_conf:
@@ -199,7 +196,11 @@ def guess(args:list):
     ##########################################################################
 
 def options_from_files(opt_name:str):
-    d=guess(sys.argv[1:] or [])
+    try:
+        d=guess(sys.argv[1:] or [])
+    except Exception as ex:
+        print(cr(f"SCENARIO ERROR: {ex}"))
+        sys.exit(-1)
 
     ll=[dict( name=k, switch=f"--{k}", help=v.get("doc","???") ) for k,v in d.items()]
 

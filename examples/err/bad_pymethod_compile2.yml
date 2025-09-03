@@ -1,0 +1,14 @@
+#ERROR: invalid syntax
+root: http://test
+
+
+bugged: |
+  // 78
+  return True
+
+RUN:
+
+  - GET: /test<<bugged()>>
+    tests:
+      - R.status == 200
+

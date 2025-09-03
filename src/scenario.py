@@ -83,7 +83,7 @@ class StepCall(Step):
                 e.scope_update(param)
 
             for step in self.steps:
-                async for r in step.process(e):
+                async for r in step.process(e): # type: ignore
                     yield r
                     
             e.scope_revert()
@@ -156,7 +156,7 @@ class StepHttp(Step):
                 timeout=e.get("timeout",60_000) # 60 sec
             )
             diff_ms = round((time.time() - start) * 1000)  # différence en millisecondes
-            e.setHttpResonse( response, diff_ms )
+            e.set_R_response( response, diff_ms )
             
             
             results=[]
@@ -165,7 +165,7 @@ class StepHttp(Step):
                     ok, dico = e.eval(t, with_context=True)
                     context=""
                     for k,v in dico.items():
-                        if k=="R":      #TODO: make better
+                        if k=="R":      #TODO: do better !
                             if "R.time" in t:
                                 r:R=e["R"]
                                 k,v="R.time",r.time
@@ -226,9 +226,10 @@ class ScenarException(Exception): pass
 
 class Scenario(list):
     def __init__(self, file_path: str, conf:dict|None=None):
-        self.env=Env(**(conf or {}))
-        self.env.compile()
-            
+        try:
+            self.env=Env(**(conf or {}))
+        except Exception as e:
+            raise ScenarException(f"[{file_path}] [{e}]")
 
         if not os.path.isfile(file_path):
             raise ScenarException(f"[{file_path}] [File not found]")
@@ -247,8 +248,10 @@ class Scenario(list):
                 del yml["RUN"]
                 conf = yml
 
-                self.env.update( **conf )
-                self.env.compile()
+                try:
+                    self.env.update( conf )
+                except Exception as e:
+                    raise ScenarException(f"[{self.file_path}] [{e}]")
 
                 self.extend( self._feed( scenar ) )
             else:
@@ -260,7 +263,6 @@ class Scenario(list):
 
         else:
             raise ScenarException(f"[{self.file_path}] [Bad syntax] [scenario must be a dict or a list]")
-
 
 
     def _feed(self, liste:list) -> list[Step]:
@@ -301,7 +303,6 @@ class Scenario(list):
         if switch:
             assert switch in dict(self.env.switchs), f"Unknown switch '{switch}'"
             self.env.update( self.env.switchs[switch] )
-
 
         for step in self:
             try:

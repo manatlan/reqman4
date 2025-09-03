@@ -20,10 +20,9 @@ def is_python(k,v) -> CodeType|None:
 
         try:
             logger.info("*** DECLARE METHOD PYTHON: %s",k)
-            return compile(declare(k,v), "unknown", "exec")
+            return compile(declare(k,v), f"method '{k}'", "exec")
         except Exception as e:
-            logging.error("Python Compilation Error : %s",e)
-            return None
+            raise Exception(f"Python Compilation Error : {e}")
 
 
 if __name__=="__main__":

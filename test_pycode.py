@@ -7,25 +7,21 @@ def test_declare_methods():
 
     toto:
         mymethod: |
-            # assert ENV
+            assert ENV
             return x * 23
         myval: abc
 
     mymethod2: |
-        # assert ENV
-        return x * 42
+        assert ENV
+        return "hello"
 
     myval: 123
     """
 
-    import yaml
 
-    d=yaml.safe_load(t)
+    e=env.Env( **yaml.safe_load(t) )
 
-    x=env.Env(**d)
-    x.compile()
-
-    assert x["mymethod2"]( 1 ) == 42    
-    assert x["toto"]["mymethod"]( 1 ) == 23
-    assert x["myval"] == 123
-    assert x["toto"]["myval"] == "abc"
+    assert e["mymethod2"]() == "hello"          # call with no parameter !
+    assert e["toto"]["mymethod"]( 1 ) == 23
+    assert e["myval"] == 123
+    assert e["toto"]["myval"] == "abc"          # call a dict of methods

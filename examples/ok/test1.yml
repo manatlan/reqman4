@@ -3,8 +3,8 @@ root: http://test
 i: 77
 
 mymethod: |
-  import jwt # it works !
-  assert ENV
+  import jwt                # it works !
+  assert ENV                # ENV is here !
   return x * 23
 
 scenar1:
