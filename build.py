@@ -5,16 +5,17 @@ import os,sys,shutil,re,subprocess
 ########################################################################
 def DO_WINDOWS( version:str ):
 ########################################################################
+    exename = "rq"
     if sys.prefix==sys.base_prefix:
         print("Not in .venv ! (try 'uv run build.py')")
         sys.exit(-1)
 
     from PyInstaller import __main__ as py
 
-    # def convVerPatch(v): # conv versionning to windows x.x.x.x
-    #     a,b,c=v.split(".")
-    #     clean=lambda x: x and x.isnumeric() and x or "0"
-    #     return ".".join([clean(a), clean(b), clean(c), "0"])
+    def convVerPatch(v): # conv versionning to windows x.x.x.x
+        a,b,c=v.split(".")
+        clean=lambda x: x and x.isnumeric() and x or "0"
+        return ".".join([clean(a), clean(b), clean(c), "0"])
 
     # assert convVerPatch("1.2.3") == "1.2.3.0"
     # assert convVerPatch("1.2.3a") == "1.2.0.0"
@@ -34,17 +35,17 @@ def DO_WINDOWS( version:str ):
     try:
         # os.system(f"py.exe ui/templates/__init__.py") 
 
-        log("Nettoyage")
+        log("Clean")
         os.chdir(os.path.split(sys.argv[0])[0])
         rm("build")
-        rm("dist/rq.exe")
+        rm(f"dist/{exename}.exe")
 
         # log("Build WHL",reqmanb.__version__)
         # os.system(f"py.exe setup.py bdist_wheel") # reutilise le "setup.py" (pourrait etre inclus ici)
         # rm("reqmanb.egg-info")
         # rm("build")
 
-        log("Build EXE")
+        log("Build EXE",version)
         excludes = []
         # les packages python auto devine qui sont sur mon poste, et que je veux exclure de l'exe (car c des faux positifs)
         for i in "tkinter numpy scipy tk PIL matplotlib webview pytest jinja2 jedi IPython sqlite3 pygments zmq".split():
@@ -53,7 +54,7 @@ def DO_WINDOWS( version:str ):
 
         py.run([
             'src/main.py',
-            "-n","rq",
+            "-n",exename,
             '--onefile',
             # "--upx-dir",r"C:\tmp\upx-4.1.0-win64",
             # '--icon=ressources/reqman.ico',
@@ -66,16 +67,18 @@ def DO_WINDOWS( version:str ):
         # log("Set windows/reqmanb.exe Version:",reqmanb.__version__,"-->",v)
         # os.system(f"""ressources\\verpatch.exe dist\\rq.exe {v} /high /va /pv {v} /s description "Rq" /s product "Rq" /s copyright "MIT, 2025" /s company "no" """)
 
-        # log("Copy l'exe sur C -> reqman.exe")
-        # shutil.copy2("./dist/reqmanb.exe","C:/.../reqman.exe")
     finally:
-        rm("rq.spec")
+        rm(f"{exename}.spec")
 
 
 ########################################################################
 def DO_REAL_OS():
 ########################################################################
     os.system("uv build")
+
+
+def get_version():
+    return subprocess.run(["uv", "version", "--short"],capture_output=True,text=True).stdout.strip()
 
 
 def replace_init_version(version):
@@ -91,11 +94,11 @@ def replace_init_version(version):
 if __name__ == "__main__":
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-    version = subprocess.run(["uv", "version", "--short"],capture_output=True,text=True).stdout.strip()
+    version = get_version()
+
     replace_init_version(version)
     import src
     assert src.__version__ == version
-
 
     ##################################################################
     if "win" in sys.platform.lower():
