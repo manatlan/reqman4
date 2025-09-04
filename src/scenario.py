@@ -6,7 +6,7 @@
 #
 # https://github.com/manatlan/RQ
 # #############################################################################
-from src.exceptions import CheckSyntaxError
+from exceptions import CheckSyntaxError
 import yaml,os,time
 import asyncio
 from dataclasses import dataclass

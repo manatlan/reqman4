@@ -6,7 +6,7 @@
 #
 # https://github.com/manatlan/RQ
 # #############################################################################
-from src.exceptions import CheckSyntaxError
+from exceptions import CheckSyntaxError
 import json
 import httpx
 import logging
