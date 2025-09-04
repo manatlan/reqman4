@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
-
-import os,sys,shutil,re,subprocess
+# #############################################################################
+# Copyright (C) 2025 manatlan manatlan[at]gmail(dot)com
+#
+# MIT licence
+#
+# https://github.com/manatlan/RQ
+# #############################################################################
+import os,sys,shutil,re,subprocess,time
 
 ########################################################################
 def DO_WINDOWS( version:str ):
@@ -61,7 +67,7 @@ def DO_WINDOWS( version:str ):
             "--log-level","DEBUG"
         ] + excludes)
 
-        import time;time.sleep(2)
+        time.sleep(2)
 
         # v=convVerPatch(reqmanb.__version__)
         # log("Set windows/reqmanb.exe Version:",reqmanb.__version__,"-->",v)
@@ -81,7 +87,7 @@ def get_version():
     return subprocess.run(["uv", "version", "--short"],capture_output=True,text=True).stdout.strip()
 
 
-def replace_init_version(version):
+def replace_rq_version(version):
     fn="src/common.py"
     with open(fn, "r+") as f:
         buf = re.sub(r'r\".+\" #', f'r"{version}" #', f.read(), 1)
@@ -96,7 +102,7 @@ if __name__ == "__main__":
 
     version = get_version()
 
-    replace_init_version(version)
+    replace_rq_version(version)
     from src import common
     assert common.__version__ == version
 
