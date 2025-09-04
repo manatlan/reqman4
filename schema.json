@@ -13,9 +13,7 @@
         }
       },
       "required": ["RUN"],
-      "additionalProperties": {
-        "type": "object"
-      }
+      "additionalProperties": true
     },
     {
       "type": "array",
@@ -47,13 +45,13 @@
     "httpStep": {
       "type": "object",
       "properties": {
-        "get": { "type": "string" },
-        "post": { "type": "string" },
-        "put": { "type": "string" },
-        "patch": { "type": "string" },
-        "delete": { "type": "string" },
-        "head": { "type": "string" },
-        "options": { "type": "string" },
+        "GET": { "type": "string" },
+        "POST": { "type": "string" },
+        "PUT": { "type": "string" },
+        "PATCH": { "type": "string" },
+        "DELETE": { "type": "string" },
+        "HEAD": { "type": "string" },
+        "OPTIONS": { "type": "string" },
         "doc": { "type": "string" },
         "headers": {
           "type": "object",
@@ -66,13 +64,13 @@
         }
       },
       "anyOf": [
-        { "required": ["get"] },
-        { "required": ["post"] },
-        { "required": ["put"] },
-        { "required": ["patch"] },
-        { "required": ["delete"] },
-        { "required": ["head"] },
-        { "required": ["options"] }
+        { "required": ["GET"] },
+        { "required": ["POST"] },
+        { "required": ["PUT"] },
+        { "required": ["PATCH"] },
+        { "required": ["DELETE"] },
+        { "required": ["HEAD"] },
+        { "required": ["OPTIONS"] }
       ]
     },
     "callStep": {
