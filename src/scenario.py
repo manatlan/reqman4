@@ -6,7 +6,7 @@
 #
 # https://github.com/manatlan/RQ
 # #############################################################################
-from common import assert_syntax,CheckSyntaxError
+from common import assert_syntax,AssertSyntaxError
 import yaml,os,time
 from dataclasses import dataclass
 import httpx
@@ -291,7 +291,7 @@ class Scenario(list):
                         else:
                             raise ScenarException(f"Bad step {step}")
             return ll
-        except CheckSyntaxError as ex:
+        except AssertSyntaxError as ex:
             raise ScenarException(f"[{self.file_path}] [Bad step {step}] [{ex}]")
     
     def __repr__(self):
