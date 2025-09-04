@@ -265,10 +265,10 @@ class Scenario(list):
 
 
     def _feed(self, liste:list) -> list[Step]:
-        if not isinstance(liste, list):
-            raise ScenarException(f"[{self.file_path}] [Bad syntax] [RUN must be a list]")
-
         try:
+            step=None
+            assert_syntax(isinstance(liste, list),"RUN must be a list")
+
             ll = []
             for step in liste:
                 assert_syntax( isinstance(step, dict), f"Bad step {step}")
