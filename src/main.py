@@ -180,26 +180,27 @@ def guess(args:list):
     ##########################################################################
     #WARNING: it returns only switchs from reqman.conf ! (not from scenario!!!!)
     files = expand_files([i for i in args if os.path.exists(i)])
-    if len(files)==1:
-        # an unique file
-        s = scenario.Scenario(files[0])
-        if s.env.switchs:
-            print(cy(f"Using switches from {files[0]}"))
-            return s.env.switchs
-            
     reqman_conf = config.guess_reqman_conf(files)
     if reqman_conf:
         conf = config.load_reqman_conf(reqman_conf)
-        return env.Env(**conf).switchs
     else:
-        return {}        
+        conf = {}
+
+    if len(files)==1:
+        # an unique file
+        s = scenario.Scenario(files[0],conf)
+        if s.env.switchs:
+            print(cy(f"Using switches from {files[0]}"))
+        return s.env.switchs
+    else:
+        return env.Env(**conf).switchs
     ##########################################################################
 
 def options_from_files(opt_name:str):
     try:
         d=guess(sys.argv[1:] or [])
     except Exception as ex:
-        print(cr(f"SCENARIO ERROR: {ex}"))
+        print(cr(f"START ERROR: {ex}"))
         sys.exit(-1)
 
     ll=[dict( name=k, switch=f"--{k}", help=v.get("doc","???") ) for k,v in d.items()]
