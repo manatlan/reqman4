@@ -98,7 +98,7 @@ async def run_tests(files:list[str], conf:dict|None, switch:str|None=None, show_
             scenar=scenario.Scenario(file,conf)
             async for req in scenar.execute(switch):
                 output.write_a_test(req)
-        except Exception as ex:
+        except common.RqException as ex:
             ex=ReqmanException(ex)
             try:
                 ex.env = scenar.env 
@@ -200,7 +200,7 @@ def guess(args:list):
 def options_from_files(opt_name:str):
     try:
         d=guess(sys.argv[1:] or [])
-    except Exception as ex:
+    except common.RqException as ex:
         print(cr(f"START ERROR: {ex}"))
         sys.exit(-1)
 

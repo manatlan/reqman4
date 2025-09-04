@@ -6,13 +6,13 @@
 #
 # https://github.com/manatlan/RQ
 # #############################################################################
-from common import assert_syntax,AssertSyntaxError
 import yaml,os,time
 import httpx
 from typing import AsyncGenerator
 
 # reqman imports
 import common
+from common import assert_syntax
 import env
 import ehttp
 import compat
@@ -211,17 +211,17 @@ class Scenario(list):
         try:
             self.env=env.Env(**(conf or {}))
         except Exception as e:
-            raise common.ScenarException(f"[{file_path}] [{e}]")
+            raise common.RqException(f"[{file_path}] [{e}]")
 
         if not os.path.isfile(file_path):
-            raise common.ScenarException(f"[{file_path}] [File not found]")
+            raise common.RqException(f"[{file_path}] [File not found]")
         self.file_path = file_path
 
         try:
             with open(self.file_path, 'r') as fid:
                 yml = yaml.safe_load(fid)
         except yaml.YAMLError as ex:
-            raise common.ScenarException(f"[{self.file_path}] [Bad syntax] [{ex}]")
+            raise common.RqException(f"[{self.file_path}] [Bad syntax] [{ex}]")
         list.__init__(self,[])
 
         if isinstance(yml, dict):
@@ -233,18 +233,18 @@ class Scenario(list):
                 try:
                     self.env.update( conf )
                 except Exception as e:
-                    raise common.ScenarException(f"[{self.file_path}] [{e}]")
+                    raise common.RqException(f"[{self.file_path}] [{e}]")
 
                 self.extend( self._feed( scenar ) )
             else:
-                raise common.ScenarException("No RUN section in scenario")
+                raise common.RqException("No RUN section in scenario")
         elif isinstance(yml, list):
             scenar = yml
             conf={}
             self.extend( self._feed( scenar ) )
 
         else:
-            raise common.ScenarException(f"[{self.file_path}] [Bad syntax] [scenario must be a dict or a list]")
+            raise common.RqException(f"[{self.file_path}] [Bad syntax] [scenario must be a dict or a list]")
 
 
     def _feed(self, liste:list) -> list[Step]:
@@ -272,10 +272,10 @@ class Scenario(list):
                         if set(step.keys()) & ehttp.KNOWNVERBS:
                             ll.append( StepHttp( self, step, params ) )
                         else:
-                            raise common.ScenarException(f"Bad step {step}")
+                            raise common.RqException(f"Bad step {step}")
             return ll
-        except AssertSyntaxError as ex:
-            raise common.ScenarException(f"[{self.file_path}] [Bad step {step}] [{ex}]")
+        except common.RqException as ex:
+            raise common.RqException(f"[{self.file_path}] [Bad step {step}] [{ex}]")
     
     def __repr__(self):
         return super().__repr__()
@@ -291,7 +291,7 @@ class Scenario(list):
                 async for i in step.process(self.env):
                     yield i
             except Exception as ex:
-                raise common.ScenarException(f"[{self.file_path}] [Error Step {step}] [{ex}]")
+                raise common.RqException(f"[{self.file_path}] [Error Step {step}] [{ex}]")
 
 
     

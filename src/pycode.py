@@ -10,7 +10,7 @@ import logging
 from types import CodeType
 
 # reqman imports
-from common import AssertSyntaxError
+from common import RqException
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ def is_python(k,v) -> CodeType|None:
             logger.info("*** DECLARE METHOD PYTHON: %s",k)
             return compile(declare(k,v), f"method '{k}'", "exec")
         except Exception as e:
-            raise AssertSyntaxError(f"Python Compilation Error : {e}")
+            raise RqException(f"Python Compilation Error : {e}")
 
 
 if __name__=="__main__":

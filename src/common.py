@@ -17,14 +17,11 @@ __version__ = r"0.1.0" # <-- replaced by build.py (extract from pyproject.toml)
 REQMAN_CONF='reqman.conf'
 
 
-class AssertSyntaxError(Exception):
-    pass
-
-class ScenarException(Exception): 
+class RqException(Exception): 
     pass
 
 def assert_syntax( condition:bool, msg:str):
-    if not condition: raise AssertSyntaxError( msg )
+    if not condition: raise RqException( msg )
 
 
 @dataclass
