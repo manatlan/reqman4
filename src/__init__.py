@@ -6,3 +6,5 @@
 #
 # https://github.com/manatlan/RQ
 # #############################################################################
+
+__version__ = "0.1.0" # <-- replaced by build.py (extract from pyproject.toml)

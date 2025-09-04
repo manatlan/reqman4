@@ -8,14 +8,12 @@
 # #############################################################################
 from exceptions import CheckSyntaxError
 import yaml,os,time
-import asyncio
 from dataclasses import dataclass
 import httpx
 from typing import AsyncGenerator
 
 from env import Env,R
 import ehttp
-import pycode
 import compat
 
 import logging
