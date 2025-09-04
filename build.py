@@ -82,9 +82,9 @@ def get_version():
 
 
 def replace_init_version(version):
-    fn="src/__init__.py"
+    fn="src/common.py"
     with open(fn, "r+") as f:
-        buf = re.sub(r'\".+\"', f'"{version}"', f.read(), 1)
+        buf = re.sub(r'r\".+\" #', f'r"{version}" #', f.read(), 1)
         f.seek(0)
         f.write(buf)
         f.truncate()
@@ -97,8 +97,8 @@ if __name__ == "__main__":
     version = get_version()
 
     replace_init_version(version)
-    import src
-    assert src.__version__ == version
+    from src import common
+    assert common.__version__ == version
 
     ##################################################################
     if "win" in sys.platform.lower():

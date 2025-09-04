@@ -11,6 +11,7 @@ import yaml
 import httpx
 from dataclasses import dataclass
 
+__version__ = r"0.1.0" # <-- replaced by build.py (extract from pyproject.toml)
 
 
 REQMAN_CONF='reqman.conf'
