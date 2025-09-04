@@ -19,6 +19,7 @@ from urllib.parse import unquote
 import dotenv; dotenv.load_dotenv()
 
 # reqman imports
+from __init__ import __version__ as VERSION
 import common
 import scenario
 import env
@@ -84,6 +85,10 @@ class Output:
 class ReqmanException(Exception):
     env: env.Env|None
 
+def display_env( x ):
+    print(cy("Final environment:"))
+    print(env.jzon_dumps(x) if x else "no env")
+
 async def run_tests(files:list[str], conf:dict|None, switch:str|None=None, show_env:bool=False) -> Output:
     """ Run all tests in files, return number of failed tests """
     output = Output( switch)
@@ -105,8 +110,7 @@ async def run_tests(files:list[str], conf:dict|None, switch:str|None=None, show_
         
         output.end_scenario( )
         if show_env:
-            print(cy("Final environment:"))
-            print(env.jzon_dumps(scenar.env))
+            display_env(scenar.env)
 
     output.end_tests()
     return output
@@ -165,13 +169,11 @@ def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,is_de
                 print(cg(f"{o.nb_tests_ok}/{o.nb_tests}"))
             else:
                 print(cr(f"{o.nb_tests_ok}/{o.nb_tests}"))
-    # except scenario.ScenarException as ex:
         except ReqmanException as ex:
             if is_debug:
                 traceback.print_exc()
             if show_env:
-                print(cy("Final environment:"))
-                print(env.jzon_dumps(ex.env) if hasattr(ex,"env") else "no env")
+                display_env( ex.env if hasattr(ex,"env") else None)
             print(cr(f"SCENARIO ERROR: {ex}"))
             r = -1
 
@@ -179,7 +181,6 @@ def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,is_de
 
 def guess(args:list):
     ##########################################################################
-    #WARNING: it returns only switchs from reqman.conf ! (not from scenario!!!!)
     files = expand_files([i for i in args if os.path.exists(i)])
     reqman_conf = common.guess_reqman_conf(files)
     if reqman_conf:
@@ -222,6 +223,11 @@ def options_from_files(opt_name:str):
 def cli():
     pass
 
+
+def patch_docstring(f):
+    f.__doc__+= f" (version:{VERSION})"
+    return f
+
 @cli.command()
 @click.argument('files', type=click.Path(exists=True,), nargs=-1, required=True)
 @options_from_files("switch")
@@ -231,9 +237,10 @@ def cli():
 @click.option('-s',"vars",help="Set variables (ex: -s token=DEADBEAF,id=42)")
 @click.option('-i',"is_shebang",is_flag=True,default=False,help="interactif mode (with shebang)")
 @click.option('-o',"open_browser",is_flag=True,default=False,help="open result in an html page")
+@patch_docstring
 def main(**p):
     """Test an http service with pre-made scenarios, whose are simple yaml files
-(More info on https://github.com/manatlan/RQ)"""
+(More info on https://github.com/manatlan/RQ) """
     if p["vars"]:
         vars = dict( [ i.split("=",1) for i in p["vars"].split(",") if "=" in i ] )
     else:
@@ -251,6 +258,7 @@ def main(**p):
             return main() #redo click parsing !
             
     return reqman(p["files"],p.get("switch",None),vars,p["is_view"],p["is_debug"],p["show_env"],p["open_browser"])
+
 
 if __name__ == "__main__":
     sys.exit( main() )
