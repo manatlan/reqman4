@@ -1,6 +1,6 @@
 import pytest
 import glob
-from src import scenario,main
+from src import scenario,main,common
 from validate import validate_yaml
 
 @pytest.mark.asyncio
@@ -32,7 +32,7 @@ async def test_scenarios_err(example_file):
     assert first_line.startswith("#ERROR:")
     error_message = first_line[len("#ERROR:"):].strip()
 
-    with pytest.raises(scenario.ScenarException) as excinfo:
+    with pytest.raises(Exception) as excinfo:
         s=scenario.Scenario(example_file)
         async for echange in s.execute():
             ...

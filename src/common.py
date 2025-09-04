@@ -20,6 +20,9 @@ REQMAN_CONF='reqman.conf'
 class AssertSyntaxError(Exception):
     pass
 
+class ScenarException(Exception): 
+    pass
+
 def assert_syntax( condition:bool, msg:str):
     if not condition: raise AssertSyntaxError( msg )
 

@@ -204,24 +204,24 @@ class StepSet(Step):
     def __repr__(self):
         return f"SET {self.dico}"
 
-class ScenarException(Exception): pass
+
 
 class Scenario(list):
     def __init__(self, file_path: str, conf:dict|None=None):
         try:
             self.env=env.Env(**(conf or {}))
         except Exception as e:
-            raise ScenarException(f"[{file_path}] [{e}]")
+            raise common.ScenarException(f"[{file_path}] [{e}]")
 
         if not os.path.isfile(file_path):
-            raise ScenarException(f"[{file_path}] [File not found]")
+            raise common.ScenarException(f"[{file_path}] [File not found]")
         self.file_path = file_path
 
         try:
             with open(self.file_path, 'r') as fid:
                 yml = yaml.safe_load(fid)
         except yaml.YAMLError as ex:
-            raise ScenarException(f"[{self.file_path}] [Bad syntax] [{ex}]")
+            raise common.ScenarException(f"[{self.file_path}] [Bad syntax] [{ex}]")
         list.__init__(self,[])
 
         if isinstance(yml, dict):
@@ -233,18 +233,18 @@ class Scenario(list):
                 try:
                     self.env.update( conf )
                 except Exception as e:
-                    raise ScenarException(f"[{self.file_path}] [{e}]")
+                    raise common.ScenarException(f"[{self.file_path}] [{e}]")
 
                 self.extend( self._feed( scenar ) )
             else:
-                raise ScenarException("No RUN section in scenario")
+                raise common.ScenarException("No RUN section in scenario")
         elif isinstance(yml, list):
             scenar = yml
             conf={}
             self.extend( self._feed( scenar ) )
 
         else:
-            raise ScenarException(f"[{self.file_path}] [Bad syntax] [scenario must be a dict or a list]")
+            raise common.ScenarException(f"[{self.file_path}] [Bad syntax] [scenario must be a dict or a list]")
 
 
     def _feed(self, liste:list) -> list[Step]:
@@ -272,10 +272,10 @@ class Scenario(list):
                         if set(step.keys()) & ehttp.KNOWNVERBS:
                             ll.append( StepHttp( self, step, params ) )
                         else:
-                            raise ScenarException(f"Bad step {step}")
+                            raise common.ScenarException(f"Bad step {step}")
             return ll
         except AssertSyntaxError as ex:
-            raise ScenarException(f"[{self.file_path}] [Bad step {step}] [{ex}]")
+            raise common.ScenarException(f"[{self.file_path}] [Bad step {step}] [{ex}]")
     
     def __repr__(self):
         return super().__repr__()
@@ -291,7 +291,7 @@ class Scenario(list):
                 async for i in step.process(self.env):
                     yield i
             except Exception as ex:
-                raise ScenarException(f"[{self.file_path}] [Error Step {step}] [{ex}]")
+                raise common.ScenarException(f"[{self.file_path}] [Error Step {step}] [{ex}]")
 
 
     
