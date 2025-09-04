@@ -7,9 +7,12 @@
 # https://github.com/manatlan/RQ
 # #############################################################################
 
-# special keys :
+"""
+Special keys :
 
-# proxy: <string>
-# timeout: <milliseconds>
-# root: <string> 
-# switch: <dict/mapping>
+ * proxy: <string>          # default None
+ * timeout: <milliseconds>  # default 60_000 ms
+ * root: <string>           # default None
+ * switch: <dict/mapping>   # default {}
+
+"""
