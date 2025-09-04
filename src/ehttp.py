@@ -6,10 +6,11 @@
 #
 # https://github.com/manatlan/RQ
 # #############################################################################
-from exceptions import CheckSyntaxError
+from common import assert_syntax
 import json
 import httpx
 import logging
+
 logger = logging.getLogger(__name__)
 
 KNOWNVERBS = set([
@@ -85,7 +86,7 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
             )
     else:
 
-        if not method in KNOWNVERBS: raise CheckSyntaxError(f"Unknown HTTP verb {method}")
+        assert_syntax( method in KNOWNVERBS, f"Unknown HTTP verb {method}")
         try:
             if proxy:
                 logger.debug("Use proxy:",proxy)
@@ -128,6 +129,6 @@ if __name__ == "__main__":
     # import asyncio
     # async def main():
     #     x=await call("GET", "https://tools-httpstatus.pickup-services.com/500")
-    #     if not x.status_code==500 and isinstance(x, httpx.Response): raise CheckSyntaxError()
+    #     assert x.status_code==500
     # asyncio.run(main())
 

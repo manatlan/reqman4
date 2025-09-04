@@ -6,10 +6,12 @@
 #
 # https://github.com/manatlan/RQ
 # #############################################################################
-import scenario
 import logging
 import json,html,httpx
 from urllib.parse import unquote
+
+import scenario
+
 logger = logging.getLogger(__name__)
 
 

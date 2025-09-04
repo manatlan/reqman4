@@ -14,6 +14,8 @@ import traceback
 import tempfile
 import webbrowser
 import click
+from colorama import init, Fore, Style
+from urllib.parse import unquote
 import dotenv; dotenv.load_dotenv()
 
 import config
@@ -21,8 +23,6 @@ import scenario
 import env
 import output
 
-from colorama import init, Fore, Style
-from urllib.parse import unquote
 logger = logging.getLogger(__name__)
 init()
 

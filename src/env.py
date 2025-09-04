@@ -6,17 +6,18 @@
 #
 # https://github.com/manatlan/RQ
 # #############################################################################
-from exceptions import CheckSyntaxError
+from common import assert_syntax
 import re,os
 import httpx,json
 import ast
-
 from typing import Any
-import pycode
+from dataclasses import dataclass
 import logging
+
+import pycode
+
 logger = logging.getLogger(__name__)
 
-from dataclasses import dataclass
 @dataclass
 class R:
     status: int
@@ -153,9 +154,9 @@ class Env(dict):
         for i in ["switch","switches","switchs"]:   #TODO: compat rq & reqman
             if i in self:
                 switchs = self.get(i,{})
-                if not isinstance(switchs, dict): raise CheckSyntaxError("switch must be a dictionary")
+                assert_syntax( isinstance(switchs, dict), "switch must be a dictionary")
                 for k,v in switchs.items():
-                    if not isinstance(v, dict): raise CheckSyntaxError("switch item must be a dictionary")
+                    assert_syntax( isinstance(v, dict), "switch item must be a dictionary")
                     d[k]=v
                 return d
         return d
@@ -209,4 +210,4 @@ if __name__ == "__main__":
 
     # e=Env( method = lambda x: x * 39 )
     # x=e.eval("method(3)")
-    # if not x == 117: raise CheckSyntaxError()
+    # assert x == 117
