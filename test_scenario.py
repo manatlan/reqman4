@@ -1,10 +1,16 @@
 import pytest
 import glob
 from src import scenario,main
+from validate import validate_yaml
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("example_file", glob.glob("examples/ok/*.yml") )
 async def test_scenarios_ok(example_file):
+
+    if "compat" not in example_file:
+        assert validate_yaml(example_file,"schema.json")
+
+
     s=scenario.Scenario(example_file)
     print(s) # test repr
     for step in s:
@@ -18,6 +24,9 @@ async def test_scenarios_ok(example_file):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("example_file", glob.glob("examples/err/*.yml") )
 async def test_scenarios_err(example_file):
+
+    #assert not validate_yaml(example_file,"schema.json")
+
     with open(example_file, "r") as f:
         first_line = f.readline().strip()
     assert first_line.startswith("#ERROR:")
