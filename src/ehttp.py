@@ -6,10 +6,12 @@
 #
 # https://github.com/manatlan/RQ
 # #############################################################################
-from common import assert_syntax
 import json
 import httpx
 import logging
+
+# reqman imports
+from common import assert_syntax
 
 logger = logging.getLogger(__name__)
 

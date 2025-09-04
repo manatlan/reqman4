@@ -6,7 +6,6 @@
 #
 # https://github.com/manatlan/RQ
 # #############################################################################
-from common import assert_syntax
 import re,os
 import httpx,json
 import ast
@@ -14,7 +13,10 @@ from typing import Any
 from dataclasses import dataclass
 import logging
 
+# reqman imports
 import pycode
+from common import assert_syntax
+
 
 logger = logging.getLogger(__name__)
 

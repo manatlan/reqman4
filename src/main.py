@@ -18,6 +18,8 @@ from colorama import init, Fore, Style
 from urllib.parse import unquote
 import dotenv; dotenv.load_dotenv()
 
+# reqman imports
+import common
 import config
 import scenario
 import env
@@ -52,7 +54,7 @@ class Output:
         print(cb(f"--- RUN {file} ---"))
         self.htmls.append( output.generate_section(file) )
 
-    def write_a_test(self,r:scenario.Result):
+    def write_a_test(self,r:common.Result):
         if r:
             self.nb_req+=1
             print(f"{cy(r.request.method)} {unquote(str(r.request.url))} -> {cb(r.response.status_code) if r.response.status_code else cr('X')}")

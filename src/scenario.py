@@ -8,34 +8,17 @@
 # #############################################################################
 from common import assert_syntax,AssertSyntaxError
 import yaml,os,time
-from dataclasses import dataclass
 import httpx
 from typing import AsyncGenerator
 
+# reqman imports
+import common
 import env
 import ehttp
 import compat
 
 import logging
 logger = logging.getLogger(__name__)
-
-@dataclass
-class TestResult:
-    ok: bool|None        # bool with 3 states : see __repr__
-    text : str
-    ctx : str
-
-    def __repr__(self):
-        return {True:"OK",False:"KO",None:"BUG"}[self.ok]
-
-
-@dataclass
-class Result:
-    request: httpx.Request
-    response: httpx.Response
-    tests: list[TestResult]
-    file: str = ""
-    doc: str = ""
 
 
 
@@ -185,14 +168,14 @@ class StepHttp(Step):
                                 k,v="R.json",r.json
                             
                         context+= f"{k}: {v}\n"
-                    results.append( TestResult(ok,t,context) )
+                    results.append( common.TestResult(ok,t,context) )
                 except Exception as ex:
                     logger.error(f"Can't eval test [{t}] : {ex}")
-                    results.append( TestResult(None,t,f"ERROR: {ex}") )
+                    results.append( common.TestResult(None,t,f"ERROR: {ex}") )
 
 
             doc=e.substitute(self.doc)
-            yield Result(response.request,response, results, doc=doc)
+            yield common.Result(response.request,response, results, doc=doc)
 
             e.scope_revert()
 

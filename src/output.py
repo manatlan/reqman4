@@ -10,7 +10,8 @@ import logging
 import json,html,httpx
 from urllib.parse import unquote
 
-import scenario
+# reqman imports
+import common
 
 logger = logging.getLogger(__name__)
 
@@ -58,14 +59,14 @@ div.final {position:fixed; top:0px;right:0px;background:white;padding:4px;border
 def generate_section(file:str) -> str:
     return f"<h2>{file}</h2>"
 
-def generate_request(r:scenario.Result) -> str:
+def generate_request(r:common.Result) -> str:
     def h(d:httpx.Headers) -> str:
         ll = list(dict(d).items())
         return "\n".join( [f"<b>{k}:</b> {v}" for k,v in ll] )
     def c(body:bytes) -> str:
         r=prettify(body)
         return "\n\n"+r if r else ""
-    def t(ll:list[scenario.TestResult]) -> str:
+    def t(ll:list[common.TestResult]) -> str:
         items = []
         for tr in ll:
             items.append(f"""<li class={tr.ok} title="{html.escape(tr.ctx)}">{str(tr)} : {tr.text}</li>""")
