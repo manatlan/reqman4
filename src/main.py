@@ -20,7 +20,6 @@ import dotenv; dotenv.load_dotenv()
 
 # reqman imports
 import common
-import config
 import scenario
 import env
 import output
@@ -137,12 +136,12 @@ def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,is_de
     # fix files : extract files (yml/rml) from potentials directories
     files=expand_files(files)
 
-    reqman_conf = config.guess_reqman_conf(files)
+    reqman_conf = common.guess_reqman_conf(files)
     if reqman_conf is None:
         conf = {}
     else:
         print(cy(f"Using {os.path.relpath(reqman_conf)}"))
-        conf = config.load_reqman_conf(reqman_conf)
+        conf = common.load_reqman_conf(reqman_conf)
     
     conf.update(vars)
 
@@ -182,9 +181,9 @@ def guess(args:list):
     ##########################################################################
     #WARNING: it returns only switchs from reqman.conf ! (not from scenario!!!!)
     files = expand_files([i for i in args if os.path.exists(i)])
-    reqman_conf = config.guess_reqman_conf(files)
+    reqman_conf = common.guess_reqman_conf(files)
     if reqman_conf:
-        conf = config.load_reqman_conf(reqman_conf)
+        conf = common.load_reqman_conf(reqman_conf)
     else:
         conf = {}
 
