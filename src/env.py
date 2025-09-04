@@ -6,6 +6,7 @@
 #
 # https://github.com/manatlan/RQ
 # #############################################################################
+from src.exceptions import CheckSyntaxError
 import re,os
 import httpx,json
 import ast
@@ -110,7 +111,7 @@ class Env(dict):
 
 
     def substitute(self, text: str) -> Any:
-        """ resolve {{expr}} and/or <<expr>> in text """
+        """ resolve {{expr}} and/or <<expr>> in text """ 
         ll = re.findall(r"\{\{[^\}]+\}\}", text) + re.findall("<<[^><]+>>", text)
         for l in ll:
             expr = l[2:-2]
@@ -152,9 +153,9 @@ class Env(dict):
         for i in ["switch","switches","switchs"]:   #TODO: compat rq & reqman
             if i in self:
                 switchs = self.get(i,{})
-                assert isinstance(switchs, dict), "switch must be a dictionary"
+                if not isinstance(switchs, dict): raise CheckSyntaxError("switch must be a dictionary")
                 for k,v in switchs.items():
-                    assert isinstance(v, dict), "switch item must be a dictionary"
+                    if not isinstance(v, dict): raise CheckSyntaxError("switch item must be a dictionary")
                     d[k]=v
                 return d
         return d
@@ -208,4 +209,4 @@ if __name__ == "__main__":
 
     # e=Env( method = lambda x: x * 39 )
     # x=e.eval("method(3)")
-    # assert x == 117
+    # if not x == 117: raise CheckSyntaxError()

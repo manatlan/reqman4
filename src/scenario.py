@@ -6,6 +6,7 @@
 #
 # https://github.com/manatlan/RQ
 # #############################################################################
+from src.exceptions import CheckSyntaxError
 import yaml,os,time
 import asyncio
 from dataclasses import dataclass
@@ -53,8 +54,8 @@ class Step:
         elif isinstance(params, str):
             params = e.substitute(params)
 
-        assert isinstance(params, list), "params must be a list of dict"
-        assert all( isinstance(p, dict) for p in params ), "params must be a list of dict"
+        if not isinstance(params, list): raise CheckSyntaxError("params must be a list of dict")
+        if not all( isinstance(p, dict) for p in params ): raise CheckSyntaxError("params must be a list of dict")
         return params
 
 
@@ -66,11 +67,11 @@ class StepCall(Step):
         # extract step into local properties
         name = step["call"]
 
-        assert isinstance(name, str), "CALL must be a string"
-        assert name in self.scenario.env, f"CALL references unknown scenario '{name}'"
+        if not isinstance(name, str): raise CheckSyntaxError("CALL must be a string")
+        if not name in self.scenario.env: raise CheckSyntaxError(f"CALL references unknown scenario '{name}'")
         
         sub_scenar = self.scenario.env[name]
-        assert isinstance(sub_scenar, list), "CALL must reference a list of steps"
+        if not isinstance(sub_scenar, list): raise CheckSyntaxError("CALL must reference a list of steps")
 
         self.steps = self.scenario._feed( sub_scenar )
 
@@ -106,7 +107,7 @@ class StepHttp(Step):
 
         # extract step into local properties
         methods = set(step.keys()) & ehttp.KNOWNVERBS
-        assert len(methods) == 1, f"Step must contain exactly one HTTP method, found {methods}"
+        if not len(methods) == 1: raise CheckSyntaxError(f"Step must contain exactly one HTTP method, found {methods}")
         method = methods.pop()
         self.method = method
         self.url = step[method]
@@ -114,8 +115,8 @@ class StepHttp(Step):
         self.headers = step.get("headers",{})
         self.body = step.get("body",None)
         self.tests = compat.fix_tests( step.get("tests",[]) )
-        assert isinstance(self.tests,list), "tests must be a list of strings"
-        assert all( isinstance(t,str) for t in self.tests ), "tests must be a list of strings"
+        if not isinstance(self.tests,list): raise CheckSyntaxError("tests must be a list of strings")
+        if not all( isinstance(t,str) for t in self.tests ): raise CheckSyntaxError("tests must be a list of strings")
 
 
     async def process(self,e:Env) -> AsyncGenerator:
@@ -132,7 +133,7 @@ class StepHttp(Step):
             if root:
                 if url.startswith("/"):
                     url = root + url
-            assert url.startswith("http"), f"url must start with http, found {url}"
+            if not url.startswith("http"): raise CheckSyntaxError(f"url must start with http, found {url}")
                 
             headers = self.scenario.env.get("headers",{})
             headers.update( self.headers )
@@ -209,9 +210,9 @@ class StepSet(Step):
     def __init__(self, scenario: "Scenario", step:dict):
         self.scenario = scenario
 
-        assert len(step) == 1, "SET cannot be used with other keys"
+        if not len(step) == 1: raise CheckSyntaxError("SET cannot be used with other keys")
         dico = step["set"]
-        assert isinstance(dico, dict), "SET must be a dictionary"
+        if not isinstance(dico, dict): raise CheckSyntaxError("SET must be a dictionary")
         self.dico = dico
 
     async def process(self,e:Env) -> AsyncGenerator:
@@ -272,7 +273,7 @@ class Scenario(list):
         try:
             ll = []
             for step in liste:
-                assert isinstance(step, dict), f"Bad step {step}"
+                if not isinstance(step, dict): raise CheckSyntaxError(f"Bad step {step}")
                 
                 if "params" in step:
                     params=step["params"]
@@ -281,7 +282,7 @@ class Scenario(list):
                     params=None
 
                 if "set" in step:
-                    assert params is None, "params cannot be used with set"
+                    if not params is None: raise CheckSyntaxError("params cannot be used with set")
                     ll.append( StepSet( self, step ) )
                 else:
                     if "call" in step:
@@ -292,7 +293,7 @@ class Scenario(list):
                         else:
                             raise ScenarException(f"Bad step {step}")
             return ll
-        except AssertionError as ex:
+        except CheckSyntaxError as ex:
             raise ScenarException(f"[{self.file_path}] [Bad step {step}] [{ex}]")
     
     def __repr__(self):
@@ -301,7 +302,7 @@ class Scenario(list):
     async def execute(self,switch:str|None=None) -> AsyncGenerator:
 
         if switch:
-            assert switch in dict(self.env.switchs), f"Unknown switch '{switch}'"
+            if not switch in dict(self.env.switchs): raise CheckSyntaxError(f"Unknown switch '{switch}'")
             self.env.update( self.env.switchs[switch] )
 
         for step in self:

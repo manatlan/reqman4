@@ -6,6 +6,7 @@
 #
 # https://github.com/manatlan/RQ
 # #############################################################################
+from src.exceptions import CheckSyntaxError
 import os
 import yaml
 
@@ -35,5 +36,5 @@ def guess_reqman_conf(paths:list[str]) -> str|None:
 def load_reqman_conf(path:str) -> dict:
     with open(path, 'r') as f:
         conf = yaml.load( f, Loader=yaml.SafeLoader)
-    assert isinstance(conf, dict), "reqman.conf must be a mapping"
+    if not isinstance(conf, dict): raise CheckSyntaxError("reqman.conf must be a mapping")
     return conf
