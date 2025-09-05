@@ -207,9 +207,13 @@ class StepSet(Step):
 
 
 class Scenario(list):
-    def __init__(self, file_path: str, conf:dict|None=None):
+    def __init__(self, file_path: str, conf:dict, switch:str|None = None):
         try:
-            self.env=env.Env(**(conf or {}))
+            self.env=env.Env(**conf)
+            if switch:
+                assert_syntax(switch in self.env.switchs.keys(), f"Unknown switch '{switch}'")
+                self.env.update( self.env.switchs[switch] )
+
         except Exception as e:
             raise common.RqException(f"[{file_path}] [{e}]")
 
@@ -224,6 +228,9 @@ class Scenario(list):
             raise common.RqException(f"[{self.file_path}] [Bad syntax] [{ex}]")
         list.__init__(self,[])
 
+            
+
+
         if isinstance(yml, dict):
             if "RUN" in yml:
                 scenar = yml["RUN"]
@@ -231,7 +238,7 @@ class Scenario(list):
                 conf = yml
 
                 try:
-                    self.env.update( conf )
+                    self.env.update( conf ) # this override a reqman.conf env !
                 except Exception as e:
                     raise common.RqException(f"[{self.file_path}] [{e}]")
 
@@ -280,11 +287,7 @@ class Scenario(list):
     def __repr__(self):
         return super().__repr__()
     
-    async def execute(self,switch:str|None=None) -> AsyncGenerator:
-
-        if switch:
-            assert_syntax(switch in self.env.switchs.keys(), f"Unknown switch '{switch}'")
-            self.env.update( self.env.switchs[switch] )
+    async def execute(self) -> AsyncGenerator:
 
         for step in self:
             try:

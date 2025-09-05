@@ -95,8 +95,8 @@ async def run_tests(files:list[str], conf:dict|None, switch:str|None=None, show_
     for file in files:
         output.begin_scenario( file )
         try:
-            scenar=scenario.Scenario(file,conf)
-            async for req in scenar.execute(switch):
+            scenar=scenario.Scenario(file,conf or {},switch)
+            async for req in scenar.execute():
                 output.write_a_test(req)
         except common.RqException as ex:
             ex=ReqmanException(ex)
