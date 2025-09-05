@@ -53,6 +53,19 @@ def test_substitute_in_object():
     d=e.substitute_in_object(d)
     assert d["kiki"] == 84
 
+def test_inc():
+    e=Env( v=1 )
+    assert e["v"]==1
+    e["v"]=e.substitute("<<v + 1>>")
+    assert e["v"]==2
+
+    e=Env( v=1 )
+    assert e["v"]==1
+    d=dict( v="<< v+1 >>" )
+    e=e.substitute_in_object(d)
+    assert e["v"]==2
+
+
 def test_substitute_in_object_at_constructor(): # bad idea
     e=Env( v=42 , val="hello <<v>>", dico={"kiki":"<<v*2>>"}, liste=[1,2,"<<v*3>>"] )
     # assert e["val"] == "hello 42"

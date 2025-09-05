@@ -197,7 +197,6 @@ class StepSet(Step):
         self.dico = dico
 
     async def process(self,e:env.Env) -> AsyncGenerator:
-        e.update( self.dico )
         e.update( e.substitute_in_object(self.dico) )
         yield None
 
@@ -287,16 +286,25 @@ class Scenario(list):
     def __repr__(self):
         return super().__repr__()
     
-    async def execute(self) -> AsyncGenerator:
+    async def execute(self,with_begin:bool=False,with_end:bool=False) -> AsyncGenerator:
+        try:
 
-        for step in self:
-            try:
+            if with_begin and ("BEGIN" in self.env):
+                logger.debug("Execute BEGIN statement")
+                async for i in StepCall(self, dict(call="BEGIN")).process(self.env):
+                    yield i
+
+            for step in self:
                 async for i in step.process(self.env):
                     yield i
-            except Exception as ex:
-                raise common.RqException(f"[{self.file_path}] [Error Step {step}] [{ex}]")
 
+            if with_end and ("END" in self.env):
+                logger.debug("Execute END statement")
+                async for i in StepCall(self, dict(call="END")).process(self.env):
+                    yield i
 
+        except Exception as ex:
+            raise common.RqException(f"[{self.file_path}] [Error Step {step}] [{ex}]")
     
 if __name__ == "__main__":
     ...

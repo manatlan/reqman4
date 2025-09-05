@@ -1,3 +1,4 @@
+#ERROR: name 'MYUSER' is not defined
 root: http://test
 yo: <<USER>>
 
@@ -6,5 +7,5 @@ RUN:
       MYUSER: <<USER>>
       yoyo: <<yo>>
       test:
-        MYNAME: <<MYUSER>>  # <= works fine
+        MYNAME: <<MYUSER>>  # <= can't work anymore
       toto: 43

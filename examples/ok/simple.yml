@@ -12,8 +12,6 @@ RUN:
   - set:
       MYUSER: <<USER>>
       yoyo: <<yo>>
-      test:
-        MYNAME: <<MYUSER>>
       tata: 43
 
   - GET: /test?json={{ toto }}

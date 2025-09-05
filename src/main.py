@@ -88,15 +88,16 @@ def display_env( x ):
     print(cy("Final environment:"))
     print(env.jzon_dumps(x) if x else "no env")
 
-async def run_tests(files:list[str], conf:dict|None, switch:str|None=None, show_env:bool=False) -> Output:
+async def run_tests(files:list[str], conf:dict, switch:str|None=None, show_env:bool=False) -> Output:
     """ Run all tests in files, return number of failed tests """
     output = Output( switch)
 
     for file in files:
         output.begin_scenario( file )
+
         try:
-            scenar=scenario.Scenario(file,conf or {},switch)
-            async for req in scenar.execute():
+            scenar=scenario.Scenario(file,conf,switch)
+            async for req in scenar.execute( with_begin=(file==files[0]),with_end=(file==files[-1])):
                 output.write_a_test(req)
         except common.RqException as ex:
             ex=ReqmanException(ex)

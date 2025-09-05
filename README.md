@@ -11,7 +11,7 @@ diff:
 - scenars(yml/rml) & reqman.conf are yaml/dict only !
 - scenars must(/can for compat) have a "RUN:" section (others keys are the global env)
 - tests are python statements
-- no more BEGIN/END & .BEGIN/.END
+- no more .BEGIN/.END
 - no more RMR
 - no mote comparison side by side
 - no more XML testing (may change)
