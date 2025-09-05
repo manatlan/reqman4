@@ -251,6 +251,7 @@ def main(**p) -> int:
     else:
         logging.basicConfig(level=logging.ERROR)
 
+    o=None
     try:
         o=reqman(p["files"],p.get("switch",None),vars,p["is_view"],p["show_env"])
         if (o is not None) and p["show_env"]:
@@ -262,7 +263,7 @@ def main(**p) -> int:
         if p["show_env"]:
             display_env( ex.env if hasattr(ex,"env") else None)
         print(cr(f"SCENARIO ERROR: {ex}"))
-        r = -1
+        return -1
 
     if o is None:
         return 0
