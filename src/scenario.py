@@ -236,8 +236,8 @@ class Scenario(list):
 
                 try:
                     self.env.update( conf ) # this override a reqman.conf env !
-                except Exception as e:
-                    raise common.RqException(f"[{self.file_path}] [{e}]")
+                except Exception as exx:
+                    raise common.RqException(f"[{self.file_path}] [{exx}]")
 
                 self.extend( self._feed( scenar ) )
             else:

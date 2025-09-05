@@ -38,8 +38,6 @@ cw = lambda t: colorize(Fore.WHITE, t)
 
 
 class Output:
-    env: env.Env
-
     def __init__(self,switch:str|None):
         self.switch = switch
         self.nb_tests=0
@@ -175,16 +173,11 @@ class ExcecutionTests:
                 output.end_scenario()
 
             output.end_tests()
-            output.env = scenar.env #TODO: make better
             return output
 
         return asyncio.run(async_run_tests(self.files))
 
 
-#DEPRECATED
-def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False) -> Output|None: 
-    et=ExcecutionTests(files,switch,vars)
-    return et.execute()
 
 
 def guess(args:list):
@@ -249,13 +242,16 @@ def patch_docstring(f):
 def main(**p) -> int:
     """Test an http service with pre-made scenarios, whose are simple yaml files
 (More info on https://github.com/manatlan/RQ) """
-    if p["vars"]:
-        vars = dict( [ i.split("=",1) for i in p["vars"].split(",") if "=" in i ] )
-    else:
-        vars = {}
+    return reqman(**p)
 
-    if p["is_shebang"] and len(p["files"])==1:
-        files=p["files"]
+def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_debug:bool=False,is_view:bool=False,is_shebang:bool=False,open_browser:bool=False) -> int:
+    if vars:
+        dvars = dict( [ i.split("=",1) for i in vars.split(",") if "=" in i ] )
+    else:
+        dvars = {}
+
+    if is_shebang and len(files)==1:
+
         with open(files[0], "r") as f:
             first_line = f.readline().strip()
         if first_line.startswith("#!"): # things like "#!reqman -e -d" should work
@@ -266,31 +262,31 @@ def main(**p) -> int:
             return main() #redo click parsing !
 
 
-    if p["is_debug"]:
+    if is_debug:
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.ERROR)
 
     try:
-        r = ExcecutionTests( p["files"],p.get("switch",None),vars)
-        if p["is_view"]:
+        r = ExcecutionTests( files,switch,dvars)
+        if is_view:
             r.view()
             return 0
         else:
-            o= r.execute()
+            o = r.execute()
 
-            if p["show_env"]:
-                display_env(o.env)
+            if show_env:
+                display_env(r.env)
 
-            if p["open_browser"]:
+            if open_browser:
                 o.open_browser()
 
             return o.nb_tests_ko
 
     except ReqmanException as ex:
-        if p["is_debug"]:
+        if is_debug:
             traceback.print_exc()
-        if p["show_env"]:
+        if show_env:
             display_env( ex.env if hasattr(ex,"env") else None)
         print(cr(f"SCENARIO ERROR: {ex}"))
         return -1
@@ -299,3 +295,4 @@ def main(**p) -> int:
 
 if __name__ == "__main__":
     sys.exit( main() )
+    
