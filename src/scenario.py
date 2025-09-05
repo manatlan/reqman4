@@ -206,15 +206,13 @@ class StepSet(Step):
 
 
 class Scenario(list):
-    def __init__(self, file_path: str, conf:dict, switch:str|None = None):
-        try:
-            self.env=env.Env(**conf)
-            if switch:
-                assert_syntax(switch in self.env.switchs.keys(), f"Unknown switch '{switch}'")
-                self.env.update( self.env.switchs[switch] )
+    def __init__(self, file_path: str, e:env.Env|None=None):
+        if e:
+            assert isinstance(e,env.Env)
+        else:
+            e=env.Env()
 
-        except Exception as e:
-            raise common.RqException(f"[{file_path}] [{e}]")
+        self.env = e
 
         if not os.path.isfile(file_path):
             raise common.RqException(f"[{file_path}] [File not found]")
@@ -305,7 +303,9 @@ class Scenario(list):
 
         except Exception as ex:
             raise common.RqException(f"[{self.file_path}] [Error Step {step}] [{ex}]")
-    
+
+
+
 if __name__ == "__main__":
     ...
     # logging.basicConfig(level=logging.DEBUG)

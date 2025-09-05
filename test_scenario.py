@@ -11,7 +11,7 @@ async def test_scenarios_ok(example_file):
         assert validate_yaml(example_file,"schema.json")
 
 
-    s=scenario.Scenario(example_file,{})
+    s=scenario.Scenario(example_file)
     print(s) # test repr
     for step in s:
         print(step) # test step.__repr__
@@ -33,7 +33,7 @@ async def test_scenarios_err(example_file):
     error_message = first_line[len("#ERROR:"):].strip()
 
     with pytest.raises(Exception) as excinfo:
-        s=scenario.Scenario(example_file,{})
+        s=scenario.Scenario(example_file)
         async for echange in s.execute():
             ...
     assert error_message in str(excinfo.value)

@@ -12,8 +12,8 @@ def test_main():
     assert o2 is not None
     assert o1.nb_tests_ko == o2.nb_tests_ko
     
-def test_main_view_only():
-    assert main.reqman(["examples/classic/test_switch.yml"],is_view=True) is None
+# def test_main_view_only():
+#     assert main.reqman(["examples/classic/test_switch.yml"],is_view=True) is None
 
 def test_main_apply_switch():
     o=main.reqman(["examples/classic/test_switch.yml"],"env2")

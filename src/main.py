@@ -97,31 +97,7 @@ def display_env( x ):
     print(cy("Final environment:"))
     print(env.jzon_dumps(x) if x else "no env")
 
-async def async_run_tests(files:list[str], conf:dict, switch:str|None=None) -> Output:
-    """ Run all tests in files, return number of failed tests """
-    output = Output( switch)
 
-    for file in files:
-        output.begin_scenario( file )
-
-        try:
-            scenar=scenario.Scenario(file,conf,switch)
-            async for req in scenar.execute( with_begin=(file==files[0]),with_end=(file==files[-1])):
-                output.write_a_test(req)
-        except common.RqException as ex:
-            ex=ReqmanException(ex)
-            try:
-                ex.env = scenar.env 
-            except:
-                logger.error(f"Can't get the env on exception {ex}")
-                ex.env = None
-            raise ex
-        
-        output.end_scenario()
-
-    output.end_tests()
-    output.env = scenar.env #TODO: make better
-    return output
 
 def find_scenarios(path_folder: str, filters=(".yml", ".rml")):
     for folder, subs, files in os.walk(path_folder):
@@ -142,30 +118,74 @@ def expand_files(files:list[str]) -> list[str]:
             ll.append(i)
     return ll
 
-def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,show_env:bool=False) -> Output|None:
-    """New reqman (rq4) prototype"""
+class ExcecutionTests:
+    def __init__(self,files:list,switch:str|None=None,vars:dict={}):
+        # fix files : extract files (yml/rml) from potentials directories
+        self.files=expand_files(files)
+        
+        # init the conf
+        reqman_conf = common.guess_reqman_conf(self.files)
+        if reqman_conf is None:
+            conf = {}
+        else:
+            print(cy(f"Using {os.path.relpath(reqman_conf)}"))
+            conf = common.load_reqman_conf(reqman_conf)
 
-    # fix files : extract files (yml/rml) from potentials directories
-    files=expand_files(files)
+        # update with vars from command line
+        conf.update(vars)
 
-    reqman_conf = common.guess_reqman_conf(files)
-    if reqman_conf is None:
-        conf = {}
-    else:
-        print(cy(f"Using {os.path.relpath(reqman_conf)}"))
-        conf = common.load_reqman_conf(reqman_conf)
-    
-    conf.update(vars)
+        self.env = env.Env(**conf)
 
-    if is_view:
-        for f in files:
+        # apply the switch
+        if switch:
+            common.assert_syntax(switch in self.env.switchs.keys(), f"Unknown switch '{switch}'")
+            self.env.update( self.env.switchs[switch] )
+        self._switch = switch
+
+
+    def view(self):
+        for f in self.files:
             #TODO: should display BEGIN & AND ? for sure !
             print(cb(f"Analyse {f}"))
-            for i in scenario.Scenario(f, conf):
+            for i in scenario.Scenario(f, self.env):
                 print(i)
-        return None
-    else:
-        return asyncio.run(async_run_tests(files, conf, switch))
+
+    def execute(self) -> Output:
+
+        async def async_run_tests(files:list[str]) -> Output:
+            """ Run all tests in files, return number of failed tests """
+            output = Output( self._switch)
+
+            for file in files:
+                output.begin_scenario( file )
+
+                try:
+                    scenar=scenario.Scenario(file,self.env)
+                    async for req in scenar.execute( with_begin=(file==files[0]),with_end=(file==files[-1])):
+                        output.write_a_test(req)
+                except common.RqException as ex:
+                    ex=ReqmanException(ex)
+                    try:
+                        ex.env = scenar.env 
+                    except:
+                        logger.error(f"Can't get the env on exception {ex}")
+                        ex.env = None
+                    raise ex
+                
+                output.end_scenario()
+
+            output.end_tests()
+            output.env = scenar.env #TODO: make better
+            return output
+
+        return asyncio.run(async_run_tests(self.files))
+
+
+#DEPRECATED
+def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False) -> Output|None: 
+    et=ExcecutionTests(files,switch,vars)
+    return et.execute()
+
 
 def guess(args:list):
     ##########################################################################
@@ -178,7 +198,7 @@ def guess(args:list):
 
     if len(files)==1:
         # an unique file
-        s = scenario.Scenario(files[0],conf)
+        s = scenario.Scenario(files[0],env.Env(**conf))
         if s.env.switchs:
             print(cy(f"Using switches from {files[0]}"))
         return s.env.switchs
@@ -251,11 +271,21 @@ def main(**p) -> int:
     else:
         logging.basicConfig(level=logging.ERROR)
 
-    o=None
     try:
-        o=reqman(p["files"],p.get("switch",None),vars,p["is_view"],p["show_env"])
-        if (o is not None) and p["show_env"]:
-            display_env(o.env)
+        r = ExcecutionTests( p["files"],p.get("switch",None),vars)
+        if p["is_view"]:
+            r.view()
+            return 0
+        else:
+            o= r.execute()
+
+            if p["show_env"]:
+                display_env(o.env)
+
+            if p["open_browser"]:
+                o.open_browser()
+
+            return o.nb_tests_ko
 
     except ReqmanException as ex:
         if p["is_debug"]:
@@ -265,13 +295,6 @@ def main(**p) -> int:
         print(cr(f"SCENARIO ERROR: {ex}"))
         return -1
 
-    if o is None:
-        return 0
-    else:
-        if p["open_browser"]:
-            o.open_browser()
-
-        return o.nb_tests_ko
 
 
 if __name__ == "__main__":
