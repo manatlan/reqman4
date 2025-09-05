@@ -289,7 +289,7 @@ class Scenario(list):
     async def execute(self,with_begin:bool=False,with_end:bool=False) -> AsyncGenerator:
         try:
 
-            if with_begin and ("BEGIN" in self.env):
+            if with_begin and self.env.get("BEGIN"):
                 logger.debug("Execute BEGIN statement")
                 async for i in StepCall(self, dict(call="BEGIN")).process(self.env):
                     yield i
@@ -298,7 +298,7 @@ class Scenario(list):
                 async for i in step.process(self.env):
                     yield i
 
-            if with_end and ("END" in self.env):
+            if with_end and self.env.get("END"):
                 logger.debug("Execute END statement")
                 async for i in StepCall(self, dict(call="END")).process(self.env):
                     yield i
