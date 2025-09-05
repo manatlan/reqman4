@@ -168,7 +168,7 @@ class StepHttp(Step):
                                 k,v="R.json",r.json
                             
                         context+= f"{k}: {v}\n"
-                    results.append( common.TestResult(ok,t,context) )
+                    results.append( common.TestResult(bool(ok),t,context) )
                 except Exception as ex:
                     logger.error(f"Can't eval test [{t}] : {ex}")
                     results.append( common.TestResult(None,t,f"ERROR: {ex}") )
