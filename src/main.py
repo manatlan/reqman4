@@ -38,6 +38,8 @@ cw = lambda t: colorize(Fore.WHITE, t)
 
 
 class Output:
+    env: env.Env
+
     def __init__(self,switch:str|None):
         self.switch = switch
         self.nb_tests=0
@@ -72,6 +74,13 @@ class Output:
     def end_tests(self):
         self.htmls.append( output.generate_final( self.switch, self.nb_tests_ok, self.nb_tests) )
 
+        r = self.nb_tests_ko
+        if r==0:
+            print(cg(f"{self.nb_tests_ok}/{self.nb_tests}"))
+        else:
+            print(cr(f"{self.nb_tests_ok}/{self.nb_tests}"))
+
+
     def open_browser(self):
 
         with tempfile.NamedTemporaryFile('w', delete=False, suffix='.html', encoding="utf-8") as f:
@@ -88,7 +97,7 @@ def display_env( x ):
     print(cy("Final environment:"))
     print(env.jzon_dumps(x) if x else "no env")
 
-async def run_tests(files:list[str], conf:dict, switch:str|None=None, show_env:bool=False) -> Output:
+async def async_run_tests(files:list[str], conf:dict, switch:str|None=None) -> Output:
     """ Run all tests in files, return number of failed tests """
     output = Output( switch)
 
@@ -108,11 +117,10 @@ async def run_tests(files:list[str], conf:dict, switch:str|None=None, show_env:b
                 ex.env = None
             raise ex
         
-        output.end_scenario( )
-        if show_env:
-            display_env(scenar.env)
+        output.end_scenario()
 
     output.end_tests()
+    output.env = scenar.env #TODO: make better
     return output
 
 def find_scenarios(path_folder: str, filters=(".yml", ".rml")):
@@ -134,7 +142,7 @@ def expand_files(files:list[str]) -> list[str]:
             ll.append(i)
     return ll
 
-def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,is_debug:bool=False,show_env:bool=False,show_html:bool=False) -> int:
+def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,show_env:bool=False) -> Output|None:
     """New reqman (rq4) prototype"""
 
     # fix files : extract files (yml/rml) from potentials directories
@@ -151,33 +159,13 @@ def reqman(files:list,switch:str|None=None,vars:dict={},is_view:bool=False,is_de
 
     if is_view:
         for f in files:
+            #TODO: should display BEGIN & AND ? for sure !
             print(cb(f"Analyse {f}"))
             for i in scenario.Scenario(f, conf):
                 print(i)
-        return 0
+        return None
     else:
-        if is_debug:
-            logging.basicConfig(level=logging.DEBUG)
-        else:
-            logging.basicConfig(level=logging.ERROR)
-
-        try:
-            o = asyncio.run(run_tests(files, conf, switch, show_env))
-            r = o.nb_tests_ko
-            if show_html: o.open_browser()
-            if r==0:
-                print(cg(f"{o.nb_tests_ok}/{o.nb_tests}"))
-            else:
-                print(cr(f"{o.nb_tests_ok}/{o.nb_tests}"))
-        except ReqmanException as ex:
-            if is_debug:
-                traceback.print_exc()
-            if show_env:
-                display_env( ex.env if hasattr(ex,"env") else None)
-            print(cr(f"SCENARIO ERROR: {ex}"))
-            r = -1
-
-        return r
+        return asyncio.run(async_run_tests(files, conf, switch))
 
 def guess(args:list):
     ##########################################################################
@@ -238,7 +226,7 @@ def patch_docstring(f):
 @click.option('-i',"is_shebang",is_flag=True,default=False,help="interactif mode (with shebang)")
 @click.option('-o',"open_browser",is_flag=True,default=False,help="open result in an html page")
 @patch_docstring
-def main(**p):
+def main(**p) -> int:
     """Test an http service with pre-made scenarios, whose are simple yaml files
 (More info on https://github.com/manatlan/RQ) """
     if p["vars"]:
@@ -256,8 +244,33 @@ def main(**p):
             cmd,*fuck_all_params = sys.argv
             sys.argv=[ cmd, files[0] ] + options
             return main() #redo click parsing !
-            
-    return reqman(p["files"],p.get("switch",None),vars,p["is_view"],p["is_debug"],p["show_env"],p["open_browser"])
+
+
+    if p["is_debug"]:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.ERROR)
+
+    try:
+        o=reqman(p["files"],p.get("switch",None),vars,p["is_view"],p["show_env"])
+        if (o is not None) and p["show_env"]:
+            display_env(o.env)
+
+    except ReqmanException as ex:
+        if p["is_debug"]:
+            traceback.print_exc()
+        if p["show_env"]:
+            display_env( ex.env if hasattr(ex,"env") else None)
+        print(cr(f"SCENARIO ERROR: {ex}"))
+        r = -1
+
+    if o is None:
+        return 0
+    else:
+        if p["open_browser"]:
+            o.open_browser()
+
+        return o.nb_tests_ko
 
 
 if __name__ == "__main__":

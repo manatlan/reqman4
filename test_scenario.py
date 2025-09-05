@@ -45,4 +45,6 @@ def test_scenarios_ko(example_file):
     assert first_line.startswith("#KO:")
     nb_ko = int(first_line[len("#KO:"):].strip())
 
-    assert main.reqman([example_file]) == nb_ko
+    o=main.reqman([example_file])
+    assert o is not None
+    assert o.nb_tests_ko == nb_ko
