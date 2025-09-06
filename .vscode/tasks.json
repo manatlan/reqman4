@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Run YAML",
+            "label": "Run reqman scenario (yml/rml)",
             "type": "shell",
             "command": "uv run rq -i ${file}",
             "problemMatcher": [],
