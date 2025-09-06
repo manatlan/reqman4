@@ -59,20 +59,23 @@ RUN:
 
   - call: scenar2
 
-  # - GET: /test?json=[<<mymethod(toto) * 3>>,<<j>>]
-  #   doc: test
-  #   tests:
-  #     - R.status == 200
-  #     - R.headers["content-type"] == "application/json"
-  #     - R.headers["content-TYPE"] == "application/json"
-  #     - R.headers.content_type == "application/json"  # can't work
-  #     - R.json[0] == 2898
-  #     - R.json[1] == j
-  #     - HELLO == "JE SUIS LA"
-  #   params:
-  #   - j: 1
-  #   - j: 2
-  #   - j: 3
+  - set:
+      toto: 42  # need to override toto (was VAL)
+
+  - GET: /test?json=[<<mymethod(toto) * 3>>,<<j>>]
+    doc: test <<toto>>
+    tests:
+      - R.status == 200
+      - R.headers["content-type"] == "application/json"
+      - R.headers["content-TYPE"] == "application/json"
+      - R.headers.content_type == "application/json"  # can't work
+      - R.json[0] == 2898
+      - R.json[1] == j
+      - HELLO == "JE SUIS LA"
+    params:
+      - j: 1
+      - j: 2
+      - j: 3
 
   - set:
        lastStatus: <<R.status>>
