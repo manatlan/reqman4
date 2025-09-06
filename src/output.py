@@ -28,9 +28,9 @@ def prettify(body:bytes) -> str:
                 return json.dumps(json.loads(body), indent=2, sort_keys=True)
             except:
                 try:
-                    return body.decode()
+                    return html.escape(body.decode())
                 except:
-                    return str(body)
+                    return html.escape(str(body))
 
 def generate_base() -> str:
     return """

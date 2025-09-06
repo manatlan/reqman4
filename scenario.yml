@@ -1,0 +1,6 @@
+
+RUN:
+  - GET: https://github.com/manatlan/reqman4/
+    tests:
+      - R.status == 200
+      - 'manatlan/reqman4' in R.text
