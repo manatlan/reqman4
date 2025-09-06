@@ -12,6 +12,9 @@ on:
   workflow_dispatch:  # to be able to test manually on github/actions
   release:
     types: [published]
+  push:
+    tags:
+      - "v*.*.*"
 
 permissions:
   contents: read
@@ -31,6 +34,8 @@ jobs:
         run: |
           # NOTE: put your own distribution build steps here.
           python -m pip install uv
+          uv sync
+          uv version ${{github.ref_name}}
           uv run build.py
 
       - name: Upload distributions
