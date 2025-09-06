@@ -25,7 +25,7 @@ Major differences :
 - no more junit.xml output (may change)
 
 Here is a valid scenario, which give you an overview :
-[scenario.yml](scenario.yml)
+[scenario.yml](https://github.com/manatlan/reqman4/blob/main/scenario.yml)
 
 
 ## From github
