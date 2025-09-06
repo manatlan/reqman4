@@ -1,7 +1,7 @@
 [project]
-name = "rq4"
+name = "reqman4"
 version = "0.1.0"
-description = "rq = reqman4 (prototype)"
+description = "reqman4 (prototype), command 'rq' "
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
