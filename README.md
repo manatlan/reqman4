@@ -3,7 +3,7 @@
 A complete rewrite of [reqman](https://github.com/manatlan/reqman). __It's a **prototype/poc**__ ! Don't know yet if it will replace the original, but I wanted to have a new/cleaner/simpler version, 
 with all good ideas from the original. 
 
-**MAJOR CHANGES**: This prototype is more python based for vars & tests, and can display html in http-verb's doc (to be able to make human readable html reports). Syntax is simpler/cleaner (to be able to have a json-schema to valid yml/rml)
+**MAJOR CHANGES**: This prototype is more python based for vars & tests, and can display html in http-verb's doc (to be able to make human readable html reports). Syntax is simpler/cleaner (to be able to have a json-schema to valid yml/rml). And debugging is simpler.
 
 Currently, the package provide a `rq` command (but will be `reqman` in the future)
 
