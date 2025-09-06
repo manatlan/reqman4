@@ -225,9 +225,6 @@ class Scenario(list):
             raise common.RqException(f"[{self.file_path}] [Bad syntax] [{ex}]")
         list.__init__(self,[])
 
-            
-
-
         if isinstance(yml, dict):
             if "RUN" in yml:
                 scenar = yml["RUN"]
@@ -271,7 +268,7 @@ class Scenario(list):
                     ll.append( StepSet( self, step ) )
                 else:
                     if "call" in step:
-                        self.append( StepCall( self, step, params ) )
+                        ll.append( StepCall( self, step, params ) )
                     else:
                         if set(step.keys()) & ehttp.KNOWNVERBS:
                             ll.append( StepHttp( self, step, params ) )
