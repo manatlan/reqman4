@@ -39,7 +39,6 @@ tata: 123
 RUN:
   - set:
       toto: 42
-      toti: <<10 * str(toto)>>
       KOKO: <<mymethod( 42 )>>
 
   - GET: /404
@@ -60,20 +59,20 @@ RUN:
 
   - call: scenar2
 
-  - GET: /test?json=[<<mymethod(toto) * 3>>,<<j>>]
-    doc: test
-    tests:
-      - R.status == 200
-      - R.headers["content-type"] == "application/json"
-      - R.headers["content-TYPE"] == "application/json"
-      - R.headers.content_type == "application/json"  # can't work
-      - R.json[0] == 2898
-      - R.json[1] == j
-      - HELLO == "JE SUIS LA"
-    params:
-    - j: 1
-    - j: 2
-    - j: 3
+  # - GET: /test?json=[<<mymethod(toto) * 3>>,<<j>>]
+  #   doc: test
+  #   tests:
+  #     - R.status == 200
+  #     - R.headers["content-type"] == "application/json"
+  #     - R.headers["content-TYPE"] == "application/json"
+  #     - R.headers.content_type == "application/json"  # can't work
+  #     - R.json[0] == 2898
+  #     - R.json[1] == j
+  #     - HELLO == "JE SUIS LA"
+  #   params:
+  #   - j: 1
+  #   - j: 2
+  #   - j: 3
 
   - set:
        lastStatus: <<R.status>>

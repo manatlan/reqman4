@@ -1,4 +1,4 @@
-#ERROR: invalid syntax
+#ERROR: object is not callable
 root: http://test
 
 

@@ -12,7 +12,7 @@ SUB_SCENAR:                                         # <- declare a sub scenario 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   - GET: https://jsonplaceholder.typicode.com/todos
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    doc: "test a json api (a list)"
+    doc: "test a json api (return a list)"
     tests:
       - R.status == 200
       - len(R.json) > 0                             # 'R.json' is the json repr of the response
