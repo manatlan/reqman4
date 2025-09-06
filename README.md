@@ -27,6 +27,3 @@ diff:
 
     uvx --from git+https://github.com/manatlan/reqman4 rq scenario.yml -o
 
-## to pytest the repo
-
-    uvx --from git+https://github.com/manatlan/reqman4 pytest .
