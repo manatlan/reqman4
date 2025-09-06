@@ -37,7 +37,6 @@ jobs:
           uv sync
           uv version ${{github.ref_name}}
           uv run build.py
-          git push --follow-tags
 
       - name: Upload distributions
         uses: actions/upload-artifact@v4
