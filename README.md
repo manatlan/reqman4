@@ -27,6 +27,10 @@ Major differences :
 Here is a valid scenario, which give you an overview :
 [scenario.yml](https://github.com/manatlan/reqman4/blob/main/scenario.yml)
 
+If you use [uvx](https://docs.astral.sh/uv/guides/tools/), you cant test this scenario in your context :
+
+    uvx --from reqman4 rq https://raw.githubusercontent.com/manatlan/reqman4/refs/heads/main/scenario.yml -o
+
 
 ## From github
 
@@ -49,7 +53,4 @@ Here is a valid scenario, which give you an overview :
     uvx --from reqman4 rq scenario.yml -o
 
 
-### to run a scenario (on an uri)
-
-    uvx --from reqman4 rq https://raw.githubusercontent.com/manatlan/reqman4/refs/heads/main/scenario.yml -o
 
