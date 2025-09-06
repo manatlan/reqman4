@@ -1,0 +1,23 @@
+root: http://test
+
+mylist1:
+  - a: 1
+  - a: 2
+
+mylist2:
+  - b: 1
+  - b: 2
+  - b: 2
+
+PROC:
+  - GET: /test?json=[<<a>>,<<b>>]
+    tests:
+      - R.status == 200
+      - R.json[0] == a
+      - R.json[1] == b
+    params: <<mylist2>>
+
+RUN:
+  - call: PROC
+    params: <<mylist1>>
+
