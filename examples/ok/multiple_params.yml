@@ -7,10 +7,11 @@ mylist1:
 mylist2:
   - b: 1
   - b: 2
-  - b: 2
+  - b: 3
 
 PROC:
   - GET: /test?json=[<<a>>,<<b>>]
+    doc: call <<(a-1)*3 + b>>
     tests:
       - R.status == 200
       - R.json[0] == a
