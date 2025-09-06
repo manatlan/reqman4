@@ -230,7 +230,8 @@ def patch_docstring(f):
     return f
 
 @cli.command()
-@click.argument('files', type=click.Path(exists=True,), nargs=-1, required=True)
+@click.argument('files', nargs=-1, required=True ) #help="Scenarios yml/rml (local or http)"
+# @click.argument('files', type=click.Path(exists=True,), nargs=-1, required=True)
 @options_from_files("switch")
 @click.option('-v',"is_view",is_flag=True,default=False,help="Analyze only, do not execute requests")
 @click.option('-d',"is_debug",is_flag=True,default=False,help="debug mode")

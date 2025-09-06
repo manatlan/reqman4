@@ -218,15 +218,22 @@ class Scenario(list):
 
         self.env = e
 
-        if not os.path.isfile(file_path):
-            raise common.RqException(f"[{file_path}] [File not found]")
+        if file_path.startswith("http"):
+            try:
+                yml = yaml.safe_load( common.get_url_content(file_path) )
+            except yaml.YAMLError as ex:
+                raise common.RqException(f"[{file_path}] [Bad syntax] [{ex}]")
+        else:
+            if os.path.isfile(file_path):
+                try:
+                    with open(file_path, 'r') as fid:
+                        yml = yaml.safe_load(fid)
+                except yaml.YAMLError as ex:
+                    raise common.RqException(f"[{file_path}] [Bad syntax] [{ex}]")
+            else:
+                raise common.RqException(f"[{file_path}] [File not found]")
         self.file_path = file_path
 
-        try:
-            with open(self.file_path, 'r') as fid:
-                yml = yaml.safe_load(fid)
-        except yaml.YAMLError as ex:
-            raise common.RqException(f"[{self.file_path}] [Bad syntax] [{ex}]")
         list.__init__(self,[])
 
         if isinstance(yml, dict):

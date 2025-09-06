@@ -61,3 +61,8 @@ def load_reqman_conf(path:str) -> dict:
         conf = yaml.load( f, Loader=yaml.SafeLoader)
     assert_syntax( isinstance(conf, dict) , "reqman.conf must be a mapping")
     return conf
+
+def get_url_content(url:str) -> str:
+    r=httpx.get(url)
+    r.raise_for_status()
+    return r.text
