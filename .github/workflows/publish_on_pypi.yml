@@ -9,9 +9,9 @@
 name: Upload Python Package
 
 on:
-  workflow_dispatch:  # to be able to test manually on github/actions
-  release:
-    types: [published]
+  # workflow_dispatch:  # to be able to test manually on github/actions
+  # release:
+  #   types: [published]
   push:
     tags:
       - "v*.*.*"
