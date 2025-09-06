@@ -25,11 +25,11 @@ def test_convert():
         "liste":[1,2,{"key":"val"}],
     }
     d=convert(data)
-    assert d.coco == "VAL"
-    assert d.liste[0] == 1
-    assert d.liste[1] == 2
-    assert d.liste[2].key == "val"
-    assert len(d.liste) == 3
+    assert d.coco == "VAL" # type: ignore
+    assert d.liste[0] == 1 # type: ignore
+    assert d.liste[1] == 2 # type: ignore
+    assert d.liste[2].key == "val" # type: ignore
+    assert len(d.liste) == 3 # type: ignore
     
 def test_substitute():
     e=Env( v=42 )
