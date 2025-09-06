@@ -1,10 +1,10 @@
-#ERROR: unknown attributs
+#ERROR: unknowns http'attributes
 root: http://test
 
 RUN:
 
   - GET: /testdict?a=<<a>>
-    query: yo
+    query: yo                   # <- NO "query" or others
     tests:
       - R.status == 200
 

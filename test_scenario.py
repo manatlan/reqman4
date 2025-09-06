@@ -10,7 +10,7 @@ def test_no_reqman_conf():
     assert common.guess_reqman_conf([".","examples"]) is None
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("example_file", glob.glob("examples/ok/*.yml") )
+@pytest.mark.parametrize("example_file", sorted(glob.glob("examples/ok/*.yml")) )
 async def test_scenarios_ok(example_file):
 
     if "compat" not in example_file:
@@ -28,7 +28,7 @@ async def test_scenarios_ok(example_file):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("example_file", glob.glob("examples/err/*.yml") )
+@pytest.mark.parametrize("example_file", sorted(glob.glob("examples/err/*.yml")) )
 async def test_scenarios_err(example_file):
 
     #assert not validate_yaml(example_file,"schema.json")
@@ -44,7 +44,7 @@ async def test_scenarios_err(example_file):
             ...
     assert error_message in str(excinfo.value)
 
-@pytest.mark.parametrize("example_file", glob.glob("examples/ko/*.yml") )
+@pytest.mark.parametrize("example_file", sorted(glob.glob("examples/ko/*.yml")) )
 def test_scenarios_ko(example_file):
     with open(example_file, "r") as f:
         first_line = f.readline().strip()

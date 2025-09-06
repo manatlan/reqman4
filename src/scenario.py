@@ -48,7 +48,7 @@ class StepCall(Step):
         # extract step into local properties
         name = step["call"]
 
-        assert_syntax( len(step.keys()) == 1, f"unknown keys in call : {list(step.keys())}")
+        assert_syntax( len(step.keys()) == 1, f"unknowns call'attributes: {list(step.keys())}")
         assert_syntax( isinstance(name, str),"CALL must be a string")
         assert_syntax( name in self.scenario.env,f"CALL references unknown scenario '{name}'")
         
@@ -93,7 +93,7 @@ class StepHttp(Step):
         method = methods.pop()
         attributs = set(step.keys()) - set([method])
 
-        assert_syntax( not attributs - {"doc","headers","body","tests"},f"unknown attributs {list(step.keys())}")
+        assert_syntax( not attributs - {"doc","headers","body","tests"},f"unknowns http'attributes {list(step.keys())}")
 
         self.method = method
         self.url = step[method]
