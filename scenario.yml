@@ -70,6 +70,18 @@ RUN:                                                # <- this declare the scenar
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  - GET: https:/invalid_url.nimp.nawak
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    doc: this is a non playable request, the response is empty <<R>>
+    tests:
+      - R.status == 0   
+      - R.text == ""
+      - R.content == b""
+      - not R.headers
+      - 0 <= R.time < 100                          # 'R.time' is elapsed time
+
+
 # note that reqman (rq) will return a rc (return code) which is the nb of failed tests !
 # if rc==0 : all is ok
 # if rc==-1 : a bug/error
