@@ -3,6 +3,12 @@ import glob
 from src import scenario,main,common
 from validate import validate_yaml
 
+
+def test_no_reqman_conf():
+    """ ensure there no reqman.conf, because it will interact with
+    scenarios tested in examples folder """
+    assert common.guess_reqman_conf([".","examples"]) is None
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize("example_file", glob.glob("examples/ok/*.yml") )
 async def test_scenarios_ok(example_file):

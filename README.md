@@ -7,10 +7,12 @@ diff:
 - "uv" & (a lot) simpler (less features)
 - use httpx !
 - options are inverted (--i -> -i & (switch) -dev --> --dev)
-- one SWITCH only (may change)
+- one SWITCH param only (may change)
 - scenars(yml/rml) & reqman.conf are yaml/dict only !
 - scenars must(/can for compat) have a "RUN:" section (others keys are the global env)
 - tests are python statements
+- no break!
+- no if 
 - no more .BEGIN/.END
 - no more RMR
 - no mote comparison side by side

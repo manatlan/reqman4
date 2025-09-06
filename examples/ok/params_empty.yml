@@ -1,0 +1,7 @@
+root: http://test
+
+RUN:
+  - GET: /test?a=<<a>>
+    tests:
+      - R.status == 200
+    params: []                    # generate no http get !
