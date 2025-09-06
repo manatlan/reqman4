@@ -1,17 +1,10 @@
-
+#ERROR: unknown scenario 'RUN'
 # press CTRL+F5 to run this scenario with current py/repo (under vscode)
 
 RUN:
-  - GET: http:/test/
-    tests:
-      - R.status == 0
-
-  - GET: http://test/
-    tests:
-      - R.status == 404
       
   - GET: http://test/test
     tests:
       - R.status == 200
 
-  - call: RUN
+  - call: RUN     # <= can't CALL itself
