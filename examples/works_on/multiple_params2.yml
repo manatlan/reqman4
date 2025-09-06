@@ -1,0 +1,22 @@
+root: http://test
+
+
+PROC:
+  - GET: /test?json=[1,2,3]
+    doc: Retry <<retry>>
+    tests:
+      - R.status == 200
+
+  - GET: /test?json={"n":<<n>>}
+    doc: Retry <<retry>> from result
+    tests:
+      - R.status == 200
+      - R.json.n == n
+    params: <<[dict(n=i) for i in R.json]>>
+
+RUN:
+  - call: PROC
+    params:
+      - retry: 1
+      - retry: 2
+
