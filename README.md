@@ -19,11 +19,23 @@ diff:
 - no more XML testing (may change)
 - no more junit xml output (may change)
 
-## to test command line
+# from github
+
+## to test command line (from)
 
     uvx --from git+https://github.com/manatlan/reqman4 rq --help
 
 ## to run a scenario (new version)
 
     uvx --from git+https://github.com/manatlan/reqman4 rq scenario.yml -o
+
+# from pypi
+
+## to test command line (from)
+
+    uvx --from reqman4 rq --help
+
+## to run a scenario (new version)
+
+    uvx --from reqman4 rq scenario.yml -o
 
