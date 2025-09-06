@@ -62,14 +62,13 @@ class StepCall(Step):
         params=self.extract_params(e) 
 
         for param in params:
-            if param:
-                e.scope_update(param)
+            e.scope_update(param)
 
             for step in self.steps:
                 async for r in step.process(e): # type: ignore
                     yield r
-            if param:
-                e.scope_revert()
+
+            e.scope_revert(param)
 
     def __repr__(self):
         s=""
@@ -112,8 +111,7 @@ class StepHttp(Step):
         params=self.extract_params(e)
 
         for param in params:
-            if param:
-                e.scope_update(param)
+            e.scope_update(param)
 
             url = e.substitute(self.url)
             root = e.get("root","")
@@ -183,8 +181,7 @@ class StepHttp(Step):
             doc=e.substitute(self.doc)
             yield common.Result(response.request,response, results, doc=doc)
 
-            if param:
-                e.scope_revert()
+            e.scope_revert(param)
 
     
 

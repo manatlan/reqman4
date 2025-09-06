@@ -84,7 +84,8 @@ def test_protect_scope():
     assert d["x"]==dict(z=1,l=list("AZ"))
 
     # update dict
-    d.scope_update(dict(z=99,x=dict(z=2,l=list("ZA"))))
+    param = dict(z=99,x=dict(z=2,l=list("ZA")))
+    d.scope_update( param )
     assert d["a"]==42
     assert d["z"]==99
     assert d["x"]==dict(z=2,l=list("ZA"))
@@ -92,7 +93,7 @@ def test_protect_scope():
     print(jzon_dumps(d))
 
     # revert all before update ^
-    d.scope_revert()
+    d.scope_revert( param )
     assert d["a"]==42
     assert d["z"]==1
     assert d["x"]==dict(z=1,l=list("AZ"))    

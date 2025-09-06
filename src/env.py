@@ -88,7 +88,7 @@ def jzon_dumps(o):
 class Env(dict):
     def __init__(self, /, **kwargs):
         super().__init__(**kwargs)
-        self.__keep_scope:list=[]
+        self.__params_scopes:list=[]
         # self.update( self.substitute_in_object(self) )    # <- not a good idea
         self._compile_py_methods()
     
@@ -169,19 +169,21 @@ class Env(dict):
     #/-------------------------------------------------
     def scope_update(self,params:dict):
         # save current same keys, revert with scope_revert()
-        self.__keep_scope.append( {k:self.get(k,None) for k in params.keys()} )
-        self.update(params)
+        if params:
+            self.__params_scopes.append( {k:self.get(k,None) for k in params.keys()} )
+            self.update(params)
 
-    def scope_revert(self):
+    def scope_revert(self,params:dict):
         # revert inserted params with scope_update()
-        if self.__keep_scope:
-            scope = self.__keep_scope.pop()
-            for k,v in scope.items():
-                # restore the same keys before scope_update()
-                if v is None:
-                    del self[k]
-                else:
-                    self[k]=v
+        if params:
+            if self.__params_scopes:
+                scope = self.__params_scopes.pop()
+                for k,v in scope.items():
+                    # restore the same keys before scope_update()
+                    if v is None:
+                        del self[k]
+                    else:
+                        self[k]=v
     #\-------------------------------------------------
 
     def update(self,dico):
