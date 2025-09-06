@@ -31,6 +31,7 @@ If you use [uvx](https://docs.astral.sh/uv/guides/tools/), you cant test this sc
 
     uvx --from reqman4 rq https://raw.githubusercontent.com/manatlan/reqman4/refs/heads/main/scenario.yml -o
 
+It will open an html report in your default browser, and you can easily check what's going ...
 
 ## From github
 
