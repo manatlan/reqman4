@@ -48,6 +48,7 @@ class StepCall(Step):
         # extract step into local properties
         name = step["call"]
 
+        assert_syntax( len(step.keys()) == 1, f"unknown keys in call : {list(step.keys())}")
         assert_syntax( isinstance(name, str),"CALL must be a string")
         assert_syntax( name in self.scenario.env,f"CALL references unknown scenario '{name}'")
         

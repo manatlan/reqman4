@@ -53,7 +53,7 @@ RUN:
       - i: 1
       - i: 2
       - i: 3
-
+    
   - set:
       HELLO: JE SUIS LA
 

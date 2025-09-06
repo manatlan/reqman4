@@ -1,0 +1,18 @@
+#ERROR: unknown keys in call
+root: http://test
+
+mylist:
+  - a: 1
+  - a: 2
+
+PROC:
+  - GET: /test?a=<<a>>
+    tests:
+      - R.status == 200
+
+RUN:
+  - call: PROC
+    params: <<mylist>>
+    tests:                  # <- no more possible !!!
+      - R.status == 2
+
