@@ -67,8 +67,8 @@ class StepCall(Step):
             for step in self.steps:
                 async for r in step.process(e): # type: ignore
                     yield r
-                    
-            e.scope_revert()
+            if param:
+                e.scope_revert()
 
     def __repr__(self):
         s=""
@@ -177,7 +177,8 @@ class StepHttp(Step):
             doc=e.substitute(self.doc)
             yield common.Result(response.request,response, results, doc=doc)
 
-            e.scope_revert()
+            if param:
+                e.scope_revert()
 
     
 
