@@ -91,12 +91,17 @@ class StepHttp(Step):
         methods = set(step.keys()) & ehttp.KNOWNVERBS
         assert_syntax( len(methods) == 1,f"Step must contain exactly one HTTP method, found {methods}")
         method = methods.pop()
+        attributs = set(step.keys()) - set([method])
+
+        assert_syntax( not attributs - {"doc","headers","body","tests"},f"unknown attributs {list(step.keys())}")
+
         self.method = method
         self.url = step[method]
         self.doc = step.get("doc","")
         self.headers = step.get("headers",{})
         self.body = step.get("body",None)
         self.tests = compat.fix_tests( step.get("tests",[]) )
+
         assert_syntax(isinstance(self.tests,list),"tests must be a list of strings")
         assert_syntax(all( isinstance(t,str) for t in self.tests ),"tests must be a list of strings")
 
