@@ -241,7 +241,7 @@ def patch_docstring(f):
 @patch_docstring
 def main(**p) -> int:
     """Test an http service with pre-made scenarios, whose are simple yaml files
-(More info on https://github.com/manatlan/RQ) """
+(More info on https://github.com/manatlan/reqman4) """
     return reqman(**p)
 
 def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_debug:bool=False,is_view:bool=False,is_shebang:bool=False,open_browser:bool=False) -> int:

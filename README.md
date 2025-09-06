@@ -1,4 +1,4 @@
-# RQ (reqman4)
+# Reqman4
 
 a complete rewrite (prototype)
 
@@ -21,12 +21,12 @@ diff:
 
 ## to test command line
 
-    uvx --from git+https://github.com/manatlan/RQ rq --help
+    uvx --from git+https://github.com/manatlan/reqman4 rq --help
 
 ## to run a scenario (new version)
 
-    uvx --from git+https://github.com/manatlan/RQ rq scenario.yml -o
+    uvx --from git+https://github.com/manatlan/reqman4 rq scenario.yml -o
 
 ## to pytest the repo
 
-    uvx --from git+https://github.com/manatlan/RQ pytest .
+    uvx --from git+https://github.com/manatlan/reqman4 pytest .
