@@ -1,5 +1,5 @@
 from src import main
-import pytest
+import pytest,os
 
 
 def test_find_scenarios():
@@ -24,6 +24,7 @@ def test_switch_apply_unknown():
     with pytest.raises(Exception):
         main.reqman(["examples/classic/test_switch.yml"],"toto")
 
+@pytest.mark.skipif(os.getenv("CI") == "true", reason="No internet on CI")
 def test_real():
     assert main.reqman(["examples/real.yml"]) == 1 # 1 failed test, to test
 
