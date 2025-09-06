@@ -24,6 +24,9 @@ Major differences :
 - no more XML testing (may change)
 - no more junit.xml output (may change)
 
+Here is a valid scenario, which give you an overview :
+[scenario.yml](/manatlan/reqman4/blob/main/scenario.yml)
+
 
 ## From github
 
