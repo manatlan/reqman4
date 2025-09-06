@@ -1,4 +1,4 @@
-#ERROR: CALL references unknown
+#ERROR: unknown scenario 
 root: http://test
 
 RUN:
