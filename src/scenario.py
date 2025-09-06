@@ -221,8 +221,8 @@ class Scenario(list):
         if file_path.startswith("http"):
             try:
                 yml = yaml.safe_load( common.get_url_content(file_path) )
-            except yaml.YAMLError as ex:
-                raise common.RqException(f"[{file_path}] [Bad syntax] [{ex}]")
+            except Exception as ex:
+                raise common.RqException(f"[URI:{file_path}] [Bad syntax] [{ex}]")
         else:
             if os.path.isfile(file_path):
                 try:
