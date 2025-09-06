@@ -21,21 +21,21 @@ diff:
 
 # from github
 
-## to test command line (from)
+## to test command line
 
     uvx --from git+https://github.com/manatlan/reqman4 rq --help
 
-## to run a scenario (new version)
+## to run a scenario
 
     uvx --from git+https://github.com/manatlan/reqman4 rq scenario.yml -o
 
 # from pypi
 
-## to test command line (from)
+## to test command line
 
     uvx --from reqman4 rq --help
 
-## to run a scenario (new version)
+## to run a scenario
 
     uvx --from reqman4 rq scenario.yml -o
 
