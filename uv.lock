@@ -354,6 +354,45 @@ wheels = [
 ]
 
 [[package]]
+name = "reqman4"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "click" },
+    { name = "colorama" },
+    { name = "httpx" },
+    { name = "pyjwt" },
+    { name = "python-dotenv" },
+    { name = "pyyaml" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "jsonschema" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "click", specifier = ">=8.2.1" },
+    { name = "colorama", specifier = ">=0.4.6" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "pyjwt", specifier = ">=2.10.1" },
+    { name = "python-dotenv", specifier = ">=1.1.1" },
+    { name = "pyyaml", specifier = ">=6.0.2" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "jsonschema", specifier = ">=4.25.1" },
+    { name = "pytest", specifier = ">=8.4.1" },
+    { name = "pytest-asyncio", specifier = ">=1.1.0" },
+    { name = "pytest-cov", specifier = ">=6.2.1" },
+]
+
+[[package]]
 name = "rpds-py"
 version = "0.27.1"
 source = { registry = "https://pypi.org/simple" }
@@ -459,45 +498,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/6a/24/e3e72d265121e00b063aef3e3501e5b2473cf1b23511d56e529531acf01e/rpds_py-0.27.1-pp311-pypy311_pp73-musllinux_1_2_aarch64.whl", hash = "sha256:94c44ee01fd21c9058f124d2d4f0c9dc7634bec93cd4b38eefc385dabe71acbf", size = 560003, upload-time = "2025-08-27T12:16:08.06Z" },
     { url = "https://files.pythonhosted.org/packages/26/ca/f5a344c534214cc2d41118c0699fffbdc2c1bc7046f2a2b9609765ab9c92/rpds_py-0.27.1-pp311-pypy311_pp73-musllinux_1_2_i686.whl", hash = "sha256:df8b74962e35c9249425d90144e721eed198e6555a0e22a563d29fe4486b51f6", size = 590482, upload-time = "2025-08-27T12:16:10.137Z" },
     { url = "https://files.pythonhosted.org/packages/ce/08/4349bdd5c64d9d193c360aa9db89adeee6f6682ab8825dca0a3f535f434f/rpds_py-0.27.1-pp311-pypy311_pp73-musllinux_1_2_x86_64.whl", hash = "sha256:dc23e6820e3b40847e2f4a7726462ba0cf53089512abe9ee16318c366494c17a", size = 556523, upload-time = "2025-08-27T12:16:12.188Z" },
-]
-
-[[package]]
-name = "rq4"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "click" },
-    { name = "colorama" },
-    { name = "httpx" },
-    { name = "pyjwt" },
-    { name = "python-dotenv" },
-    { name = "pyyaml" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "jsonschema" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "pytest-cov" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "click", specifier = ">=8.2.1" },
-    { name = "colorama", specifier = ">=0.4.6" },
-    { name = "httpx", specifier = ">=0.28.1" },
-    { name = "pyjwt", specifier = ">=2.10.1" },
-    { name = "python-dotenv", specifier = ">=1.1.1" },
-    { name = "pyyaml", specifier = ">=6.0.2" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "jsonschema", specifier = ">=4.25.1" },
-    { name = "pytest", specifier = ">=8.4.1" },
-    { name = "pytest-asyncio", specifier = ">=1.1.0" },
-    { name = "pytest-cov", specifier = ">=6.2.1" },
 ]
 
 [[package]]
