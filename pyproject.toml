@@ -19,6 +19,11 @@ package = true
 [project.scripts]
 rq = "main:main"
 
+[project.urls]
+Homepage = "https://github.com/manatlan/reqman4"
+Repository = "https://github.com/manatlan/reqman4"
+Issues = "https://github.com/manatlan/reqman4/issues"
+
 [dependency-groups]
 dev = [
     "jsonschema>=4.25.1",
