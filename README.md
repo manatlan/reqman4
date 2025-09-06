@@ -1,8 +1,11 @@
 # Reqman4
 
-a complete rewrite (prototype)
+A complete rewrite of [reqman](https://github.com/manatlan/reqman). __It's a **prototype/poc**__ ! Don't know yet if it will replace the original, but I wanted to have a new/cleaner/simpler version, 
+with all good ideas fromthe original. 
 
-diff:
+**MAJOR CHANGES**: This prototype is more python based for vars & tests, and can display html in http-verb's doc (to be able to make human readable html reports). Syntax is simpler/cleaner (to be able to have a json-schema to valid yml/rml)
+
+Major differences :
 - licence gnu gpl v2 -> MIT
 - "uv" & (a lot) simpler (less features)
 - use httpx !
@@ -10,14 +13,14 @@ diff:
 - one SWITCH param only (may change)
 - scenars(yml/rml) & reqman.conf are yaml/dict only !
 - scenars must(/can for compat) have a "RUN:" section (others keys are the global env)
-- tests are python statements
+- tests are simple python statements
 - no break!
 - no if 
 - no more .BEGIN/.END
 - no more RMR
 - no mote comparison side by side
 - no more XML testing (may change)
-- no more junit xml output (may change)
+- no more junit.xml output (may change)
 
 # from github
 
