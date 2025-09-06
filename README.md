@@ -44,7 +44,12 @@ Here is a valid scenario, which give you an overview :
 
     uvx --from reqman4 rq --help
 
-### to run a scenario
+### to run a scenario with a local scenario
 
     uvx --from reqman4 rq scenario.yml -o
+
+
+### to run a scenario (on an uri)
+
+    uvx --from reqman4 rq https://raw.githubusercontent.com/manatlan/reqman4/refs/heads/main/scenario.yml -o
 
