@@ -1,0 +1,7 @@
+
+# press CTRL+F5 to run this scenario with current py/repo (under vscode)
+
+RUN:
+  - GET: http://test/test
+    tests:
+      - R.status == 200
