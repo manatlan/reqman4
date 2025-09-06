@@ -1,0 +1,7 @@
+#ERROR: SET cannot be used with other keys
+root: http://test
+
+RUN:
+  - set:
+      root: toto
+    other: "was?"
