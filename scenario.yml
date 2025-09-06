@@ -5,20 +5,47 @@ root: https://github.com                            # to define a base host for 
 timeout: 1000                                       # you can set a limit timeout (in ms)
                                                     # if none, default is 60_000 ms
 
-RUN:                                                # <- this declare the scenar is the file !
-                                                    # (should be a list)
+###################################################
+SUB_SCENAR:                                         # <- declare a sub scenario (see RUN secion)
+###################################################
 
-  #################################################
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  - GET: https://jsonplaceholder.typicode.com/todos
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    doc: "test a json api (a list)"
+    tests:
+      - R.status == 200
+      - len(R.json) > 0                             # 'R.json' is the json repr of the response
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  - GET: https://jsonplaceholder.typicode.com/todos/<<num>>
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    doc: |
+      test the todo {{num}} from the previous call   
+      <br> <b style='color:orange'>--> {{R.json.title}}</b>
+    tests:
+      - R.status == 200
+      - R.json.id == num
+    params: <<[dict(num=i['id']) for i in R.json[:5]]>> # limit to the first 5 of the previous response
+
+
+###################################################
+###################################################
+RUN:                                                # <- this declare the scenar in the file !
+###################################################
+###################################################
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   - GET: /manatlan/reqman4/                         # this is the http verb, it can be any
-  #################################################
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     doc: just a test on github
     tests:
       - R.status == 200                             # 'R' is the last response object
       - R.text.__contains__( 'manatlan/reqman4' )   # 'R.text' is the text content
 
-  #################################################
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   - GET: https://http.cat/<<status +  200>>
-  #################################################
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     doc: | # note that you can use HTML in doc !
       just a test on http.cat <br><img src='https://http.cat/<<200 + status>>' width='50px'/>
     tests:
@@ -30,34 +57,18 @@ RUN:                                                # <- this declare the scenar
       - status: 1   # |---> iterate for each value of status
       - status: 2   # /
 
-  #################################################
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   - TRACE: https://http.cat/500
-  #################################################
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     doc: never called
     tests:
       - R.status == 200
     params: []     # this http verb will never be called, because empty list
 
-  #################################################
-  - GET: https://jsonplaceholder.typicode.com/todos
-  #################################################
-    doc: test a json api (return a list)
-    tests:
-      - R.status == 200
-      - len(R.json) > 0                             # 'R.json' is the json repr of the response
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  - call: SUB_SCENAR
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  #################################################
-  - GET: https://jsonplaceholder.typicode.com/todos/<<num>>
-  #################################################
-    doc: |
-      test the todo {{num}} from the previous call   
-      <br> <b style='color:orange'>--> {{R.json.title}}</b>
-    # note that you can use <<x>> or {{x}}
-    # note tha this doc is evaluated at the end of the request !
-    tests:
-      - R.status == 200
-      - R.json.id == num
-    params: <<[dict(num=i['id']) for i in R.json[:5]]>> # limit to the first 5 of the previous response
 
 # note that reqman (rq) will return a rc (return code) which is the nb of failed tests !
 # if rc==0 : all is ok
