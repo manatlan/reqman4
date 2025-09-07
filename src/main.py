@@ -161,6 +161,7 @@ class ExcecutionTests:
                     scenar=scenario.Scenario(file,self.env)
                     async for req in scenar.execute( with_begin=(file==files[0]),with_end=(file==files[-1])):
                         output.write_a_test(req)
+                    self.env = scenar.env # needed !
                 except common.RqException as ex:
                     ex=ReqmanException(ex)
                     try:
