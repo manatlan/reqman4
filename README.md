@@ -1,7 +1,7 @@
 # Reqman4
 
 <a href="https://pypi.org/project/reqman4/">
-    <img src="https://badge.fury.io/py/htag.svg?x" alt="Package version">
+    <img src="https://badge.fury.io/py/reqman4.svg" alt="Package version">
 </a>
 
 
