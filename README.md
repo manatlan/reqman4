@@ -20,7 +20,7 @@ Major differences :
 - no if 
 - no more .BEGIN/.END
 - no more RMR
-- no mote comparison side by side
+- no more comparison side by side
 - no more XML testing (may change)
 - no more junit.xml output (may change)
 
