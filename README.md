@@ -1,5 +1,10 @@
 # Reqman4
 
+<a href="https://pypi.org/project/reqman4/">
+    <img src="https://badge.fury.io/py/htag.svg?x" alt="Package version">
+</a>
+
+
 A complete rewrite of [reqman](https://github.com/manatlan/reqman). __It's a **prototype/poc**__ ! Don't know yet if it will replace the original, but I wanted to have a new/cleaner/simpler version, 
 with all good ideas from the original. 
 
