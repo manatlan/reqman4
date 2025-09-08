@@ -1,11 +1,22 @@
 #! -ode
 # press CTRL+F5 to run this scenario with current py/repo (under vscode)
 
+user:
+  name: marco
 
 RUN:
-  - GET: http://test/test?json=<<list("abc")>>
-    doc:
-        << tool.tablize( [R.json], ["col1","col2","col3"] ) >>
+  - GET: http://test/test?json={"name":"<<user['name']>>"}
     tests:
       - R.status == 200
+      - R.json.name == "marco"
+
+  - GET: http://test/test?json={"name":"<<user.name>>"}
+    tests:
+      - R.status == 200
+      - R.json.name == "marco"
+
+  - GET: http://test/test?json=<<user>>
+    tests:
+      - R.status == 200
+      - R.json.name == "marco"
 

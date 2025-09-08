@@ -243,7 +243,7 @@ class Scenario(list):
         except yaml.YAMLError as ex:
             raise common.RqException(f"[{file_path}] [Bad syntax] [{ex}]")
 
-        self.env.update( conf ) # this override a reqman.conf env !
+        self.env.update( env.convert(conf) ) # this override a reqman.conf env !
         self.extend( self._feed( scenar ) )
 
 

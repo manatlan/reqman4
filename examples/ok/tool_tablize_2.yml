@@ -8,4 +8,3 @@ RUN:
         << tool.tablize( [R.json], ["col1","col2","col3"] ) >>
     tests:
       - R.status == 200
-
