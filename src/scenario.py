@@ -4,7 +4,7 @@
 #
 # MIT licence
 #
-# https://github.com/manatlan/RQ
+# https://github.com/manatlan/reqman4
 # #############################################################################
 import yaml,os,time
 import httpx
