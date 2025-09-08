@@ -2,4 +2,4 @@
 root: http://test
 
 RUN:
-  - call: UNKNOW_PROC
+  - CALL: UNKNOW_PROC

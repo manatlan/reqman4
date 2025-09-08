@@ -24,7 +24,9 @@ FIX_TESTS = compat.fix_tests
 import logging
 logger = logging.getLogger(__name__)
 
-
+class OP:
+    CALL="CALL"
+    SET="SET"
 
 class Step:
     params: list|str|None = None
@@ -50,7 +52,7 @@ class StepCall(Step):
         self.params = params
 
         # extract step into local properties
-        name = step["call"]
+        name = step[OP.CALL]
 
         assert_syntax( len(step.keys()) == 1, f"unknowns call'attributes: {list(step.keys())}")
         assert_syntax( isinstance(name, str),"CALL must be a string")
@@ -200,7 +202,7 @@ class StepSet(Step):
         self.scenario = scenario
 
         assert_syntax( len(step) == 1,"SET cannot be used with other keys")
-        dico = step["set"]
+        dico = step[OP.SET]
         assert_syntax(isinstance(dico, dict),"SET must be a dictionary")
         self.dico = dico
 
@@ -262,11 +264,11 @@ class Scenario(list):
                 else:
                     params=None
 
-                if "set" in step:
+                if OP.SET in step:
                     assert_syntax( params is None, "params cannot be used with set")
                     ll.append( StepSet( self, step ) )
                 else:
-                    if "call" in step:
+                    if OP.CALL in step:
                         ll.append( StepCall( self, step, params ) )
                     else:
                         if set(step.keys()) & ehttp.KNOWNVERBS:
@@ -285,7 +287,7 @@ class Scenario(list):
 
             if with_begin and self.env.get("BEGIN"):
                 logger.debug("Execute BEGIN statement")
-                async for i in StepCall(self, dict(call="BEGIN")).process(self.env):
+                async for i in StepCall(self, {OP.CALL:"BEGIN"}).process(self.env):
                     yield i
 
             for step in self:
@@ -294,7 +296,7 @@ class Scenario(list):
 
             if with_end and self.env.get("END"):
                 logger.debug("Execute END statement")
-                async for i in StepCall(self, dict(call="END")).process(self.env):
+                async for i in StepCall(self, {OP.CALL:"END"} ).process(self.env):
                     yield i
 
         except Exception as ex:

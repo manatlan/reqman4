@@ -15,7 +15,7 @@ PROC:
     params: <<[dict(n=i) for i in R.json]>>
 
 RUN:
-  - call: PROC
+  - CALL: PROC
     params:
       - retry: 1
       - retry: 2

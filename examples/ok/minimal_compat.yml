@@ -1,6 +1,6 @@
 # test scenar as list
 
-- set:
+- SET:
     root: http://test
     
 - GET: /test

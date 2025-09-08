@@ -2,6 +2,6 @@
 root: http://test
 
 RUN:
-  - set:
+  - SET:
       root: toto
     other: "was?"

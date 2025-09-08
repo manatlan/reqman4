@@ -19,7 +19,7 @@ scenar1:
 
 scenar2:
 
-  - call: scenar1
+  - CALL: scenar1
 
   - GET: /test
     doc: test
@@ -31,13 +31,13 @@ scenar2:
     tests:
       - R.status == 200
       - R.json.coco == "VAL"
-  - set:
+  - SET:
        toto: <<R.json.coco>>
 
 tata: 123
 
 RUN:
-  - set:
+  - SET:
       toto: 42
       KOKO: <<mymethod( 42 )>>
 
@@ -48,18 +48,18 @@ RUN:
       - R.text == "Not Found"
       - R.content == b"Not Found"
 
-  - call: scenar1
+  - CALL: scenar1
     params:
       - i: 1
       - i: 2
       - i: 3
     
-  - set:
+  - SET:
       HELLO: JE SUIS LA
 
-  - call: scenar2
+  - CALL: scenar2
 
-  - set:
+  - SET:
       toto: 42  # need to override toto (was VAL)
 
   - GET: /test?json=[<<mymethod(toto) * 3>>,<<j>>]
@@ -77,7 +77,7 @@ RUN:
       - j: 2
       - j: 3
 
-  - set:
+  - SET:
        lastStatus: <<R.status>>
 
   

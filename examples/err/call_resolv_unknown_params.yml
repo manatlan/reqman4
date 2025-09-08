@@ -8,6 +8,6 @@ PROC:
       - R.status == 200
 
 RUN:
-  - call: PROC
+  - CALL: PROC
     params: <<mylist>>
 

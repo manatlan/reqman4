@@ -77,14 +77,14 @@
       "properties": {
         "call": { "type": "string" }
       },
-      "required": ["call"]
+      "required": ["CALL"]
     },
     "setStep": {
       "type": "object",
       "properties": {
         "set": { "type": "object" }
       },
-      "required": ["set"]
+      "required": ["SET"]
     }
   }
 }

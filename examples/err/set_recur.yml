@@ -3,7 +3,7 @@ root: http://test
 yo: <<USER>>
 
 RUN:
-  - set:
+  - SET:
       MYUSER: <<USER>>
       yoyo: <<yo>>
       test:

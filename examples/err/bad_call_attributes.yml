@@ -11,7 +11,7 @@ PROC:
       - R.status == 200
 
 RUN:
-  - call: PROC
+  - CALL: PROC
     params: <<mylist>>
     tests:                  # <- no more possible !!!
       - R.status == 2

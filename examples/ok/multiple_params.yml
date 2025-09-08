@@ -19,6 +19,6 @@ PROC:
     params: <<mylist2>>
 
 RUN:
-  - call: PROC
+  - CALL: PROC
     params: <<mylist1>>
 

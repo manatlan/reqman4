@@ -9,7 +9,7 @@ toto:
 
 
 RUN:
-  - set:
+  - SET:
       MYUSER: <<USER>>
       yoyo: <<yo>>
       tata: 43

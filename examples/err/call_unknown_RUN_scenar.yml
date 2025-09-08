@@ -7,4 +7,4 @@ RUN:
     tests:
       - R.status == 200
 
-  - call: RUN     # <= can't CALL itself
+  - CALL: RUN     # <= can't CALL itself
