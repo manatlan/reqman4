@@ -1,5 +1,7 @@
 
-def tablize(ll:list[list],titles:list[str]=[]):
+HTML = str
+
+def tablize(ll:list[list],titles:list[str]=[]) -> HTML:
     """ Transform list of list in html/table """
     if ll:
         h=["<table border=1 cellspacing=0 cellpadding=2 style='font-size:0.8em'>"]
@@ -21,6 +23,7 @@ def tablize(ll:list[list],titles:list[str]=[]):
 
 
 if __name__=="__main__":
-    ll=[ (1,2,3), (11,22,32)]
-    h=tablize(ll)
-    print(h)
+    ...
+    # ll=[ (1,2,3), (11,22,32)]
+    # h=tablize(ll)
+    # print(h)
