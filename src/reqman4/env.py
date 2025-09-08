@@ -91,9 +91,8 @@ def jzon_dumps(o,indent:int|None=2):
 class Env:
     def __init__(self, /, **kwargs):
         self._data:dict = _convert(kwargs)
-        self.__params_scopes: list = []
         self._compile_py_methods()
-
+        self.__params_scopes: list = []
 
     def __setitem__(self, key, value):
         self._data[key] = _convert(value)
