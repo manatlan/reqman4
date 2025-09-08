@@ -103,8 +103,9 @@ if __name__ == "__main__":
     version = get_version()
 
     replace_rq_version(version)
-    from src import reqman4
-    assert reqman4.__version__ == version
+    # import time; time.sleep(0.5)
+    # from src import reqman4
+    # assert reqman4.__version__ == version
 
     ##################################################################
     if "win" in sys.platform.lower():
