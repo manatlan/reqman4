@@ -22,6 +22,7 @@ build-backend = "uv_build"
 
 [project.scripts]
 rq = "reqman4:main"
+reqman4 = "reqman4:main"
 
 [project.urls]
 Homepage = "https://github.com/manatlan/reqman4"
