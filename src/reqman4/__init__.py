@@ -7,6 +7,8 @@
 # https://github.com/manatlan/reqman4
 # #############################################################################
 
+__version__ = r"0.0.0" # <-- replaced by build.py (extract from pyproject.toml)
+
 """
 Special keys :
 

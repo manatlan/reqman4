@@ -19,6 +19,7 @@ from urllib.parse import unquote
 import dotenv; dotenv.load_dotenv()
 
 # reqman imports
+from . import __version__ as VERSION
 from . import common
 from . import scenario
 from . import env
@@ -227,7 +228,7 @@ def cli():
 
 
 def patch_docstring(f):
-    f.__doc__+= f" (version:{common.__version__})"
+    f.__doc__+= f" (version:{VERSION})"
     return f
 
 @cli.command()
