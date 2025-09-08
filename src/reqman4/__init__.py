@@ -16,7 +16,3 @@ Special keys :
  * switch: <dict/mapping>   # default {}
 
 """
-from . import main
-
-if __name__ == "__main__":
-    main.command()
