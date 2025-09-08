@@ -7,4 +7,4 @@
 # https://github.com/manatlan/reqman4
 # #############################################################################
 from . import main
-main.main()
+main.command()

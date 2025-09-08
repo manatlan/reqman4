@@ -241,7 +241,7 @@ def patch_docstring(f):
 @click.option('-i',"is_shebang",is_flag=True,default=False,help="interactif mode (with shebang)")
 @click.option('-o',"open_browser",is_flag=True,default=False,help="open result in an html page")
 @patch_docstring
-def main(**p) -> int:
+def command(**p) -> int:
     """Test an http service with pre-made scenarios, whose are simple yaml files
 (More info on https://github.com/manatlan/reqman4) """
     return reqman(**p)
@@ -261,7 +261,7 @@ def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_de
             print(cy(f"Use shebang {' '.join(options)}"))
             cmd,*fuck_all_params = sys.argv
             sys.argv=[ cmd, files[0] ] + options
-            return main() #redo click parsing !
+            return command() #redo click parsing !
 
 
     if is_debug:
