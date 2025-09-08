@@ -183,7 +183,7 @@ class StepHttp(Step):
                     results.append( common.TestResult(None,t,f"ERROR: {ex}") )
 
 
-            doc=e.substitute(self.doc)
+            doc=e.substitute(self.doc,raise_error=False)
             yield common.Result(response.request,response, results, doc=doc)
 
             e.scope_revert(param)

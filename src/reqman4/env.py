@@ -116,12 +116,20 @@ class Env(dict):
 
 
 
-    def substitute(self, text: str) -> Any:
-        """ resolve {{expr}} and/or <<expr>> in text """ 
+    def substitute(self, text: str, raise_error:bool=True) -> Any:
+        """ resolve {{expr}} and/or <<expr>> in text 
+            if raise_error==False : it will always return str (error msg)
+        """ 
         ll = re.findall(r"\{\{[^\}]+\}\}", text) + re.findall("<<[^><]+>>", text)
         for l in ll:
             expr = l[2:-2]
-            val = self.eval(expr)
+            if raise_error:
+                val = self.eval(expr)
+            else:
+                try:
+                    val = self.eval(expr)
+                except Exception as e:
+                    val = f"***ERROR: {e}***"
             logger.debug(f"SUBSTITUTE {l} by {val} ({type(val)})")
             if isinstance(val, str):
                 text = text.replace(l, val)

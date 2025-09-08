@@ -1,0 +1,9 @@
+
+# press CTRL+F5 to run this scenario with current py/repo (under vscode)
+
+
+RUN:
+  - GET: http://test/test?json="hello"
+    doc: hello <<Unknow_var * 32>>    # <- this wil not fail the test, now !
+    tests:
+      - R.status == 200

@@ -34,7 +34,7 @@ Here is a valid scenario, which give you an overview :
 
 If you use [uvx](https://docs.astral.sh/uv/guides/tools/), you cant test this scenario in your context :
 
-    uvx --from reqman4 rq https://raw.githubusercontent.com/manatlan/reqman4/refs/heads/main/scenario.yml -o
+    uvx reqman4 https://raw.githubusercontent.com/manatlan/reqman4/refs/heads/main/scenario.yml -o
 
 It will open an html report in your default browser, and you can easily check what's going ...
 
@@ -52,11 +52,11 @@ It will open an html report in your default browser, and you can easily check wh
 
 ### to test command line
 
-    uvx --from reqman4 rq --help
+    uvx reqman4 --help
 
 ### to run a scenario with a local scenario
 
-    uvx --from reqman4 rq scenario.yml -o
+    uvx reqman4 scenario.yml -o
 
 
 
