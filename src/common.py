@@ -66,3 +66,23 @@ def get_url_content(url:str) -> str:
     r=httpx.get(url)
     r.raise_for_status()
     return r.text
+
+def load_scenar( yml_str: str) -> tuple[dict,list]:
+    yml = yaml.safe_load(yml_str)
+
+    if isinstance(yml, dict):
+        # new reqman4 (yml is a dict, and got a RUN section)
+        if "RUN" in yml:
+            scenar = yml["RUN"]
+            del yml["RUN"]
+
+            return (yml,scenar)
+        else:
+            return (yml,[])
+    elif isinstance(yml, list):
+        # for simple compat, reqman4 can accept list (but no conf!)
+        scenar = yml
+        return ({},scenar)
+    else:
+        raise Exception("scenario must be a dict or a list]")
+

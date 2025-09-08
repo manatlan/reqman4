@@ -220,43 +220,26 @@ class Scenario(list):
 
         if file_path.startswith("http"):
             try:
-                yml = yaml.safe_load( common.get_url_content(file_path) )
+                yml_str = common.get_url_content(file_path)
             except Exception as ex:
-                raise common.RqException(f"[URI:{file_path}] [Bad syntax] [{ex}]")
+                raise common.RqException(f"[URI:{file_path}] [http error] [{ex}]")
         else:
             if os.path.isfile(file_path):
-                try:
-                    with open(file_path, 'r') as fid:
-                        yml = yaml.safe_load(fid)
-                except yaml.YAMLError as ex:
-                    raise common.RqException(f"[{file_path}] [Bad syntax] [{ex}]")
+                with open(file_path, 'r') as fid:
+                    yml_str = fid.read()
             else:
                 raise common.RqException(f"[{file_path}] [File not found]")
         self.file_path = file_path
 
         list.__init__(self,[])
 
-        if isinstance(yml, dict):
-            if "RUN" in yml:
-                scenar = yml["RUN"]
-                del yml["RUN"]
-                conf = yml
+        try:
+            conf,scenar = common.load_scenar(yml_str)
+        except yaml.YAMLError as ex:
+            raise common.RqException(f"[{file_path}] [Bad syntax] [{ex}]")
 
-                try:
-                    self.env.update( conf ) # this override a reqman.conf env !
-                except Exception as exx:
-                    raise common.RqException(f"[{self.file_path}] [{exx}]")
-
-                self.extend( self._feed( scenar ) )
-            else:
-                raise common.RqException("No RUN section in scenario")
-        elif isinstance(yml, list):
-            scenar = yml
-            conf={}
-            self.extend( self._feed( scenar ) )
-
-        else:
-            raise common.RqException(f"[{self.file_path}] [Bad syntax] [scenario must be a dict or a list]")
+        self.env.update( conf ) # this override a reqman.conf env !
+        self.extend( compat.fix_scenar(self._feed( scenar )) )
 
 
     def _feed(self, liste:list) -> list[Step]:

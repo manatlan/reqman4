@@ -1,0 +1,25 @@
+- GET: /test
+  doc: hello
+  headers: 
+    user-agent: me
+    content-type: application/json
+  tests: # tests as a list
+    - status: 200
+    - status: .!= 500
+    - status: .> 100
+    - status: .>= 100
+  params:
+    - root: http://test
+  
+
+- GET: /test?json=[1,2]
+  doc: hello
+  headers: 
+    user-agent: me
+    content-type: application/json
+  tests:  # tests as a dict
+    status: 200
+    # json: [1,2]
+  params:
+    - root: http://test
+  

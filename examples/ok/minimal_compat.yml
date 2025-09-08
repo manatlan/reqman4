@@ -1,3 +1,5 @@
+# test scenar as list
+
 - set:
     root: http://test
     

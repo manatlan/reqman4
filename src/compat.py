@@ -14,6 +14,13 @@ to be able to run old reqman files with new rq4 engine
 
 TODO: redo better
 """
+import yaml
+
+
+def fix_scenar( steps:list ) -> list:
+    #TODO: fix
+    return steps
+
 
 def fix_expr( text: str ) -> str:
     ll = re.findall(r"\{\{[^\}]+\}\}", text) + re.findall("<<[^><]+>>", text)

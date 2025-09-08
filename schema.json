@@ -12,7 +12,6 @@
           }
         }
       },
-      "required": ["RUN"],
       "additionalProperties": true
     },
     {
