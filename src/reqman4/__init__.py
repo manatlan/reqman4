@@ -16,5 +16,8 @@ Special keys :
  * timeout: <milliseconds>  # default 60_000 ms
  * root: <string>           # default None
  * switch: <dict/mapping>   # default {}
+ * headers: <dict/mapping>   # default {}
+ * BEGIN: <list>
+ * END: <list>
 
 """

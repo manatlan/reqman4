@@ -88,7 +88,7 @@ def get_version():
 
 
 def replace_rq_version(version):
-    fn="src/reqman4/common.py"
+    fn="src/reqman4/__init__.py"
     with open(fn, "r+") as f:
         buf = re.sub(r'r\".+\" #', f'r"{version}" #', f.read(), 1)
         f.seek(0)
@@ -103,9 +103,8 @@ if __name__ == "__main__":
     version = get_version()
 
     replace_rq_version(version)
-    # import time; time.sleep(0.5)
-    # from src import reqman4
-    # assert reqman4.__version__ == version
+    from src import reqman4
+    assert reqman4.__version__ == version
 
     ##################################################################
     if "win" in sys.platform.lower():
