@@ -16,7 +16,7 @@ import logging
 # reqman imports
 import pycode
 from common import assert_syntax
-
+import tool
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ def convert(obj):
     else:
         return obj
 
-def jzon_dumps(o):
+def jzon_dumps(o,indent:int|None=2):
     def default(obj):
         if callable(obj):
             return f"<function {getattr(obj, '__name__', str(obj))}>"
@@ -82,7 +82,7 @@ def jzon_dumps(o):
         elif isinstance(obj,R):
             return dict(status=obj.status, headers=dict(obj.headers), time=obj.time, content=f"<<{obj.content and len(obj.content) or '0'} bytes>>")
         raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
-    return json.dumps(o, default=default, indent=2)
+    return json.dumps(o, default=default, indent=indent)
 
 
 class Env(dict):
@@ -98,6 +98,7 @@ class Env(dict):
             return os.environ[code]
         
         env = dict(self)
+        env.update( dict(tool=tool) )
         result = eval(code, {}, env )
         if with_context:
             try:
@@ -127,7 +128,8 @@ class Env(dict):
                     return val
                 else:
                     # it's a part of a string, convert to str
-                    text = text.replace(l, str(val))
+                    # text = text.replace(l, str(val))
+                    text = text.replace(l, jzon_dumps(val,indent=None))
         return text
 
     def substitute_in_object(self, o: Any) -> Any:
