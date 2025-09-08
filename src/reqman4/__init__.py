@@ -16,3 +16,7 @@ Special keys :
  * switch: <dict/mapping>   # default {}
 
 """
+from .main import main
+
+if __name__ == "__main__":
+    main()

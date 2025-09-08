@@ -294,7 +294,4 @@ def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_de
         return -1
 
 
-
-if __name__ == "__main__":
-    sys.exit( main() )
     
