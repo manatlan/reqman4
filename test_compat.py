@@ -3,17 +3,17 @@ from src import compat
 
 def test_fix_expr():
     # reqman
-    assert compat.fix_expr("<<var>>") == "<<var>>"
-    assert compat.fix_expr("{{var}}") == "<<var>>"
-    assert compat.fix_expr("hello <<var>>") == "hello <<var>>"
-    assert compat.fix_expr("hello {{var}}") == "hello <<var>>"
-    assert compat.fix_expr("hello <<var|method1>>") == "hello <<method1(var)>>"
-    assert compat.fix_expr("hello {{var|method1}}") == "hello <<method1(var)>>"
-    assert compat.fix_expr("hello <<var|method1|m2>>") == "hello <<m2(method1(var))>>"
-    assert compat.fix_expr("hello {{var|m1|m2}}") == "hello <<m2(m1(var))>>"
+    assert compat._fix_expr("<<var>>") == "<<var>>"
+    assert compat._fix_expr("{{var}}") == "<<var>>"
+    assert compat._fix_expr("hello <<var>>") == "hello <<var>>"
+    assert compat._fix_expr("hello {{var}}") == "hello <<var>>"
+    assert compat._fix_expr("hello <<var|method1>>") == "hello <<method1(var)>>"
+    assert compat._fix_expr("hello {{var|method1}}") == "hello <<method1(var)>>"
+    assert compat._fix_expr("hello <<var|method1|m2>>") == "hello <<m2(method1(var))>>"
+    assert compat._fix_expr("hello {{var|m1|m2}}") == "hello <<m2(m1(var))>>"
 
     # rq4
-    assert compat.fix_expr("<<var * 'x'>>") == "<<var * 'x'>>"
+    assert compat._fix_expr("<<var * 'x'>>") == "<<var * 'x'>>"
 
 
 def test_fix_tests_base():

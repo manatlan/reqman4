@@ -17,12 +17,19 @@ TODO: redo better
 import yaml
 
 
-def fix_scenar( steps:list ) -> list:
-    #TODO: fix
-    return steps
+
+def fix_scenar( conf:dict, steps:list ) -> tuple[dict,list]:
+    #TODO: fix old reqman3 files
+    # - declare sub_scenar in conf
+    # - ensure params is list (or str)
+    # - create a second step with "set"<-dict, where "save" is present
+    # - "query" ?
+    # - "foreach" ?
+
+    return conf,steps
 
 
-def fix_expr( text: str ) -> str:
+def _fix_expr( text: str ) -> str:
     ll = re.findall(r"\{\{[^\}]+\}\}", text) + re.findall("<<[^><]+>>", text)
     for expr in ll:
         content = expr[2:-2]
@@ -57,9 +64,9 @@ def fix_tests(tests:dict|list) -> list[str]:
                     pass
 
         if isinstance(v,str) and v.startswith("<<") and v.endswith(">>"):
-            rv = fix_expr(v)[2:-2]
+            rv = _fix_expr(v)[2:-2]
         elif isinstance(v,str) and v.startswith("{{") and v.endswith("}}"):
-            rv = fix_expr(v)[2:-2]
+            rv = _fix_expr(v)[2:-2]
         else:
             rv=json.dumps(v)
         if k == "status":

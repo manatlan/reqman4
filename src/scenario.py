@@ -15,7 +15,11 @@ import common
 from common import assert_syntax
 import env
 import ehttp
+
+
 import compat
+FIX_SCENAR = compat.fix_scenar
+FIX_TESTS = compat.fix_tests
 
 import logging
 logger = logging.getLogger(__name__)
@@ -99,7 +103,7 @@ class StepHttp(Step):
         self.doc = step.get("doc","")
         self.headers = step.get("headers",{})
         self.body = step.get("body",None)
-        self.tests = compat.fix_tests( step.get("tests",[]) )
+        self.tests = FIX_TESTS( step.get("tests",[]) )
 
         assert_syntax(isinstance(self.tests,list),"tests must be a list of strings")
         assert_syntax(all( isinstance(t,str) for t in self.tests ),"tests must be a list of strings")
@@ -235,11 +239,12 @@ class Scenario(list):
 
         try:
             conf,scenar = common.load_scenar(yml_str)
+            conf,scenar = FIX_SCENAR( conf, scenar)
         except yaml.YAMLError as ex:
             raise common.RqException(f"[{file_path}] [Bad syntax] [{ex}]")
 
         self.env.update( conf ) # this override a reqman.conf env !
-        self.extend( compat.fix_scenar(self._feed( scenar )) )
+        self.extend( self._feed( scenar ) )
 
 
     def _feed(self, liste:list) -> list[Step]:
