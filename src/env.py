@@ -79,6 +79,8 @@ def jzon_dumps(o,indent:int|None=2):
             return f"<function {getattr(obj, '__name__', str(obj))}>"
         elif isinstance(obj, httpx.Headers):
             return jzon_dumps(dict(obj))
+        elif isinstance(obj, set):
+            return jzon_dumps(list(obj))            
         elif isinstance(obj,R):
             return dict(status=obj.status, headers=dict(obj.headers), time=obj.time, content=f"<<{obj.content and len(obj.content) or '0'} bytes>>")
         raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
