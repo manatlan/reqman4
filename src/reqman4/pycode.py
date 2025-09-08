@@ -10,7 +10,7 @@ import logging,ast
 from types import CodeType
 
 # reqman imports
-from common import RqException
+from .common import RqException
 
 logger = logging.getLogger(__name__)
 

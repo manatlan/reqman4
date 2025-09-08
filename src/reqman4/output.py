@@ -11,7 +11,7 @@ import json,html,httpx
 from urllib.parse import unquote
 
 # reqman imports
-import common
+from . import common
 
 logger = logging.getLogger(__name__)
 

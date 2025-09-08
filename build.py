@@ -88,7 +88,7 @@ def get_version():
 
 
 def replace_rq_version(version):
-    fn="src/common.py"
+    fn="src/reqman4/common.py"
     with open(fn, "r+") as f:
         buf = re.sub(r'r\".+\" #', f'r"{version}" #', f.read(), 1)
         f.seek(0)
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     version = get_version()
 
     replace_rq_version(version)
-    from src import common
+    from src.reqman4 import common
     assert common.__version__ == version
 
     ##################################################################

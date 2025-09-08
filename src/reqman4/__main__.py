@@ -6,5 +6,5 @@
 #
 # https://github.com/manatlan/reqman4
 # #############################################################################
-import main
+from . import main
 main.main()

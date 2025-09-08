@@ -1,5 +1,5 @@
 import yaml
-from src import compat
+from src.reqman4 import compat
 
 def test_fix_expr():
     # reqman

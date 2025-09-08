@@ -1,5 +1,5 @@
 import yaml
-from src import env
+from src.reqman4 import env
 
 
 def test_declare_methods():

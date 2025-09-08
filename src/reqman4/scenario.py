@@ -11,13 +11,12 @@ import httpx
 from typing import AsyncGenerator
 
 # reqman imports
-import common
-from common import assert_syntax
-import env
-import ehttp
+from . import common
+from .common import assert_syntax
+from . import env
+from . import ehttp
 
-
-import compat
+from . import compat
 FIX_SCENAR = compat.fix_scenar
 FIX_TESTS = compat.fix_tests
 

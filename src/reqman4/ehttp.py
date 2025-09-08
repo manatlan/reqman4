@@ -11,7 +11,7 @@ import httpx
 import logging
 
 # reqman imports
-from common import assert_syntax
+from .common import assert_syntax
 
 logger = logging.getLogger(__name__)
 

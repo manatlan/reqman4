@@ -1,4 +1,4 @@
-from src import common
+from src.reqman4 import common
 import os
 def test_config():
     assert common.load_reqman_conf("examples/classic/reqman.conf")

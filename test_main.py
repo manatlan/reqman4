@@ -1,4 +1,4 @@
-from src import main
+from src.reqman4 import main
 import pytest,os
 
 

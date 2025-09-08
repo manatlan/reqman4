@@ -19,10 +19,10 @@ from urllib.parse import unquote
 import dotenv; dotenv.load_dotenv()
 
 # reqman imports
-import common
-import scenario
-import env
-import output
+from . import common
+from . import scenario
+from . import env
+from . import output
 
 logger = logging.getLogger(__name__)
 init()

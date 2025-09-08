@@ -1,4 +1,4 @@
-from src.env import Env, convert, MyList,jzon_dumps,httpx
+from src.reqman4.env import Env, convert, MyList,jzon_dumps,httpx
 
 def test_jzon_dumps():
     assert jzon_dumps( dict(method = lambda x: x * 39,headers=httpx.Headers() ) )

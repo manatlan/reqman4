@@ -1,6 +1,6 @@
 import pytest
 import glob
-from src import scenario,main,common
+from src.reqman4 import scenario,main,common
 from validate import validate_yaml
 
 

@@ -14,9 +14,9 @@ from dataclasses import dataclass
 import logging
 
 # reqman imports
-import pycode
-from common import assert_syntax
-import tool
+from . import pycode
+from .common import assert_syntax
+from . import tool
 
 logger = logging.getLogger(__name__)
 
