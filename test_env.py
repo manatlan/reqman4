@@ -1,4 +1,4 @@
-from src.reqman4.env import Env, convert, MyList,jzon_dumps,httpx
+from src.reqman4.env import Env, _convert, MyList,jzon_dumps,httpx
 
 def test_jzon_dumps():
     assert jzon_dumps( dict(method = lambda x: x * 39,headers=httpx.Headers() ) )
@@ -24,7 +24,7 @@ def test_convert():
         "coco":"VAL",
         "liste":[1,2,{"key":"val"}],
     }
-    d=convert(data)
+    d=_convert(data)
     assert d.coco == "VAL" # type: ignore
     assert d.liste[0] == 1 # type: ignore
     assert d.liste[1] == 2 # type: ignore

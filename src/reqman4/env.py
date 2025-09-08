@@ -17,6 +17,7 @@ import logging
 from . import pycode
 from .common import assert_syntax
 from . import tool
+from .ehttp import MyHeaders
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,7 @@ class R:
     @property
     def json(self):
         if self.content:
-            return convert( json.loads(self.content) )
+            return _convert( json.loads(self.content) )
         else:
             return {} # empty thing
 
@@ -45,30 +46,28 @@ class MyDict(dict):
     def __init__(self, dico: dict):
         super().__init__(dico)
     def __getattr__(self, key):
+        if "_" in key:
+            okey = key.replace("_","-")
+            if okey in self:
+                return super().__getitem__(okey)
         return super().__getitem__(key)
     
-class MyHeaders(httpx.Headers):
-    def __getattr__(self, key):
-        fix=lambda x: x and x.lower().strip().replace("-","_") or None
-        for k,v in super().items():
-            if fix(k)==fix(key):
-                return v
-        return super().__getitem__(key)    
+
 class MyList(list):
     def __init__(self, liste: list):
         super().__init__(liste)
 
 # transforme un objet python (pouvant contenir des dict et des list) en objet avec accès par attribut
-def convert(obj):
+def _convert(obj) -> Any:
     if isinstance(obj, dict):
         dico = {}
         for k,v in obj.items():
-            dico[k]=convert(v)
+            dico[k]=_convert(v)
         return MyDict(dico)
     elif isinstance(obj, list):
         liste = []
         for v in obj:
-            liste.append( convert(v) )
+            liste.append( _convert(v) )
         return MyList(liste)
     else:
         return obj
@@ -89,7 +88,7 @@ def jzon_dumps(o,indent:int|None=2):
 
 class Env(dict):
     def __init__(self, /, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(**_convert(kwargs))
         self.__params_scopes:list=[]
         # self.update( self.substitute_in_object(self) )    # <- not a good idea
         self._compile_py_methods()
@@ -100,7 +99,6 @@ class Env(dict):
             return os.environ[code]
         
         env = dict(self)
-        env.update( dict(tool=tool) )
         result = eval(code, {}, env )
         if with_context:
             try:
@@ -199,7 +197,7 @@ class Env(dict):
     #\-------------------------------------------------
 
     def update(self,dico):
-        super().update(dico)
+        super().update( _convert(dico) )
         self._compile_py_methods()
 
 

@@ -133,7 +133,7 @@ class ExcecutionTests:
         # update with vars from command line
         conf.update(vars)
 
-        self.env = env.Env(** env.convert(conf) )
+        self.env = env.Env( **conf )
 
         # apply the switch
         if switch:

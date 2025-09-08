@@ -49,6 +49,7 @@ class StepCall(Step):
     def __init__(self, scenario: "Scenario", step: dict, params:list|str|None=None):
         self.scenario = scenario
         self.params = params
+        self.steps=[]
 
         # extract step into local properties
         name = step[OP.CALL]
@@ -244,7 +245,7 @@ class Scenario(list):
         except yaml.YAMLError as ex:
             raise common.RqException(f"[{file_path}] [Bad syntax] [{ex}]")
 
-        self.env.update( env.convert(conf) ) # this override a reqman.conf env !
+        self.env.update( conf ) # this override a reqman.conf env !
         self.extend( self._feed( scenar ) )
 
 

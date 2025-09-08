@@ -29,6 +29,15 @@ KNOWNVERBS = set([
 
 JAR=httpx.Cookies()
 
+
+class MyHeaders(httpx.Headers):
+    def __getattr__(self, key):
+        fix=lambda x: x and x.lower().strip().replace("-","_") or None
+        for k,v in super().items():
+            if fix(k)==fix(key):
+                return v
+        return super().__getitem__(key)    
+
 class _ResponseError_(httpx.Response):
     def __init__(self,error):
         self.error = error
@@ -70,6 +79,14 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
                 status_code=200,
                 headers={"content-type": "application/json"},
                 json=json.loads(jzon) if jzon else None,
+                request=request
+            )
+        elif method == "GET" and url.startswith(f"{hostfake}/headers"):
+            request=httpx.Request(method, url, headers=headers, content=body and str(body))
+            r= httpx.Response(
+                status_code=200,
+                headers={"content-type": "application/json"},
+                json=dict(headers=dict(request.headers)),   # destructive !
                 request=request
             )
         elif method == "POST" and url.startswith(f"{hostfake}/test"):

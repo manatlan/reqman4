@@ -1,0 +1,11 @@
+# press CTRL+F5 to run this scenario with current py/repo (under vscode)
+
+headers:
+  user-agent: me
+
+RUN:
+  - GET: http://test/headers
+    tests:
+    - R.status == 200
+    - R.json.headers["user-agent"] == "me"  #\__ theses headers are not case-insensitive, because
+    - R.json.headers.user_agent == "me"     #/   they are just dict/json from an ehttp mock !(it's not real headers)
