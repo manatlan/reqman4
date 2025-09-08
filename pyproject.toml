@@ -21,8 +21,8 @@ requires = ["uv_build>=0.8.15,<0.9.0"]
 build-backend = "uv_build"
 
 [project.scripts]
-rq = "reqman4:main"
-reqman4 = "reqman4:main"
+rq = "reqman4.main:command"
+reqman4 = "reqman4.main:command"
 
 [project.urls]
 Homepage = "https://github.com/manatlan/reqman4"
