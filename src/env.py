@@ -201,7 +201,7 @@ class Env(dict):
                     code=pycode.is_python(k,v)
                     if code:
                         scope={}
-                        exec(code, dict(ENV=self),  scope)  # declare ENV in method!
+                        exec(code, dict(ENV=self,tool=tool),  scope)  # declare ENV&tool in method!
                         d[k] = scope[k]
                     else:
                         declare_methods(v)
