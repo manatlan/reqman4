@@ -105,7 +105,10 @@ class Env:
         ###################################################
         # to be able to set vars at switch time
         for k,v in dico.items():
-            self._data[k]=self.substitute(v)
+            if isinstance(v,str) and ( v.startswith("<<") or v.startswith("{{")) and ( v.endswith(">>") or v.endswith("}}")):
+                self._data[k]=self.substitute(v)
+            else:
+                self._data[k]=v
 
 
     def __getitem__(self, key):
