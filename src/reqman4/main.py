@@ -136,7 +136,7 @@ class ExcecutionTests:
         self.env = env.Env( **conf )
 
         # apply the switch
-        if switch:
+        if switch: #TODO: it doesn't work for standalone scenario (if the have own switchs) !!!!!!!!
             common.assert_syntax(switch in self.env.switchs.keys(), f"Unknown switch '{switch}'")
             self.env.update( self.env.switchs[switch] )
         self._switch = switch

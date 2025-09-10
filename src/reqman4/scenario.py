@@ -126,7 +126,7 @@ class StepHttp(Step):
                     url = root + url
             assert_syntax( url.startswith("http"), f"url must start with http, found {url}")
                 
-            headers = self.scenario.env.get("headers",{})
+            headers = self.scenario.env.get("headers",{}) or {}
             headers.update( self.headers )
             headers = e.substitute_in_object( headers )
             
@@ -145,7 +145,7 @@ class StepHttp(Step):
             response = await ehttp.call(self.method, url, body, 
                 headers=httpx.Headers(headers),
                 proxy=e.get("proxy",None),
-                timeout=e.get("timeout",60_000) # 60 sec
+                timeout=e.get("timeout",60_000) or 60_000 # 60 sec
             )
             diff_ms = round((time.time() - start) * 1000)  # différence en millisecondes
             e.set_R_response( response, diff_ms )
