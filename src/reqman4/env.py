@@ -98,22 +98,18 @@ class Env:
         self.update( {key:value} )
 
     def update(self, dico):
-        ###################################################
         self._data.update(_convert(dico))
         self._compile_py_methods()
-        # self._data = self.substitute_in_object(self._data,False)
-        # self._data = _convert(self._data)
-        ###################################################
-        # to be able to set vars at switch time
-        # for k,v in dico.items():
-        #     if isinstance(v,str) and ( v.startswith("<<") or v.startswith("{{")) and ( v.endswith(">>") or v.endswith("}}")):
-        #         self.__setitem__(k,self.substitute(v))
-        #     else:
-        #         self.__setitem__(k,v)
-
 
     def __getitem__(self, key):
-        return self._data[key]
+        v=self._data[key]
+        if isinstance(v,str):
+            try:
+                return self.substitute(v)
+            except:
+                pass
+        return v
+
 
     def __contains__(self, key):
         return key in self._data

@@ -79,7 +79,7 @@ def test_complexe():
     assert e["default2"].name == "marco"
 
 
-@pytest.mark.skip()
+#@pytest.mark.skip()
 def test_complexe2():
     e=Env( default="<<users.u2>>", users=dict(u1=dict(name="marco")) )
     assert e["default"] == "<<users.u2>>"
