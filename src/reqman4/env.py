@@ -99,7 +99,14 @@ class Env:
         self._compile_py_methods()
 
     def update(self, dico):
-        self._data.update(_convert(dico))
+        ###################################################
+        # self._data.update(_convert(dico))
+        # self._compile_py_methods()
+        ###################################################
+        # to be able to set vars at switch time
+        x=_convert(dico)
+        x=self.substitute_in_object(x)
+        self._data.update(x)
         self._compile_py_methods()
 
 
