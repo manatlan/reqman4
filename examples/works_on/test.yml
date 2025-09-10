@@ -1,0 +1,19 @@
+#! -oed
+
+# press CTRL+F5 to run this scenario with current py/repo (under vscode)
+
+USER:
+  env1:
+    name: toto
+    id: 42
+  env2:
+    name: titi
+    id: 43
+
+user: <<USER.env1>>
+
+RUN:
+  - GET: http://test/test?json=<<user.name>>
+    tests:
+      - R.status == 200
+      - R.json == user.name

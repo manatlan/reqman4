@@ -90,25 +90,24 @@ def jzon_dumps(o,indent:int|None=2):
 
 class Env:
     def __init__(self, /, **kwargs):
-        self._data:dict = _convert(kwargs)
-        self._compile_py_methods()
+        self._data={}
         self.__params_scopes: list = []
+        self.update( kwargs )
 
     def __setitem__(self, key, value):
-        self._data[key] = _convert(value)
-        self._compile_py_methods()
+        self.update( {key:value} )
 
     def update(self, dico):
         ###################################################
-        # self._data.update(_convert(dico))
-        # self._compile_py_methods()
+        self._data.update(_convert(dico))
+        self._compile_py_methods()
         ###################################################
         # to be able to set vars at switch time
-        for k,v in dico.items():
-            if isinstance(v,str) and ( v.startswith("<<") or v.startswith("{{")) and ( v.endswith(">>") or v.endswith("}}")):
-                self.__setitem__(k,self.substitute(v))
-            else:
-                self.__setitem__(k,v)
+        # for k,v in dico.items():
+        #     if isinstance(v,str) and ( v.startswith("<<") or v.startswith("{{")) and ( v.endswith(">>") or v.endswith("}}")):
+        #         self.__setitem__(k,self.substitute(v))
+        #     else:
+        #         self.__setitem__(k,v)
 
 
     def __getitem__(self, key):
