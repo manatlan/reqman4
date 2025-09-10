@@ -66,6 +66,18 @@ def test_inc():
     assert e["v"]==2
 
 
+def test_complexe():
+    e=Env( users=dict(u1=dict(name="marco")) )
+    assert e["users"]["u1"]["name"]=="marco"
+    assert e["users"].u1.name=="marco"  # type: ignore   #dict access by attrs
+    
+    e["default1"]=e.substitute("<<users.u1>>")
+    assert e["default1"].name == "marco"
+
+    e["default2"]=e.eval("users.u1")
+    assert e["default2"].name == "marco"
+
+
 def test_substitute_in_object_at_constructor(): # bad idea
     e=Env( v=42 , val="hello <<v>>", dico={"kiki":"<<v*2>>"}, liste=[1,2,"<<v*3>>"] )
     # assert e["val"] == "hello 42"
@@ -100,3 +112,4 @@ def test_protect_scope():
 
 if __name__=="__main__":
     ...      
+    test_complexe()
