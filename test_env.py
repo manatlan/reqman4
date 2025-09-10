@@ -1,3 +1,4 @@
+import pytest
 from src.reqman4.env import Env, _convert, MyList,jzon_dumps,httpx
 
 def test_jzon_dumps():
@@ -70,12 +71,22 @@ def test_complexe():
     e=Env( users=dict(u1=dict(name="marco")) )
     assert e["users"]["u1"]["name"]=="marco"
     assert e["users"].u1.name=="marco"  # type: ignore   #dict access by attrs
-    
+
     e["default1"]=e.substitute("<<users.u1>>")
     assert e["default1"].name == "marco"
 
     e["default2"]=e.eval("users.u1")
     assert e["default2"].name == "marco"
+
+
+@pytest.mark.skip()
+def test_complexe2():
+    e=Env( default="<<users.u2>>", users=dict(u1=dict(name="marco")) )
+    assert e["default"] == "<<users.u2>>"
+
+    e=Env( default="<<users.u1>>", users=dict(u1=dict(name="marco")) )
+    assert e["default"] == {"name":"marco"}
+    
 
 
 def test_substitute_in_object_at_constructor(): # bad idea
@@ -112,4 +123,4 @@ def test_protect_scope():
 
 if __name__=="__main__":
     ...      
-    test_complexe()
+    test_complexe2()

@@ -101,6 +101,8 @@ class Env:
         ###################################################
         self._data.update(_convert(dico))
         self._compile_py_methods()
+        # self._data = self.substitute_in_object(self._data,False)
+        # self._data = _convert(self._data)
         ###################################################
         # to be able to set vars at switch time
         # for k,v in dico.items():
@@ -161,7 +163,8 @@ class Env:
                 try:
                     val = self.eval(expr)
                 except Exception as e:
-                    val = f"***ERROR: {e}***"
+                    #val = f"***ERROR: {e}***"
+                    val = l # return the original <<expr>>
             logger.debug(f"SUBSTITUTE {l} by {val} ({type(val)})")
             if isinstance(val, str):
                 text = text.replace(l, val)
@@ -174,10 +177,10 @@ class Env:
                     text = text.replace(l, jzon_dumps(val, indent=None))
         return text
 
-    def substitute_in_object(self, o: Any) -> Any:
+    def substitute_in_object(self, o: Any, raise_error: bool = True) -> Any:
         def _sub_in_object(o: Any) -> Any:
             if isinstance(o, str):
-                return self.substitute(o)
+                return self.substitute(o,raise_error)
             elif isinstance(o, dict):
                 return {k: _sub_in_object(v) for k, v in o.items()}
             elif isinstance(o, list):
