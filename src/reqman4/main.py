@@ -94,7 +94,7 @@ class ReqmanException(Exception):
 
 def display_env( x ):
     print(cy("Final environment:"))
-    print(env.jzon_dumps(x) if x else "no env")
+    print(x if x is not None else "no env")
 
 
 

@@ -246,6 +246,9 @@ class Env:
                     declare_methods(d[i])
         declare_methods(self._data)
 
+    def __repr__(self):
+        return jzon_dumps(self._data)
+
 if __name__ == "__main__":
     ...
     # logging.basicConfig(level=logging.DEBUG)

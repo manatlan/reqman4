@@ -1,0 +1,9 @@
+#! -oe
+
+# press CTRL+F5 to run this scenario with current py/repo (under vscode)
+
+RUN:
+  - GET: http://test/test?json="hello"
+    tests:
+      - R.status == 200
+      - R.json == "hello"
