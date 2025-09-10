@@ -104,10 +104,8 @@ class Env:
         # self._compile_py_methods()
         ###################################################
         # to be able to set vars at switch time
-        x=_convert(dico)
-        x=self.substitute_in_object(x)
-        self._data.update(x)
-        self._compile_py_methods()
+        for k,v in dico.items():
+            self._data[k]=self.substitute(v)
 
 
     def __getitem__(self, key):
