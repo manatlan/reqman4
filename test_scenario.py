@@ -1,10 +1,10 @@
 import pytest,os
-import glob
+import glob,io,sys,re
 from src.reqman4 import scenario,main,common
 from validate import validate_yaml
 
 
-def attendings(example_file:str): #THE FUTURE
+def attendings(example_file:str): #THE FUTURE for all tests
     with open(example_file, "r") as f:
         first_line = f.readline().strip()
         second_line = f.readline().strip()
@@ -14,6 +14,32 @@ def attendings(example_file:str): #THE FUTURE
         if line.startswith("#RESULT:"):
             return (True, line[len("#RESULT:"):].strip() ) # ex (True, "4/5")
     return (None,None)        
+
+def simulate(example_file: str): #THE FUTURE for all tests
+    good,info = attendings(example_file)
+
+    stdout = io.StringIO()
+    sys_stdout = sys.stdout
+    sys.stdout = stdout
+    try:
+        error=None
+        rc = main.reqman([example_file])
+    except Exception as error:
+        pass
+    finally:
+        sys.stdout = sys_stdout
+    output = stdout.getvalue()
+    last_line = output.strip().rsplit('\n', 1)[-1]
+    result=re.search( r"(\d+/\d+)",last_line).group(0)
+
+    if good:
+        assert rc>=0
+        assert result == info
+    else:
+        assert rc == -1
+        assert error
+        if info:
+            assert info in str(error)
 
 
 def test_no_reqman_conf():
@@ -42,7 +68,6 @@ async def test_scenarios_ok(example_file):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/err/*.yml")) )
 async def test_scenarios_err(example_file):
-
     #assert not validate_yaml(example_file,"schema.json")
 
     with open(example_file, "r") as f:
@@ -58,16 +83,14 @@ async def test_scenarios_err(example_file):
 
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/ko/*.yml")) )
 def test_scenarios_ko(example_file):
-    with open(example_file, "r") as f:
-        first_line = f.readline().strip()
-    assert first_line.startswith("#KO:")
-    nb_ko = int(first_line[len("#KO:"):].strip())
-
-    rc=main.reqman([example_file])
-    assert rc == nb_ko
+    simulate(example_file)
 
 
 @pytest.mark.skipif(os.getenv("CI") == "true", reason="No internet on CI")
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reals/*.yml")) )
 def test_scenarios_reals(example_file):
-    test_scenarios_ko(example_file)
+    simulate(example_file)
+
+
+if __name__ == "__main__":
+    ...

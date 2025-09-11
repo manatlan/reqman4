@@ -1,4 +1,4 @@
-#KO: 0
+#RESULT: 8/8
 RUN:
   - doc: "Make a GET request"
     GET: "https://httpbin.org/get?name=jules"
