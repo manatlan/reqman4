@@ -149,7 +149,7 @@ class ExcecutionTests:
 
     def view(self):
         for f in self.files:
-            #TODO: should display BEGIN & AND ? for sure !
+            #TODO: should display BEGIN & END ? for sure !
             print(cb(f"Analyse {f}"))
             for i in scenario.Scenario(f, self.env):
                 print(i)
