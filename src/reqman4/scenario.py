@@ -111,81 +111,66 @@ class StepHttp(Step):
         assert_syntax(all( isinstance(t,str) for t in self.tests ),"tests must be a list of strings")
 
 
-    async def process(self,e:env.Env) -> AsyncGenerator:
-        self.results=[]
+    def _prepare_request(self, e: env.Env) -> tuple:
+        url = e.substitute(self.url)
+        root = e.get("root", "")
+        if root and url.startswith("/"):
+            url = root + url
+        assert_syntax(url.startswith("http"), f"url must start with http, found {url}")
 
-        params=self.extract_params(e)
+        headers = self.scenario.env.get("headers", {}) or {}
+        headers.update(self.headers)
+        headers = e.substitute_in_object(headers)
+
+        body = self.body
+        if body:
+            if isinstance(body, str):
+                body = e.substitute(body)
+            elif isinstance(body, (dict, list)):
+                body = e.substitute_in_object(body)
+
+        return url, headers, body
+
+    async def _execute_request(self, e: env.Env, url: str, headers: dict, body: any) -> httpx.Response:
+        start = time.time()
+        response = await ehttp.call(
+            self.method,
+            url,
+            body,
+            headers=httpx.Headers(headers),
+            proxy=e.get("proxy", None),
+            timeout=e.get("timeout", 60_000) or 60_000,  # 60 sec
+        )
+        diff_ms = round((time.time() - start) * 1000)
+        e.set_R_response(response, diff_ms)
+        return response
+
+    def _process_response(self, e: env.Env, response: httpx.Response) -> common.Result:
+        results = []
+        for t in self.tests:
+            try:
+                ok, dico = e.eval(t, with_context=True)
+                context = f"Expression: {t}\n"
+                context += "Variables:\n"
+                for k, v in dico.items():
+                    context += f"  {k}: {env.jzon_dumps(v, indent=None)}\n"
+                results.append(common.TestResult(bool(ok), t, context))
+            except Exception as ex:
+                logger.error(f"Can't eval test [{t}] : {ex}")
+                results.append(common.TestResult(None, t, f"ERROR: {ex}"))
+
+        doc = e.substitute(self.doc, raise_error=False)
+        return common.Result(response.request, response, results, doc=doc)
+
+    async def process(self, e: env.Env) -> AsyncGenerator:
+        params = self.extract_params(e)
 
         for param in params:
             e.scope_update(param)
 
-            url = e.substitute(self.url)
-            root = e.get("root","")
-            if root:
-                if url.startswith("/"):
-                    url = root + url
-            assert_syntax( url.startswith("http"), f"url must start with http, found {url}")
-                
-            headers = self.scenario.env.get("headers",{}) or {}
-            headers.update( self.headers )
-            headers = e.substitute_in_object( headers )
-            
-            body = self.body
-
-            if body:
-                if isinstance(body, str):
-                    body = e.substitute(body)
-                else:
-                    if isinstance(body, dict) or isinstance(body, list):
-                        body = e.substitute_in_object(body)
-                    else:
-                        body = body
-
-            start = time.time()
-            response = await ehttp.call(self.method, url, body, 
-                headers=httpx.Headers(headers),
-                proxy=e.get("proxy",None),
-                timeout=e.get("timeout",60_000) or 60_000 # 60 sec
-            )
-            diff_ms = round((time.time() - start) * 1000)  # différence en millisecondes
-            e.set_R_response( response, diff_ms )
-            
-            
-            results=[]
-            for t in self.tests:
-                try:
-                    ok, dico = e.eval(t, with_context=True)
-                    context=""
-                    for k,v in dico.items():
-                        if k=="R":      #TODO: do better !
-                            if "R.time" in t:
-                                r:env.R=e["R"]
-                                k,v="R.time",r.time
-                            if "R.status" in t:
-                                r:env.R=e["R"]
-                                k,v="R.status",r.status
-                            if "R.headers" in t:
-                                r:env.R=e["R"]
-                                k,v="R.headers",r.headers
-                            if "R.content" in t:
-                                r:env.R=e["R"]
-                                k,v="R.content",r.content
-                            if "R.text" in t:
-                                r:env.R=e["R"]
-                                k,v="R.text",r.text
-                            if "R.json" in t:
-                                r:env.R=e["R"]
-                                k,v="R.json",r.json
-                            
-                        context+= f"{k}: {v}\n"
-                    results.append( common.TestResult(bool(ok),t,context) )
-                except Exception as ex:
-                    logger.error(f"Can't eval test [{t}] : {ex}")
-                    results.append( common.TestResult(None,t,f"ERROR: {ex}") )
-
-
-            doc=e.substitute(self.doc,raise_error=False)
-            yield common.Result(response.request,response, results, doc=doc)
+            url, headers, body = self._prepare_request(e)
+            response = await self._execute_request(e, url, headers, body)
+            yield self._process_response(e, response)
 
             e.scope_revert(param)
 
