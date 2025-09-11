@@ -149,10 +149,17 @@ class ExcecutionTests:
 
     def view(self):
         for f in self.files:
-            #TODO: should display BEGIN & END ? for sure !
             print(cb(f"Analyse {f}"))
-            for i in scenario.Scenario(f, self.env):
+            s=scenario.Scenario(f, self.env)
+
+            if "BEGIN" in self.env:
+                print("BEGIN", scenario.StepCall(s, {scenario.OP.CALL:"BEGIN"}) )
+
+            for i in s:
                 print(i)
+
+            if "END" in self.env:
+                print("END", scenario.StepCall(s, {scenario.OP.CALL:"END"}) )
 
     async def execute(self) -> Output:
         """ Run all tests in files, return number of failed tests """
