@@ -1,0 +1,35 @@
+RUN:
+  - doc: "Get all posts"
+    GET: "https://jsonplaceholder.typicode.com/posts"
+    tests:
+      - "R.status == 200"
+
+  - doc: "Get a single post"
+    GET: "https://jsonplaceholder.typicode.com/posts/1"
+    tests:
+      - "R.status == 200"
+
+  - doc: "Create a new post"
+    POST: "https://jsonplaceholder.typicode.com/posts"
+    body:
+      title: "foo"
+      body: "bar"
+      userId: 1
+    tests:
+      - "R.status == 201"
+      - "R.json['title'] == 'foo'"
+
+  - doc: "Update an existing post"
+    PUT: "https://jsonplaceholder.typicode.com/posts/1"
+    body:
+      id: 1
+      title: "foo"
+      body: "bar"
+      userId: 1
+    tests:
+      - "R.status == 200"
+
+  - doc: "Delete a post"
+    DELETE: "https://jsonplaceholder.typicode.com/posts/1"
+    tests:
+      - "R.status == 200"
