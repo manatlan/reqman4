@@ -79,19 +79,69 @@ def jzon_dumps(o,indent:int|None=2):
         elif isinstance(obj, httpx.Headers):
             return jzon_dumps(dict(obj))
         elif isinstance(obj, set):
-            return jzon_dumps(list(obj))            
+            return jzon_dumps(list(obj))
         elif isinstance(obj, Env):
-            return jzon_dumps(obj._data)            
+            return jzon_dumps(obj._data)
         elif isinstance(obj,R):
             return dict(status=obj.status, headers=dict(obj.headers), time=obj.time, content=f"<<{obj.content and len(obj.content) or '0'} bytes>>")
         raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
     return json.dumps(o, default=default, indent=indent)
 
 
+class Substitutor:
+    def __init__(self, env: "Env"):
+        self.env = env
+
+    def substitute(self, text: str, raise_error: bool = True) -> Any:
+        """ resolve {{expr}} and/or <<expr>> in text
+            if raise_error==False : it will always return str (error msg)
+        """
+        while True:
+            original_text = text
+            ll = re.findall(r"\{\{[^\}]+\}\}", text) + re.findall("<<[^><]+>>", text)
+            if not ll:
+                break
+
+            for l in ll:
+                expr = l[2:-2]
+                if raise_error:
+                    val = self.env.eval(expr)
+                else:
+                    try:
+                        val = self.env.eval(expr)
+                    except Exception as e:
+                        #val = f"***ERROR: {e}***"
+                        val = l # return the original <<expr>>
+                logger.debug(f"SUBSTITUTE {l} by {val} ({type(val)})")
+                if isinstance(val, str):
+                    text = text.replace(l, val)
+                else:
+                    if l == text:  # full same type
+                        return val
+                    else:
+                        # it's a part of a string, convert to str
+                        text = text.replace(l, jzon_dumps(val, indent=None))
+
+            if text == original_text:
+                break
+        return text
+
+    def substitute_in_object(self, o: Any, raise_error: bool = True) -> Any:
+        if isinstance(o, str):
+            return self.substitute(o, raise_error)
+        elif isinstance(o, dict):
+            return {k: self.substitute_in_object(v, raise_error) for k, v in o.items()}
+        elif isinstance(o, list):
+            return [self.substitute_in_object(v, raise_error) for v in o]
+        else:
+            return o
+
+
 class Env:
     def __init__(self, /, **kwargs):
         self._data={}
         self.__params_scopes: list = []
+        self.substitutor = Substitutor(self)
         self.update( kwargs )
 
     def __setitem__(self, key, value):
@@ -151,49 +201,10 @@ class Env:
             return result
 
     def substitute(self, text: str, raise_error: bool = True) -> Any:
-        """ resolve {{expr}} and/or <<expr>> in text 
-            if raise_error==False : it will always return str (error msg)
-        """ 
-        ll = re.findall(r"\{\{[^\}]+\}\}", text) + re.findall("<<[^><]+>>", text)
-        for l in ll:
-            expr = l[2:-2]
-            if raise_error:
-                val = self.eval(expr)
-            else:
-                try:
-                    val = self.eval(expr)
-                except Exception as e:
-                    #val = f"***ERROR: {e}***"
-                    val = l # return the original <<expr>>
-            logger.debug(f"SUBSTITUTE {l} by {val} ({type(val)})")
-            if isinstance(val, str):
-                text = text.replace(l, val)
-            else:
-                if l == text:  # full same type
-                    return val
-                else:
-                    # it's a part of a string, convert to str
-                    # text = text.replace(l, str(val))
-                    text = text.replace(l, jzon_dumps(val, indent=None))
-        return text
+        return self.substitutor.substitute(text, raise_error)
 
     def substitute_in_object(self, o: Any, raise_error: bool = True) -> Any:
-        def _sub_in_object(o: Any) -> Any:
-            if isinstance(o, str):
-                return self.substitute(o,raise_error)
-            elif isinstance(o, dict):
-                return {k: _sub_in_object(v) for k, v in o.items()}
-            elif isinstance(o, list):
-                return [_sub_in_object(v) for v in o]
-            else:
-                return o
-
-        while True:
-            before = jzon_dumps(o)
-            o = _sub_in_object(o)
-            after = jzon_dumps(o)
-            if before == after:
-                return o
+        return self.substitutor.substitute_in_object(o, raise_error)
 
     @property
     def switchs(self) -> dict:

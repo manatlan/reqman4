@@ -68,76 +68,45 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
     # else:
     #     proxy_mounts = None
 
-    hostfake="http://test"
+    # if proxy:
+    #     transport = httpx.HTTPTransport(proxy=proxy)
+    #     proxy_mounts = {"http://": transport, "https://": transport}
+    # else:
+    #     proxy_mounts = None
 
-    # Simule une réponse HTTP
-    if url.startswith(hostfake):
-        if method == "GET" and url.startswith(f"{hostfake}/test"):
-            request=httpx.Request(method, url, headers=headers, content=body and str(body))
-            jzon = request.url.params.get("json",None)
-            r= httpx.Response(
-                status_code=200,
-                headers={"content-type": "application/json"},
-                json=json.loads(jzon) if jzon else None,
-                request=request
-            )
-        elif method == "GET" and url.startswith(f"{hostfake}/headers"):
-            request=httpx.Request(method, url, headers=headers, content=body and str(body))
-            r= httpx.Response(
-                status_code=200,
-                headers={"content-type": "application/json"},
-                json=dict(headers=dict(request.headers)),   # destructive !
-                request=request
-            )
-        elif method == "POST" and url.startswith(f"{hostfake}/test"):
-            r= httpx.Response(
-                status_code=201,
-                headers={"content-type": "application/json"},
-                json=body,
-                request=httpx.Request(method, url, headers=headers, content=body and str(body))
-            )
+    assert_syntax( method in KNOWNVERBS, f"Unknown HTTP verb {method}")
+    try:
+        if proxy:
+            logger.debug("Use proxy:",proxy)
+
+        if isinstance(body, dict) or isinstance(body, list):
+            async with httpx.AsyncClient(follow_redirects=True,verify=False,cookies=JAR,proxy=proxy) as client:
+                r = await client.request(
+                    method,
+                    url,
+                    json=body,
+                    headers=headers,
+                    timeout=timeout/1000,   # seconds!
+                )
         else:
-            r= httpx.Response(
-                status_code=404,
-                headers={"content-type": "text/plain"},
-                content=b"Not Found",
-                request=httpx.Request(method, url, headers=headers, content=body and str(body))
-            )
-    else:
+            async with httpx.AsyncClient(follow_redirects=True,verify=False,cookies=JAR,proxy=proxy) as client:
+                r = await client.request(
+                    method,
+                    url,
+                    data=body,
+                    headers=headers,
+                    timeout=timeout/1000,   # seconds!
+                )
 
-        assert_syntax( method in KNOWNVERBS, f"Unknown HTTP verb {method}")
-        try:
-            if proxy:
-                logger.debug("Use proxy:",proxy)
-                
-            if isinstance(body, dict) or isinstance(body, list):
-                async with httpx.AsyncClient(follow_redirects=True,verify=False,cookies=JAR,proxy=proxy) as client:
-                    r = await client.request(
-                        method,
-                        url,
-                        json=body,
-                        headers=headers,
-                        timeout=timeout/1000,   # seconds!
-                    )
-            else:
-                async with httpx.AsyncClient(follow_redirects=True,verify=False,cookies=JAR,proxy=proxy) as client:
-                    r = await client.request(
-                        method,
-                        url,
-                        data=body,
-                        headers=headers,
-                        timeout=timeout/1000,   # seconds!
-                    )
-
-        except httpx.TimeoutException as e:
-            r = ResponseTimeout(f"Timeout (> {timeout}ms)")
-            r.request = e.request
-        except httpx.ConnectError as e:
-            r = ResponseUnreachable()
-            r.request = e.request
-        except (httpx.InvalidURL,httpx.UnsupportedProtocol,ValueError) as e:
-            r = ResponseInvalid()
-            r.request = httpx.Request(method, url, headers=headers, content=body and str(body))
+    except httpx.TimeoutException as e:
+        r = ResponseTimeout(f"Timeout (> {timeout}ms)")
+        r.request = e.request
+    except httpx.ConnectError as e:
+        r = ResponseUnreachable()
+        r.request = e.request
+    except (httpx.InvalidURL,httpx.UnsupportedProtocol,ValueError) as e:
+        r = ResponseInvalid()
+        r.request = httpx.Request(method, url, headers=headers, content=body and str(body))
 
     logger.debug(f"RESPONSE {r.status_code} {r.headers} {r.content}")
     return r

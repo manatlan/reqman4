@@ -20,8 +20,8 @@ RUN:
     respx.get("http://localhost:8080/test").respond(200, text="OK")
 
     # Run the scenario
-    r = main.ExcecutionTests([str(scenario_file)])
-    o = await r.execute()
+    r = main.ExecutionTests([str(scenario_file)])
+    o = await r.execute(open_browser=True)
 
     # Generate the HTML report
     html_report = "\n".join(o.htmls)

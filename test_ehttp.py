@@ -35,8 +35,24 @@ async def test_http_ResponseTimeout():
     assert isinstance(x, ehttp.ResponseTimeout)
     print("===>",x)
 
+from test_helpers import mock_http_test
+
 @pytest.mark.asyncio
 async def test_fake():
-    x=await ehttp.call("GET", "http://test/test?json=[1,2,3]")
-    assert x.json() == [1,2,3]
+    with mock_http_test():
+        # Test GET /test
+        x = await ehttp.call("GET", "http://test/test?json=[1,2,3]")
+        assert x.json() == [1, 2, 3]
+
+        # Test GET /headers
+        x = await ehttp.call("GET", "http://test/headers", headers={"X-Test": "true"})
+        assert x.json()["headers"]["x-test"] == "true"
+
+        # Test POST /test
+        x = await ehttp.call("POST", "http://test/test", body={"key": "value"})
+        assert x.json() == {"key": "value"}
+
+        # Test 404
+        x = await ehttp.call("GET", "http://test/notfound")
+        assert x.status_code == 404
 

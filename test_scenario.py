@@ -15,6 +15,8 @@ def attendings(example_file:str): #THE FUTURE for all tests
             return (True, line[len("#RESULT:"):].strip() ) # ex (True, "4/5")
     return (None,None)        
 
+from test_helpers import mock_http_test
+
 def simulate(example_file: str): #THE FUTURE for all tests
     good,info = attendings(example_file)
 
@@ -23,7 +25,11 @@ def simulate(example_file: str): #THE FUTURE for all tests
     sys.stdout = stdout
     try:
         error=None
-        rc = main.reqman([example_file])
+        if "reals" in example_file:
+            rc = main.reqman([example_file])
+        else:
+            with mock_http_test():
+                rc = main.reqman([example_file])
     except Exception as error:
         pass
     finally:
@@ -53,15 +59,15 @@ async def test_scenarios_ok(example_file):
 
     assert validate_yaml(example_file,"schema.json")
 
-
-    s=scenario.Scenario(example_file)
-    print(s) # test repr
-    for step in s:
-        print(step) # test step.__repr__
-    async for echange in s.execute():
-        if echange:
-            for tr in echange.tests:
-                assert tr.ok, f"Test failed: {tr.text}"
+    with mock_http_test():
+        s=scenario.Scenario(example_file)
+        print(s) # test repr
+        for step in s:
+            print(step) # test step.__repr__
+        async for echange in s.execute():
+            if echange:
+                for tr in echange.tests:
+                    assert tr.ok, f"Test failed: {tr.text}"
 
 
 @pytest.mark.asyncio
@@ -72,9 +78,10 @@ async def test_scenarios_err(example_file):
     good,error_message = attendings(example_file)
 
     with pytest.raises(Exception) as excinfo:
-        s=scenario.Scenario(example_file)
-        async for echange in s.execute():
-                ...
+        with mock_http_test():
+            s=scenario.Scenario(example_file)
+            async for echange in s.execute():
+                    ...
     assert not good
     assert error_message in str(excinfo.value)
 

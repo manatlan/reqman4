@@ -38,56 +38,117 @@ cb = lambda t: colorize(Fore.CYAN, t)
 cw = lambda t: colorize(Fore.WHITE, t)
 
 
-class Output:
-    def __init__(self,switch:str|None):
+class ConsoleOutput:
+    def __init__(self, switch: str | None):
         self.switch = switch
-        self.nb_tests=0
-        self.nb_tests_ok=0
-        self.nb_req=0
-        self.htmls=[ output.generate_base() ]
+        self.nb_tests = 0
+        self.nb_tests_ok = 0
+        self.nb_req = 0
 
     @property
     def nb_tests_ko(self):
         return self.nb_tests - self.nb_tests_ok
 
-    def begin_scenario(self,file:str):
+    def begin_scenario(self, file: str):
         print(cb(f"--- RUN {file} ---"))
-        self.htmls.append( output.generate_section(file) )
 
-    def write_a_test(self,r:common.Result):
+    def write_a_test(self, r: common.Result):
         if r:
-            self.nb_req+=1
+            self.nb_req += 1
             print(f"{cy(r.request.method)} {unquote(str(r.request.url))} -> {cb(r.response.status_code) if r.response.status_code else cr('X')}")
             for tr in r.tests:
-                color = {True:cg,False:cr,None:cr}[tr.ok]
-                print(" -",color(str(tr)),":", tr.text)
+                color = {True: cg, False: cr, None: cr}[tr.ok]
+                print(" -", color(str(tr)), ":", tr.text)
                 self.nb_tests += 1
                 if tr.ok:
                     self.nb_tests_ok += 1
             print()
-            self.htmls.append( output.generate_request(r) )
 
     def end_scenario(self):
         pass
 
     def end_tests(self):
-        self.htmls.append( output.generate_final( self.switch, self.nb_tests_ok, self.nb_tests) )
-
         r = self.nb_tests_ko
-        if r==0:
+        if r == 0:
             print(cg(f"{self.nb_tests_ok}/{self.nb_tests}"))
         else:
             print(cr(f"{self.nb_tests_ok}/{self.nb_tests}"))
 
+    def open_browser(self):
+        pass
+
+
+class HtmlOutput:
+    def __init__(self, switch: str | None):
+        self.switch = switch
+        self.nb_tests = 0
+        self.nb_tests_ok = 0
+        self.htmls = [output.generate_base()]
+
+    @property
+    def nb_tests_ko(self):
+        return self.nb_tests - self.nb_tests_ok
+
+    def begin_scenario(self, file: str):
+        self.htmls.append(output.generate_section(file))
+
+    def write_a_test(self, r: common.Result):
+        if r:
+            for tr in r.tests:
+                self.nb_tests += 1
+                if tr.ok:
+                    self.nb_tests_ok += 1
+            self.htmls.append(output.generate_request(r))
+
+    def end_scenario(self):
+        pass
+
+    def end_tests(self):
+        self.htmls.append(output.generate_final(self.switch, self.nb_tests_ok, self.nb_tests))
 
     def open_browser(self):
-
         with tempfile.NamedTemporaryFile('w', delete=False, suffix='.html', encoding="utf-8") as f:
             f.write("\n".join(self.htmls))
             temp_html_path = f.name
+        webbrowser.open(f'file://{os.path.abspath(temp_html_path)}')
 
-        # Ouvre le fichier HTML dans le navigateur par défaut
-        webbrowser.open(f'file://{os.path.abspath(temp_html_path)}')        
+
+class MultiOutput:
+    def __init__(self, outputs: list):
+        self.outputs = outputs
+
+    @property
+    def htmls(self):
+        for out in self.outputs:
+            if isinstance(out, HtmlOutput):
+                return out.htmls
+        return []
+
+    @property
+    def nb_tests_ko(self):
+        # Assuming all outputs have the same test counts
+        return self.outputs[0].nb_tests_ko if self.outputs else 0
+
+    def begin_scenario(self, file: str):
+        for out in self.outputs:
+            out.begin_scenario(file)
+
+    def write_a_test(self, r: common.Result):
+        for out in self.outputs:
+            out.write_a_test(r)
+
+    def end_scenario(self):
+        for out in self.outputs:
+            out.end_scenario()
+
+    def end_tests(self):
+        for out in self.outputs:
+            out.end_tests()
+
+    def open_browser(self):
+        for out in self.outputs:
+            out.open_browser()
+
 
 class ReqmanException(Exception):
     env: env.Env|None
@@ -117,7 +178,7 @@ def expand_files(files:list[str]) -> list[str]:
             ll.append(i)
     return ll
 
-class ExcecutionTests:
+class ExecutionTests:
     def __init__(self,files:list,switch:str|None=None,vars:dict={}):
         # fix files : extract files (yml/rml) from potentials directories
         self.files=expand_files(files)
@@ -161,9 +222,13 @@ class ExcecutionTests:
             if "END" in self.env:
                 print("END", scenario.StepCall(s, {scenario.OP.CALL:"END"}) )
 
-    async def execute(self) -> Output:
+    async def execute(self, open_browser: bool = False):
         """ Run all tests in files, return number of failed tests """
-        output = Output(self._switch)
+        outputs = [ConsoleOutput(self._switch)]
+        if open_browser:
+            outputs.append(HtmlOutput(self._switch))
+
+        output = MultiOutput(outputs)
 
         for file in self.files:
             output.begin_scenario(file)
@@ -185,6 +250,7 @@ class ExcecutionTests:
             output.end_scenario()
 
         output.end_tests()
+        output.open_browser()
         return output
 
 
@@ -279,18 +345,15 @@ def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_de
         logging.basicConfig(level=logging.ERROR)
 
     try:
-        r = ExcecutionTests( files,switch,dvars)
+        r = ExecutionTests( files,switch,dvars)
         if is_view:
             r.view()
             return 0
         else:
-            o = asyncio.run(r.execute())
+            o = asyncio.run(r.execute(open_browser=open_browser))
 
             if show_env:
                 display_env(r.env)
-
-            if open_browser:
-                o.open_browser()
 
             return o.nb_tests_ko
 

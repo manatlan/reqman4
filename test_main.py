@@ -5,11 +5,14 @@ import pytest,os
 def test_find_scenarios():
     assert list(main.find_scenarios("examples"))
 
+from test_helpers import mock_http_test
+
 def test_main():
-    o1=main.reqman(["examples/classic/test_switch.yml"])
-    o2=main.reqman(["examples/single/test_switch.yml"])
+    with mock_http_test():
+        o1 = main.reqman(["examples/classic/test_switch.yml"])
+        o2 = main.reqman(["examples/single/test_switch.yml"])
     assert o1 == o2
-    
+
 # def test_main_view_only():
 #     assert main.reqman(["examples/classic/test_switch.yml"],is_view=True) is None
 
