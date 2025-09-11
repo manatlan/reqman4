@@ -42,7 +42,7 @@ class Step:
 
         assert_syntax( isinstance(params, list),"params must be a list of dict")
         assert_syntax( all( isinstance(p, dict) for p in params ),"params must be a list of dict")
-        return params
+        return e.substitute_in_object(params)
 
 
 class StepCall(Step):
