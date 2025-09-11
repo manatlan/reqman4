@@ -15,7 +15,7 @@ import logging
 
 # reqman imports
 from . import pycode
-from .common import assert_syntax
+from .common import assert_syntax, RqException
 from . import tool
 from .ehttp import MyHeaders
 
@@ -135,7 +135,11 @@ class Env:
             return os.environ[code]
 
         env = dict(self._data)
-        result = eval(code, {}, env)
+        try:
+            result = eval(code, {}, env)
+        except Exception as e:
+            raise RqException(f"Error evaluating expression '{code}': {e}") from e
+
         if with_context:
             try:
                 vars_in_expr = {node.id for node in ast.walk(ast.parse(code)) if isinstance(node, ast.Name)}
@@ -234,6 +238,7 @@ class Env:
                 for k, v in d.items():
                     code = pycode.is_python(k, v)
                     if code:
+                        logger.warning(f"Security warning: Compiling and executing python method '{k}'. Ensure that the code is from a trusted source.")
                         scope = {}
                         exec(code, dict(ENV=self, tool=tool), scope)  # declare ENV&tool in method!
                         d[k] = scope[k]
