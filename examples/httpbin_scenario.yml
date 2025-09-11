@@ -1,0 +1,31 @@
+RUN:
+  - doc: "Make a GET request"
+    GET: "https://httpbin.org/get?name=jules"
+    tests:
+      - "R.status == 200"
+      - "R.json['args']['name'] == 'jules'"
+
+  - doc: "Make a POST request with a JSON body"
+    POST: "https://httpbin.org/post"
+    body:
+      customer: "jules"
+      items:
+        - "apple"
+        - "banana"
+    tests:
+      - "R.status == 200"
+      - "R.json['json']['customer'] == 'jules'"
+      - "'banana' in R.json['json']['items']"
+
+  - doc: "Make a PUT request"
+    PUT: "https://httpbin.org/put"
+    body:
+      status: "updated"
+    tests:
+      - "R.status == 200"
+      - "R.json['json']['status'] == 'updated'"
+
+  - doc: "Make a DELETE request"
+    DELETE: "https://httpbin.org/delete"
+    tests:
+      - "R.status == 200"
