@@ -8,7 +8,7 @@
 # #############################################################################
 import yaml,os,time
 import httpx
-from typing import AsyncGenerator
+from typing import Any, AsyncGenerator
 
 # reqman imports
 from . import common
@@ -131,7 +131,7 @@ class StepHttp(Step):
 
         return url, headers, body
 
-    async def _execute_request(self, e: env.Env, url: str, headers: dict, body: any) -> httpx.Response:
+    async def _execute_request(self, e: env.Env, url: str, headers: dict, body: Any) -> httpx.Response:
         start = time.time()
         response = await ehttp.call(
             self.method,
@@ -150,8 +150,7 @@ class StepHttp(Step):
         for t in self.tests:
             try:
                 ok, dico = e.eval(t, with_context=True)
-                context = f"Expression: {t}\n"
-                context += "Variables:\n"
+                context = "Variables:\n"
                 for k, v in dico.items():
                     context += f"  {k}: {env.jzon_dumps(v, indent=None)}\n"
                 results.append(common.TestResult(bool(ok), t, context))
@@ -234,7 +233,7 @@ class Scenario(list):
         self.extend( self._feed( scenar ) )
 
 
-    def _feed(self, liste:list) -> list[Step]:
+    def _feed(self, liste:list[dict]) -> list[Step]:
         try:
             step=None
             assert_syntax(isinstance(liste, list),"RUN must be a list")

@@ -1,7 +1,19 @@
-import pytest
+import pytest,os
 import glob
 from src.reqman4 import scenario,main,common
 from validate import validate_yaml
+
+
+def attendings(example_file:str): #THE FUTURE
+    with open(example_file, "r") as f:
+        first_line = f.readline().strip()
+        second_line = f.readline().strip()
+    for line in [first_line,second_line]:
+        if line.startswith("#ERROR:"):
+            return (False, line[len("#ERROR:"):].strip() ) # ex (False, "Bad ...")
+        if line.startswith("#RESULT:"):
+            return (True, line[len("#RESULT:"):].strip() ) # ex (True, "4/5")
+    return (None,None)        
 
 
 def test_no_reqman_conf():
@@ -53,3 +65,9 @@ def test_scenarios_ko(example_file):
 
     rc=main.reqman([example_file])
     assert rc == nb_ko
+
+
+@pytest.mark.skipif(os.getenv("CI") == "true", reason="No internet on CI")
+@pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reals/*.yml")) )
+def test_scenarios_reals(example_file):
+    test_scenarios_ko(example_file)

@@ -27,5 +27,4 @@ RUN:
     html_report = "\n".join(o.htmls)
 
     # Check that the title attribute is present and contains the context
-    assert 'title="Expression: R.status == 201' in html_report
     assert 'R: {&quot;status&quot;: 200,' in html_report
