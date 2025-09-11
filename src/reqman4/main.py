@@ -136,7 +136,12 @@ class ExcecutionTests:
         self.env = env.Env( **conf )
 
         # apply the switch
-        if switch: #TODO: it doesn't work for standalone scenario (if the have own switchs) !!!!!!!!
+        if switch:
+            # First, load all scenarios to get all possible switches
+            for file in self.files:
+                # just load to get switches in self.env
+                scenario.Scenario(file, self.env)
+
             common.assert_syntax(switch in self.env.switchs.keys(), f"Unknown switch '{switch}'")
             self.env.update( self.env.switchs[switch] )
         self._switch = switch
@@ -144,40 +149,36 @@ class ExcecutionTests:
 
     def view(self):
         for f in self.files:
-            #TODO: should display BEGIN & AND ? for sure !
+            #TODO: should display BEGIN & END ? for sure !
             print(cb(f"Analyse {f}"))
             for i in scenario.Scenario(f, self.env):
                 print(i)
 
-    def execute(self) -> Output:
+    async def execute(self) -> Output:
+        """ Run all tests in files, return number of failed tests """
+        output = Output(self._switch)
 
-        async def async_run_tests(files:list[str]) -> Output:
-            """ Run all tests in files, return number of failed tests """
-            output = Output( self._switch)
+        for file in self.files:
+            output.begin_scenario(file)
 
-            for file in files:
-                output.begin_scenario( file )
-
+            try:
+                scenar = scenario.Scenario(file, self.env)
+                async for req in scenar.execute(with_begin=(file == self.files[0]), with_end=(file == self.files[-1])):
+                    output.write_a_test(req)
+                self.env = scenar.env  # needed !
+            except common.RqException as ex:
+                ex = ReqmanException(ex)
                 try:
-                    scenar=scenario.Scenario(file,self.env)
-                    async for req in scenar.execute( with_begin=(file==files[0]),with_end=(file==files[-1])):
-                        output.write_a_test(req)
-                    self.env = scenar.env # needed !
-                except common.RqException as ex:
-                    ex=ReqmanException(ex)
-                    try:
-                        ex.env = scenar.env 
-                    except:
-                        logger.error(f"Can't get the env on exception {ex}")
-                        ex.env = None
-                    raise ex
-                
-                output.end_scenario()
+                    ex.env = scenar.env
+                except:
+                    logger.error(f"Can't get the env on exception {ex}")
+                    ex.env = None
+                raise ex
 
-            output.end_tests()
-            return output
+            output.end_scenario()
 
-        return asyncio.run(async_run_tests(self.files))
+        output.end_tests()
+        return output
 
 
 
@@ -276,7 +277,7 @@ def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_de
             r.view()
             return 0
         else:
-            o = r.execute()
+            o = asyncio.run(r.execute())
 
             if show_env:
                 display_env(r.env)

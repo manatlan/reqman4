@@ -1,3 +1,5 @@
+#!
+#RESULT: 6/6
 RUN:
   - doc: "Get all posts"
     GET: "https://jsonplaceholder.typicode.com/posts"
