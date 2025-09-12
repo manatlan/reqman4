@@ -29,6 +29,10 @@ Homepage = "https://github.com/manatlan/reqman4"
 Repository = "https://github.com/manatlan/reqman4"
 Issues = "https://github.com/manatlan/reqman4/issues"
 
+
+[tool.pytest.ini_options]
+addopts = "--cov=src/reqman4 --cov-report=html --cov-report=xml --cov-report=term-missing"
+
 [dependency-groups]
 dev = [
     "jsonschema>=4.25.1",
