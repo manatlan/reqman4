@@ -8,7 +8,7 @@
 # #############################################################################
 import logging
 import json,html,httpx
-from urllib.parse import unquote
+from urllib.parse import unquote,quote
 
 # reqman imports
 from . import common
@@ -36,7 +36,7 @@ def generate_base() -> str:
     return """
 <meta charset="UTF-8">
 <style>
-body {font-family: 'Inter', sans-serif;}
+body {font-family: 'Inter', sans-serif;background:white;color:black}
 h2 {color:blue}
 h3 {width:100%;padding:0px;margin:0px}
 div.request {margin-left:10px}
@@ -76,7 +76,7 @@ def generate_request(r:common.Result) -> str:
         return f"""
 <div class="request">
     <div class="click" style="background:red;color:white" onclick="this.parentElement.classList.toggle('hide')">
-        <h3>❌ ERROR: {r.request.method} {unquote(str(r.request.url))}</h3>
+        <h3>{r.request.method} {html.escape(unquote(str(r.request.url)))}<span class="status">💥ERROR💥</span></h3>
         <div class="doc">{r.doc}</div>
     </div>
     <div class="detail">
@@ -84,12 +84,14 @@ def generate_request(r:common.Result) -> str:
 {r.request.method} {unquote( str(r.request.url) )}
 {h(r.request.headers)}{c(r.request.content)}
 </pre>
-<pre class="response" title="error">
+<pre class="response" title="error" style="color:red">
 {html.escape(str(r.error))}
 </pre>
 
     </div>
-    <br/>
+    <ul class="tests">
+        {t(r.tests)}
+    </ul>
 </div>
 """
 

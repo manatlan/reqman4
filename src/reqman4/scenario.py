@@ -182,7 +182,10 @@ class StepHttp(Step):
             except common.StepHttpProcessException as ex:
                 # Create a mock request object for reporting
                 request = httpx.Request(self.method, self.url, headers=self.headers, content=self.body)
-                yield common.Result(request=request, response=None, tests=[], doc=self.doc, error=ex)
+                results=[]
+                for test in self.tests:
+                    results.append(common.TestResult(None, test, f"non testable"))                
+                yield common.Result(request=request, response=None, tests=results, doc=self.doc, error=ex)
             finally:
                 e.scope_revert(param)
 

@@ -30,42 +30,42 @@ def simulate(example_file: str): #THE FUTURE for all tests
     sys.stdout = sys_stdout
     return rc, output, error
 
-@pytest.mark.parametrize("example_file", sorted(glob.glob("examples/ko/*.yml")) )
-def test_scenarios_ko(example_file):
-    rc, output, error = simulate(example_file)
-    good,info = attendings(example_file)
-    assert good
-    assert rc > 0
-    last_line = output.strip().rsplit('\n', 1)[-1]
-    result=re.search( r"(\d+/\d+)",last_line).group(0)
-    assert result == info
+# @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/ko/*.yml")) )
+# def test_examples_ko(example_file):
+#     rc, output, error = simulate(example_file)
+#     good,info = attendings(example_file)
+#     assert good
+#     assert rc > 0
+#     last_line = output.strip().rsplit('\n', 1)[-1]
+#     result=re.search( r"(\d+/\d+)",last_line).group(0)
+#     assert result == info
 
-@pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reqman3/*.yml")) )
-def test_scenarios_compat(example_file):
-    rc, output, error = simulate(example_file)
-    good,info = attendings(example_file)
-    assert good
-    assert rc == 0
-    last_line = output.strip().rsplit('\n', 1)[-1]
-    result=re.search( r"(\d+/\d+)",last_line).group(0)
-    assert result == info
+# @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reqman3/*.yml")) )
+# def test_examples_compat(example_file):
+#     rc, output, error = simulate(example_file)
+#     good,info = attendings(example_file)
+#     assert good
+#     assert rc == 0
+#     last_line = output.strip().rsplit('\n', 1)[-1]
+#     result=re.search( r"(\d+/\d+)",last_line).group(0)
+#     assert result == info
 
-@pytest.mark.skipif(os.getenv("CI") == "true", reason="No internet on CI")
-@pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reals/*.yml")) )
-def test_scenarios_reals(example_file):
-    rc, output, error = simulate(example_file)
-    good,info = attendings(example_file)
+# @pytest.mark.skipif(os.getenv("CI") == "true", reason="No internet on CI")
+# @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reals/*.yml")) )
+# def test_examples_reals(example_file):
+#     rc, output, error = simulate(example_file)
+#     good,info = attendings(example_file)
 
-    if good:
-        assert rc >= 0
-        if info:
-            last_line = output.strip().rsplit('\n', 1)[-1]
-            result=re.search( r"(\d+/\d+)",last_line).group(0)
-            assert result == info
-    else:
-        assert rc == -1
-        if info:
-            assert info in output or info in str(error)
+#     if good:
+#         assert rc >= 0
+#         if info:
+#             last_line = output.strip().rsplit('\n', 1)[-1]
+#             result=re.search( r"(\d+/\d+)",last_line).group(0)
+#             assert result == info
+#     else:
+#         assert rc == -1
+#         if info:
+#             assert info in output or info in str(error)
 
 
 def test_no_reqman_conf():
@@ -75,7 +75,7 @@ def test_no_reqman_conf():
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/ok/*.yml")) )
-async def test_scenarios_ok(example_file):
+async def test_examples_ok(example_file):
 
     assert validate_yaml(example_file,"schema.json")
 
@@ -90,7 +90,7 @@ async def test_scenarios_ok(example_file):
 
 
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/err/*.yml")) )
-def test_scenarios_err(example_file):
+def test_examples_err(example_file):
     rc, output, error = simulate(example_file)
     good,error_message = attendings(example_file)
     assert not good
@@ -99,16 +99,16 @@ def test_scenarios_err(example_file):
         assert error_message in output or error_message in str(error)
 
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/ko/*.yml")) )
-def test_scenarios_ko(example_file):
+def test_examples_ko(example_file):
     simulate(example_file)
 
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reqman3/*.yml")) )
-def test_scenarios_compat(example_file):
+def test_examples_compat(example_file):
     simulate(example_file)
 
 @pytest.mark.skipif(os.getenv("CI") == "true", reason="No internet on CI")
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reals/*.yml")) )
-def test_scenarios_reals(example_file):
+def test_examples_reals(example_file):
     simulate(example_file)
 
 

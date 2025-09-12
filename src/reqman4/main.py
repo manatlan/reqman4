@@ -60,6 +60,7 @@ class Output:
         if r:
             if r.error:
                 self.nb_errors += 1
+                self.nb_tests += len(r.tests)
                 print(cr(f"SCENARIO ERROR: {r.error}"))
             else:
                 self.nb_req+=1
