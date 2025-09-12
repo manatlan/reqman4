@@ -44,6 +44,7 @@ class Output:
         self.nb_tests=0
         self.nb_tests_ok=0
         self.nb_req=0
+        self.nb_errors=0
         self.htmls=[ output.generate_base() ]
 
     @property
@@ -67,17 +68,23 @@ class Output:
             print()
             self.htmls.append( output.generate_request(r) )
 
+    def write_an_error(self, error: Exception):
+        print(cr(f"SCENARIO ERROR: {error}"))
+        self.nb_errors += 1
+        self.htmls.append(output.generate_error(error))
+
     def end_scenario(self):
         pass
 
     def end_tests(self):
-        self.htmls.append( output.generate_final( self.switch, self.nb_tests_ok, self.nb_tests) )
+        self.htmls.append( output.generate_final( self.switch, self.nb_tests_ok, self.nb_tests, self.nb_errors) )
 
-        r = self.nb_tests_ko
+        r = self.nb_tests_ko + self.nb_errors
         if r==0:
             print(cg(f"{self.nb_tests_ok}/{self.nb_tests}"))
         else:
-            print(cr(f"{self.nb_tests_ok}/{self.nb_tests}"))
+            errors = f" ({self.nb_errors} errors)" if self.nb_errors > 0 else ""
+            print(cr(f"{self.nb_tests_ok}/{self.nb_tests}{errors}"))
 
 
     def open_browser(self):
@@ -174,13 +181,12 @@ class ExecutionTests:
                     output.write_a_test(req)
                 self.env = scenar.env  # needed !
             except common.RqException as ex:
-                ex = ReqmanException(ex)
+                output.write_an_error(ex)
                 try:
-                    ex.env = scenar.env
+                    self.env = scenar.env
                 except:
                     logger.error(f"Can't get the env on exception {ex}")
-                    ex.env = None
-                raise ex
+
 
             output.end_scenario()
 
@@ -278,6 +284,7 @@ def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_de
     else:
         logging.basicConfig(level=logging.ERROR)
 
+    o = Output(switch)
     try:
         r = ExecutionTests( files,switch,dvars)
         if is_view:
@@ -285,22 +292,25 @@ def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_de
             return 0
         else:
             o = asyncio.run(r.execute())
-
             if show_env:
                 display_env(r.env)
 
-            if open_browser:
-                o.open_browser()
+            if o.nb_errors > 0:
+                return -1
+            else:
+                return o.nb_tests_ko
 
-            return o.nb_tests_ko
-
-    except ReqmanException as ex:
+    except common.RqException as ex:
+        o.write_an_error(ex)
         if is_debug:
             traceback.print_exc()
         if show_env:
             display_env( ex.env if hasattr(ex,"env") else None)
-        print(cr(f"SCENARIO ERROR: {ex}"))
         return -1
+    finally:
+        if open_browser:
+            o.end_tests()
+            o.open_browser()
 
 
     

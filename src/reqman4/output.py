@@ -111,9 +111,31 @@ def generate_request(r:common.Result) -> str:
 </div>
 """
 
-def generate_final(switch:str|None, nb_ok:int, nb_tests:int) -> str:
-    title = f"<title>{switch or ''} {nb_ok}/{nb_tests}</title>"
-    return f"<div class='final'>{switch+'<br>' if switch else ''}{nb_ok}/{nb_tests}</div>" + title
+def generate_error(error: str) -> str:
+    return f'''
+<div class="request">
+    <div class="click" style="background:red;color:white">
+        <h3>❌ ERROR</h3>
+    </div>
+    <div class="detail">
+<pre class="response" title="error">
+{html.escape(str(error))}
+</pre>
+    </div>
+</div>
+'''
+
+def generate_final(switch:str|None, nb_ok:int, nb_tests:int, nb_errors:int) -> str:
+    title = f"<title>{switch or ''} {nb_ok}/{nb_tests}"
+    if nb_errors > 0:
+        title += f" ({nb_errors} errors)"
+    title += "</title>"
+
+    summary = f"{nb_ok}/{nb_tests}"
+    if nb_errors > 0:
+        summary += f" <span style='color:red'>({nb_errors} errors)</span>"
+
+    return f"<div class='final'>{switch+'<br>' if switch else ''}{summary}</div>" + title
 
 if __name__ == "__main__":
     ...

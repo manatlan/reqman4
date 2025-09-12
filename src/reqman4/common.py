@@ -15,7 +15,10 @@ from dataclasses import dataclass
 REQMAN_CONF='reqman.conf'
 
 
-class RqException(Exception): 
+class RqException(Exception):
+    pass
+
+class StepHttpProcessException(RqException):
     pass
 
 def assert_syntax( condition:bool, msg:str):

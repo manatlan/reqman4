@@ -113,29 +113,31 @@ class StepHttp(Step):
 
 
     def _prepare_request(self, e: env.Env) -> tuple:
-        url = e.substitute(self.url)
-        root = e.get("root", "")
-        if root and url.startswith("/"):
-            url = root + url
-        assert_syntax(url.startswith("http"), f"url must start with http, found {url}")
+        try:
+            url = e.substitute(self.url)
+            root = e.get("root", "")
+            if root and url.startswith("/"):
+                url = root + url
+            assert_syntax(url.startswith("http"), f"url must start with http, found {url}")
 
-        headers = self.scenario.env.get("headers", {}) or {}
-        headers.update(self.headers)
-        headers = e.substitute_in_object(headers)
-        # httpx requires header values to be strings, so convert them all
-        headers = {k: str(v) for k, v in headers.items()}
+            headers = self.scenario.env.get("headers", {}) or {}
+            headers.update(self.headers)
+            headers = e.substitute_in_object(headers)
+            # httpx requires header values to be strings, so convert them all
+            headers = {k: str(v) for k, v in headers.items()}
 
-        body = self.body
-        if body:
-            if isinstance(body, str):
-                body = e.substitute(body)
-            elif isinstance(body, (dict, list)):
-                body = e.substitute_in_object(body)
+            body = self.body
+            if body:
+                if isinstance(body, str):
+                    body = e.substitute(body)
+                elif isinstance(body, (dict, list)):
+                    body = e.substitute_in_object(body)
 
-        return url, headers, body
+            return url, headers, body
+        except common.RqException as ex:
+            raise common.StepHttpProcessException(ex)
 
     async def _execute_request(self, e: env.Env, url: str, headers: dict, body: Any) -> httpx.Response:
-        print(f"Executing request: method={self.method}, url={url}, headers={headers}, body={body}")
         start = time.time()
         response = await ehttp.call(
             self.method,
@@ -145,6 +147,9 @@ class StepHttp(Step):
             proxy=e.get("proxy", None),
             timeout=e.get("timeout", 60_000) or 60_000,  # 60 sec
         )
+        if isinstance(response, ehttp._ResponseError_):
+            raise common.StepHttpProcessException(response.error)
+
         diff_ms = round((time.time() - start) * 1000)
         e.set_R_response(response, diff_ms)
         return response
@@ -271,6 +276,7 @@ class Scenario(list):
         return super().__repr__()
     
     async def execute(self,with_begin:bool=False,with_end:bool=False) -> AsyncGenerator:
+        step = None
         try:
 
             if with_begin and self.env.get("BEGIN"):

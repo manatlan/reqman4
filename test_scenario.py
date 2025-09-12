@@ -16,30 +16,56 @@ def attendings(example_file:str): #THE FUTURE for all tests
     return (None,None)        
 
 def simulate(example_file: str): #THE FUTURE for all tests
-    good,info = attendings(example_file)
-
     stdout = io.StringIO()
     sys_stdout = sys.stdout
     sys.stdout = stdout
+    error = None
+    rc = 0
     try:
-        error=None
         rc = main.reqman([example_file])
-    except Exception as error:
-        pass
-    finally:
-        sys.stdout = sys_stdout
+    except Exception as e:
+        error = e
+        rc = -1
     output = stdout.getvalue()
+    sys.stdout = sys_stdout
+    return rc, output, error
+
+@pytest.mark.parametrize("example_file", sorted(glob.glob("examples/ko/*.yml")) )
+def test_scenarios_ko(example_file):
+    rc, output, error = simulate(example_file)
+    good,info = attendings(example_file)
+    assert good
+    assert rc > 0
     last_line = output.strip().rsplit('\n', 1)[-1]
     result=re.search( r"(\d+/\d+)",last_line).group(0)
+    assert result == info
+
+@pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reqman3/*.yml")) )
+def test_scenarios_compat(example_file):
+    rc, output, error = simulate(example_file)
+    good,info = attendings(example_file)
+    assert good
+    assert rc == 0
+    last_line = output.strip().rsplit('\n', 1)[-1]
+    result=re.search( r"(\d+/\d+)",last_line).group(0)
+    assert result == info
+
+@pytest.mark.skipif(os.getenv("CI") == "true", reason="No internet on CI")
+@pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reals/*.yml")) )
+def test_scenarios_reals(example_file):
+    rc, output, error = simulate(example_file)
+    good,info = attendings(example_file)
 
     if good:
-        assert rc>=0
-        assert result == info
+        assert rc >= 0
+        if info:
+            last_line = output.strip().rsplit('\n', 1)[-1]
+            result=re.search( r"(\d+/\d+)",last_line).group(0)
+            assert result == info
     else:
         assert rc == -1
-        assert error
         if info:
-            assert info in str(error)
+            assert info in output or info in str(error)
 
 
 def test_no_reqman_conf():
