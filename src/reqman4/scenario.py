@@ -38,6 +38,7 @@ class Step:
         if params is None:
             return [None]
         elif isinstance(params, str):
+            # params is something like "<<myheaders()>>"" or <<myheaders>>
             params = e.substitute(params)
 
         assert_syntax( isinstance(params, list),"params must be a list of dict")
@@ -132,6 +133,7 @@ class StepHttp(Step):
         return url, headers, body
 
     async def _execute_request(self, e: env.Env, url: str, headers: dict, body: Any) -> httpx.Response:
+        print(f"Executing request: method={self.method}, url={url}, headers={headers}, body={body}")
         start = time.time()
         response = await ehttp.call(
             self.method,
