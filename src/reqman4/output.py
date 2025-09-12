@@ -87,7 +87,9 @@ def generate_request(r:common.Result) -> str:
 <pre class="response" title="error">
 {html.escape(str(r.error))}
 </pre>
+
     </div>
+    <br/>
 </div>
 """
 
