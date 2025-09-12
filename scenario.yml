@@ -2,7 +2,7 @@ root: https://github.com                            # to define a base host for 
 
 # proxy: https://proxy:8080                         # you can define a proxy with this key
 
-timeout: 1000                                       # you can set a limit timeout (in ms)
+timeout: 10000                                       # you can set a limit timeout (in ms)
                                                     # if none, default is 60_000 ms
 
 ###################################################
