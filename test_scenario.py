@@ -53,7 +53,6 @@ async def test_scenarios_ok(example_file):
 
     assert validate_yaml(example_file,"schema.json")
 
-
     s=scenario.Scenario(example_file)
     print(s) # test repr
     for step in s:
@@ -85,8 +84,6 @@ def test_scenarios_ko(example_file):
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reqman3/*.yml")) )
 def test_scenarios_compat(example_file):
     simulate(example_file)
-
-
 
 @pytest.mark.skipif(os.getenv("CI") == "true", reason="No internet on CI")
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reals/*.yml")) )
