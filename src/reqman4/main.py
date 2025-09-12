@@ -67,9 +67,9 @@ class Output:
             print()
             self.htmls.append( output.generate_request(r) )
 
-    def write_error(self, ex: Exception, file: str):
+    def write_error(self, ex: Exception, file: str, step=None):
         print(cr(f"SCENARIO ERROR in {file}: {ex}"))
-        self.htmls.append(output.generate_error(ex, file))
+        self.htmls.append(output.generate_error(ex, file, step))
         self.nb_tests += 1 # an error is a failed test
 
     def end_scenario(self):
@@ -181,14 +181,7 @@ class ExecutionTests:
                     output.write_a_test(req)
                 self.env = scenar.env  # needed !
             except common.RqException as ex:
-                exc = ReqmanException(ex)
-                try:
-                    exc.env = scenar.env if scenar else self.env
-                except:
-                    logger.error(f"Can't get the env on exception {ex}")
-                    exc.env = None
-
-                output.write_error(exc, file)
+                output.write_error(ex, file, getattr(ex, 'step', None))
                 break
 
             output.end_scenario()

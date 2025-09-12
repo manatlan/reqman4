@@ -271,24 +271,30 @@ class Scenario(list):
         return super().__repr__()
     
     async def execute(self,with_begin:bool=False,with_end:bool=False) -> AsyncGenerator:
-        try:
-
-            if with_begin and self.env.get("BEGIN"):
+        if with_begin and self.env.get("BEGIN"):
+            step = StepCall(self, {OP.CALL:"BEGIN"})
+            try:
                 logger.debug("Execute BEGIN statement")
-                async for i in StepCall(self, {OP.CALL:"BEGIN"}).process(self.env):
-                    yield i
-
-            for step in self:
                 async for i in step.process(self.env):
                     yield i
+            except Exception as ex:
+                raise common.RqException(f"[{self.file_path}] [Error Step {step}] [{ex}]", step=step)
 
-            if with_end and self.env.get("END"):
-                logger.debug("Execute END statement")
-                async for i in StepCall(self, {OP.CALL:"END"} ).process(self.env):
+        for step in self:
+            try:
+                async for i in step.process(self.env):
                     yield i
+            except Exception as ex:
+                raise common.RqException(f"[{self.file_path}] [Error Step {step}] [{ex}]", step=step)
 
-        except Exception as ex:
-            raise common.RqException(f"[{self.file_path}] [Error Step {step}] [{ex}]")
+        if with_end and self.env.get("END"):
+            step = StepCall(self, {OP.CALL:"END"})
+            try:
+                logger.debug("Execute END statement")
+                async for i in step.process(self.env):
+                    yield i
+            except Exception as ex:
+                raise common.RqException(f"[{self.file_path}] [Error Step {step}] [{ex}]", step=step)
 
 
 

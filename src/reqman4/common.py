@@ -15,8 +15,10 @@ from dataclasses import dataclass
 REQMAN_CONF='reqman.conf'
 
 
-class RqException(Exception): 
-    pass
+class RqException(Exception):
+    def __init__(self, msg, step=None):
+        super().__init__(msg)
+        self.step = step
 
 def assert_syntax( condition:bool, msg:str):
     if not condition: raise RqException( msg )

@@ -115,12 +115,30 @@ def generate_final(switch:str|None, nb_ok:int, nb_tests:int) -> str:
     title = f"<title>{switch or ''} {nb_ok}/{nb_tests}</title>"
     return f"<div class='final'>{switch+'<br>' if switch else ''}{nb_ok}/{nb_tests}</div>" + title
 
-def generate_error(ex: Exception, file: str) -> str:
+from . import env
+
+def generate_error(ex: Exception, file: str, step=None) -> str:
+    request_html = ""
+    if step and hasattr(step, 'method') and hasattr(step, 'url'):
+        request_details = f"Method: {step.method}\nURL: {step.url}"
+        if hasattr(step, 'headers') and step.headers:
+            request_details += f"\nHeaders: {env.jzon_dumps(step.headers, indent=2)}"
+        if hasattr(step, 'body') and step.body:
+            request_details += f"\nBody: {env.jzon_dumps(step.body, indent=2)}"
+
+        request_html = f"""
+<h4>Request Details (unsubstituted):</h4>
+<pre class="request">{html.escape(request_details)}</pre>
+"""
+
     return f'''
 <div class="request">
     <div class="click" style="background:#FFCCCC;border:1px solid red;color:black">
         <h3>ERROR in {file}</h3>
         <div class="doc" style="color:red">{html.escape(str(ex))}</div>
+    </div>
+    <div class="detail">
+        {request_html}
     </div>
 </div>
 '''
