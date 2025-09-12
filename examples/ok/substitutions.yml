@@ -78,3 +78,46 @@ RUN:
         source: "static"
       - val: "{{my_number}}"
         source: "<<my_string>>"
+
+  # --- Test 5: Complex cases ---
+  - SET:
+      rec_var2: "recursive_value"
+      null_var: null
+      empty_var: ""
+      my_numbers: [10, 20, 30]
+  - SET:
+      rec_var1: "<<rec_var2>>"
+
+  - GET: /test?recursive=<<rec_var1>>&empty=<<empty_var>>&null=<<null_var>>&user=<<USER>>
+    doc: "Testing complex substitutions"
+    headers:
+        X-Recursive: "<<rec_var1>>"
+        X-Empty: "<<empty_var>>"
+        X-Null: "<<null_var>>"
+        X-User: "<<USER>>"
+    tests:
+      - R.status == 200
+      # Recursive substitution
+      - R.json.args.recursive == "recursive_value"
+      - R.json.headers["x-recursive"] == "recursive_value"
+      # OS Environment variable
+      - R.json.args.user != ""
+      - R.json.headers["x-user"] != ""
+      # Empty and Null values
+      - R.json.args.empty == ""
+      - R.json.headers["x-empty"] == ""
+      - R.json.args.null == "null" # json.dumps(None) is "null"
+      - R.json.headers["x-null"] == "None"
+
+  - POST: /test
+    body:
+        complex_expr: '{{ list(map(lambda i: i+5, my_numbers))[1] }}' # should be 25
+        recursive: "<<rec_var1>>"
+        null_one: "<<null_var>>"
+        empty_one: "<<empty_var>>"
+    tests:
+        - R.status == 201
+        - R.json.complex_expr == 25
+        - R.json.recursive == "recursive_value"
+        - R.json.null_one == None
+        - R.json.empty_one == ""
