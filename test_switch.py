@@ -23,5 +23,5 @@ RUN:
 
     # Run reqman with the standalone scenario and the dev switch
     r = main.ExecutionTests([str(scenario_file)], switch="dev")
-    o = await r.execute()
-    assert o.nb_tests_ko == 0
+    exit_code = await r.execute()
+    assert exit_code == 0

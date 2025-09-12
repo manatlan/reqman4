@@ -21,10 +21,11 @@ RUN:
 
     # Run the scenario
     r = main.ExecutionTests([str(scenario_file)])
-    o = await r.execute()
+    exit_code = await r.execute()
+    assert exit_code == 1
 
     # Generate the HTML report
-    html_report = "\n".join(o.htmls)
+    html_report = "\n".join(r.output.htmls)
 
     # Check that the title attribute is present and contains the context
     assert 'R: {&quot;status&quot;: 200,' in html_report

@@ -67,6 +67,11 @@ class Output:
             print()
             self.htmls.append( output.generate_request(r) )
 
+    def write_error(self, ex: Exception, file: str):
+        print(cr(f"SCENARIO ERROR in {file}: {ex}"))
+        self.htmls.append(output.generate_error(ex, file))
+        self.nb_tests += 1 # an error is a failed test
+
     def end_scenario(self):
         pass
 
@@ -145,6 +150,7 @@ class ExecutionTests:
             common.assert_syntax(switch in self.env.switchs.keys(), f"Unknown switch '{switch}'")
             self.env.update( self.env.switchs[switch] )
         self._switch = switch
+        self.output = Output(self._switch)
 
 
     def view(self):
@@ -161,31 +167,34 @@ class ExecutionTests:
             if "END" in self.env:
                 print("END", scenario.StepCall(s, {scenario.OP.CALL:"END"}) )
 
-    async def execute(self) -> Output:
+    async def execute(self) -> int:
         """ Run all tests in files, return number of failed tests """
-        output = Output(self._switch)
+        output = self.output
 
         for file in self.files:
             output.begin_scenario(file)
 
+            scenar = None
             try:
                 scenar = scenario.Scenario(file, self.env)
                 async for req in scenar.execute(with_begin=(file == self.files[0]), with_end=(file == self.files[-1])):
                     output.write_a_test(req)
                 self.env = scenar.env  # needed !
             except common.RqException as ex:
-                ex = ReqmanException(ex)
+                exc = ReqmanException(ex)
                 try:
-                    ex.env = scenar.env
+                    exc.env = scenar.env if scenar else self.env
                 except:
                     logger.error(f"Can't get the env on exception {ex}")
-                    ex.env = None
-                raise ex
+                    exc.env = None
+
+                output.write_error(exc, file)
+                break
 
             output.end_scenario()
 
         output.end_tests()
-        return output
+        return output.nb_tests_ko
 
 
 
@@ -284,15 +293,15 @@ def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_de
             r.view()
             return 0
         else:
-            o = asyncio.run(r.execute())
+            exit_code = asyncio.run(r.execute())
 
             if show_env:
                 display_env(r.env)
 
             if open_browser:
-                o.open_browser()
+                r.output.open_browser()
 
-            return o.nb_tests_ko
+            return exit_code
 
     except ReqmanException as ex:
         if is_debug:

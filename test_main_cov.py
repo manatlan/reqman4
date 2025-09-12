@@ -80,7 +80,7 @@ def test_expand_files(tmp_path):
 def test_execution_with_exception(capsys):
     """Test exception handling during scenario execution."""
     scenario = "examples/err/bad_syntax.yml"
-    assert main.reqman([scenario]) == -1
+    assert main.reqman([scenario]) > 0
     captured = capsys.readouterr()
     assert "SCENARIO ERROR" in captured.out
 
@@ -97,7 +97,7 @@ def test_debug_mode(simple_scenario):
 def test_display_env_on_error(capsys):
     """Test that environment is displayed on error when flag is set."""
     scenario = "examples/err/bad_syntax.yml"
-    assert main.reqman([scenario], show_env=True) == -1
+    assert main.reqman([scenario], show_env=True) > 0
     captured = capsys.readouterr()
     assert "SCENARIO ERROR" in captured.out
     assert "Final environment:" in captured.out

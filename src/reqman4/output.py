@@ -115,6 +115,16 @@ def generate_final(switch:str|None, nb_ok:int, nb_tests:int) -> str:
     title = f"<title>{switch or ''} {nb_ok}/{nb_tests}</title>"
     return f"<div class='final'>{switch+'<br>' if switch else ''}{nb_ok}/{nb_tests}</div>" + title
 
+def generate_error(ex: Exception, file: str) -> str:
+    return f'''
+<div class="request">
+    <div class="click" style="background:#FFCCCC;border:1px solid red;color:black">
+        <h3>ERROR in {file}</h3>
+        <div class="doc" style="color:red">{html.escape(str(ex))}</div>
+    </div>
+</div>
+'''
+
 if __name__ == "__main__":
     ...
     # logging.basicConfig(level=logging.DEBUG)
