@@ -89,19 +89,14 @@ async def test_scenarios_ok(example_file):
                 assert tr.ok, f"Test failed: {tr.text}"
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/err/*.yml")) )
-async def test_scenarios_err(example_file):
-    #assert not validate_yaml(example_file,"schema.json")
-    
+def test_scenarios_err(example_file):
+    rc, output, error = simulate(example_file)
     good,error_message = attendings(example_file)
-
-    with pytest.raises(Exception) as excinfo:
-        s=scenario.Scenario(example_file)
-        async for echange in s.execute():
-                ...
     assert not good
-    assert error_message in str(excinfo.value)
+    assert rc == -1
+    if error_message:
+        assert error_message in output or error_message in str(error)
 
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/ko/*.yml")) )
 def test_scenarios_ko(example_file):

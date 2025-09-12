@@ -44,13 +44,16 @@ class TestResult:
         return {True:"OK",False:"KO",None:"BUG"}[self.ok]
 
 
+from typing import Optional
+
 @dataclass
 class Result:
     request: httpx.Request
-    response: httpx.Response
+    response: Optional[httpx.Response]
     tests: list[TestResult]
     file: str = ""
     doc: str = ""
+    error: Optional[Exception] = None
 
 
 def guess_reqman_conf(paths:list[str]) -> str|None:

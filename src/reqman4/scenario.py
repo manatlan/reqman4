@@ -175,12 +175,16 @@ class StepHttp(Step):
 
         for param in params:
             e.scope_update(param)
-
-            url, headers, body = self._prepare_request(e)
-            response = await self._execute_request(e, url, headers, body)
-            yield self._process_response(e, response)
-
-            e.scope_revert(param)
+            try:
+                url, headers, body = self._prepare_request(e)
+                response = await self._execute_request(e, url, headers, body)
+                yield self._process_response(e, response)
+            except common.StepHttpProcessException as ex:
+                # Create a mock request object for reporting
+                request = httpx.Request(self.method, self.url, headers=self.headers, content=self.body)
+                yield common.Result(request=request, response=None, tests=[], doc=self.doc, error=ex)
+            finally:
+                e.scope_revert(param)
 
     
 

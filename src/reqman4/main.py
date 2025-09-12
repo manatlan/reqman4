@@ -14,6 +14,7 @@ import traceback
 import tempfile
 import webbrowser
 import click
+import httpx
 from colorama import init, Fore, Style
 from urllib.parse import unquote
 import dotenv; dotenv.load_dotenv()
@@ -57,21 +58,26 @@ class Output:
 
     def write_a_test(self,r:common.Result):
         if r:
-            self.nb_req+=1
-            print(f"{cy(r.request.method)} {unquote(str(r.request.url))} -> {cb(r.response.status_code) if r.response.status_code else cr('X')}")
-            for tr in r.tests:
-                color = {True:cg,False:cr,None:cr}[tr.ok]
-                print(" -",color(str(tr)),":", tr.text)
-                self.nb_tests += 1
-                if tr.ok:
-                    self.nb_tests_ok += 1
-            print()
+            if r.error:
+                self.nb_errors += 1
+                print(cr(f"SCENARIO ERROR: {r.error}"))
+            else:
+                self.nb_req+=1
+                print(f"{cy(r.request.method)} {unquote(str(r.request.url))} -> {cb(r.response.status_code) if r.response.status_code else cr('X')}")
+                for tr in r.tests:
+                    color = {True:cg,False:cr,None:cr}[tr.ok]
+                    print(" -",color(str(tr)),":", tr.text)
+                    self.nb_tests += 1
+                    if tr.ok:
+                        self.nb_tests_ok += 1
+                print()
             self.htmls.append( output.generate_request(r) )
 
     def write_an_error(self, error: Exception):
-        print(cr(f"SCENARIO ERROR: {error}"))
-        self.nb_errors += 1
-        self.htmls.append(output.generate_error(error))
+        # create a mock request for reporting
+        request = httpx.Request("ERROR", str(error).replace("\n"," "))
+        result = common.Result(request=request, response=None, tests=[], error=error)
+        self.write_a_test(result)
 
     def end_scenario(self):
         pass
@@ -168,10 +174,8 @@ class ExecutionTests:
             if "END" in self.env:
                 print("END", scenario.StepCall(s, {scenario.OP.CALL:"END"}) )
 
-    async def execute(self) -> Output:
+    async def execute(self, output: "Output") -> "Output":
         """ Run all tests in files, return number of failed tests """
-        output = Output(self._switch)
-
         for file in self.files:
             output.begin_scenario(file)
 
@@ -182,11 +186,6 @@ class ExecutionTests:
                 self.env = scenar.env  # needed !
             except common.RqException as ex:
                 output.write_an_error(ex)
-                try:
-                    self.env = scenar.env
-                except:
-                    logger.error(f"Can't get the env on exception {ex}")
-
 
             output.end_scenario()
 
@@ -291,7 +290,7 @@ def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_de
             r.view()
             return 0
         else:
-            o = asyncio.run(r.execute())
+            o = asyncio.run(r.execute(o))
             if show_env:
                 display_env(r.env)
 
