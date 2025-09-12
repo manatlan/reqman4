@@ -177,7 +177,7 @@ class ExecutionTests:
     async def execute(self, output: "Output") -> "Output":
         """ Run all tests in files, return number of failed tests """
         for file in self.files:
-            output.begin_scenario(file)
+            output.begin_scenario( os.path.relpath(file) )
 
             try:
                 scenar = scenario.Scenario(file, self.env)
@@ -308,7 +308,6 @@ def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_de
         return -1
     finally:
         if open_browser:
-            o.end_tests()
             o.open_browser()
 
 
