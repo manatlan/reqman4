@@ -38,7 +38,7 @@ class MyHeaders(httpx.Headers):
                 return v
         return super().__getitem__(key)    
 
-class _ResponseError_(httpx.Response):
+class ResponseError(httpx.Response):
     def __init__(self,error):
         self.error = error
         super().__init__(0,headers={})
@@ -47,17 +47,17 @@ class _ResponseError_(httpx.Response):
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.error}>"
 
-class ResponseTimeout(_ResponseError_):
+class ResponseTimeout(ResponseError):
     def __init__(self,err):
-        _ResponseError_.__init__(self,err)
+        ResponseError.__init__(self,err)
 
-class ResponseUnreachable(_ResponseError_):
+class ResponseUnreachable(ResponseError):
     def __init__(self):
-        _ResponseError_.__init__(self,"Unreachable")
+        ResponseError.__init__(self,"Unreachable")
 
-class ResponseInvalid(_ResponseError_):
+class ResponseInvalid(ResponseError):
     def __init__(self):
-        _ResponseError_.__init__(self,f"Invalid url")
+        ResponseError.__init__(self,f"Invalid url")
 
 async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = httpx.Headers(), timeout:int=60_000, proxy:str|None=None) -> httpx.Response:
     logger.debug(f"REQUEST {method} {url} with body={body} headers={headers} timeout={timeout} proxy={proxy}")

@@ -17,12 +17,14 @@ import click
 from colorama import init, Fore, Style
 from urllib.parse import unquote
 import dotenv; dotenv.load_dotenv()
+import httpx
 
 # reqman imports
 from . import __version__ as VERSION
 from . import common
 from . import scenario
 from . import env
+from . import ehttp
 from . import output
 
 logger = logging.getLogger(__name__)
@@ -69,8 +71,38 @@ class Output:
 
     def write_error(self, ex: Exception, file: str, step=None):
         print(cr(f"SCENARIO ERROR in {file}: {ex}"))
-        self.htmls.append(output.generate_error(ex, file, step))
-        self.nb_tests += 1 # an error is a failed test
+
+        request = None
+        if step and hasattr(step, 'method') and hasattr(step, 'url'):
+            # Create a mock request. The URL and body are unsubstituted.
+            content = b""
+            if hasattr(step, 'body') and step.body:
+                if isinstance(step.body, str):
+                    content = step.body.encode()
+                else:
+                    # Use jzon_dumps for dicts/lists
+                    content = env.jzon_dumps(step.body).encode()
+
+            headers = step.headers if hasattr(step, 'headers') else {}
+            # httpx requires a valid URL, but the step URL might be unsubstituted.
+            # We'll use a placeholder if it's not a valid URI.
+            url = step.url
+            if not url.startswith(('http://', 'https://')):
+                url = f"http://mock.invalid{url if url.startswith('/') else '/' + url}"
+
+            request = httpx.Request(step.method, url, headers=headers, content=content)
+        else:
+            # Create a placeholder request for non-HTTP errors
+            request = httpx.Request("ERROR", file)
+
+        response = ehttp.ResponseError(ex)
+        response.request = request
+
+        # Use the exception message as the doc.
+        result = common.Result(request=request, response=response, tests=[], doc=str(ex))
+
+        self.htmls.append(output.generate_request(result))
+        self.nb_tests += 1
 
     def end_scenario(self):
         pass

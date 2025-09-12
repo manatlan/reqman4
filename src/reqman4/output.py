@@ -12,6 +12,7 @@ from urllib.parse import unquote
 
 # reqman imports
 from . import common
+from . import ehttp
 
 logger = logging.getLogger(__name__)
 
@@ -72,20 +73,39 @@ def generate_request(r:common.Result) -> str:
             items.append(f"""<li class={tr.ok} title="{html.escape(tr.ctx)}">{str(tr)} : {tr.text}</li>""")
         return "\n".join(items)
 
-    if r.response.status_code<=0:
-        status = "❌"  
-        class_hide_response="hideresponse"
-    else: 
-        status = str(r.response.status_code)
-        class_hide_response=""
+    is_error = isinstance(r.response, ehttp.ResponseError)
 
-    try:
-        elapsed = r.response.elapsed
-    except:
+    if is_error:
+        status = "🔥"
+        class_hide_response = ""
+        elapsed = "error"
+        response_html = f"""
+<pre class="response" style="color:red">{html.escape(str(r.response.error))}</pre>
+"""
+    else:
+        if r.response.status_code<=0:
+            status = "❌"
+            class_hide_response="hideresponse"
+        else:
+            status = str(r.response.status_code)
+            class_hide_response=""
+
         try:
-            elapsed = r.response.error  #TODO: do better here
+            elapsed = r.response.elapsed
         except:
-            elapsed = "test-server"
+            try:
+                elapsed = r.response.error  #TODO: do better here
+            except:
+                elapsed = "test-server"
+
+        response_html = f"""
+<span class='{class_hide_response}'>➔ {r.response.http_version} {r.response.status_code} {r.response.reason_phrase}
+<pre class="response" title="response">
+{h(r.response.headers)}{c(r.response.content)}
+</pre>
+</span>
+"""
+
     return f"""
 <div class="request hide">
     <div class="click" onclick="this.parentElement.classList.toggle('hide')" title="Click to show/hide details">
@@ -98,11 +118,7 @@ def generate_request(r:common.Result) -> str:
 {r.request.method} {unquote( str(r.request.url) )}
 {h(r.request.headers)}{c(r.request.content)}
 </pre>
-<span class='{class_hide_response}'>➔ {r.response.http_version} {r.response.status_code} {r.response.reason_phrase}
-<pre class="response" title="response">
-{h(r.response.headers)}{c(r.response.content)}
-</pre>
-</span>
+{response_html}
     </div>
 
     <ul class="tests">
@@ -114,34 +130,6 @@ def generate_request(r:common.Result) -> str:
 def generate_final(switch:str|None, nb_ok:int, nb_tests:int) -> str:
     title = f"<title>{switch or ''} {nb_ok}/{nb_tests}</title>"
     return f"<div class='final'>{switch+'<br>' if switch else ''}{nb_ok}/{nb_tests}</div>" + title
-
-from . import env
-
-def generate_error(ex: Exception, file: str, step=None) -> str:
-    request_html = ""
-    if step and hasattr(step, 'method') and hasattr(step, 'url'):
-        request_details = f"Method: {step.method}\nURL: {step.url}"
-        if hasattr(step, 'headers') and step.headers:
-            request_details += f"\nHeaders: {env.jzon_dumps(step.headers, indent=2)}"
-        if hasattr(step, 'body') and step.body:
-            request_details += f"\nBody: {env.jzon_dumps(step.body, indent=2)}"
-
-        request_html = f"""
-<h4>Request Details (unsubstituted):</h4>
-<pre class="request">{html.escape(request_details)}</pre>
-"""
-
-    return f'''
-<div class="request">
-    <div class="click" style="background:#FFCCCC;border:1px solid red;color:black">
-        <h3>ERROR in {file}</h3>
-        <div class="doc" style="color:red">{html.escape(str(ex))}</div>
-    </div>
-    <div class="detail">
-        {request_html}
-    </div>
-</div>
-'''
 
 if __name__ == "__main__":
     ...
