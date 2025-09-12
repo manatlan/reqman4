@@ -103,11 +103,15 @@ class Env:
 
     def __getitem__(self, key):
         v=self._data[key]
-        if isinstance(v,str):
+        if isinstance(v,str) and ("<<" in v or "{{" in v):
             try:
-                return self.substitute(v)
+                new_v = self.substitute(v)
+                if new_v is not v:
+                    # if substitution happened, cache the result for eager-like behavior
+                    self._data[key] = new_v
+                return new_v
             except:
-                pass
+                 pass # if substitution fails, return original value
         return v
 
 
@@ -134,8 +138,8 @@ class Env:
         if code in os.environ:
             return os.environ[code]
 
-        env = dict(self._data)
         try:
+            env = {k:self[k] for k in self._data}
             result = eval(code, {}, env)
         except Exception as e:
             raise RqException(f"Error evaluating expression '{code}': {e}") from e

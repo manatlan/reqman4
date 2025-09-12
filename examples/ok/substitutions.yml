@@ -5,6 +5,8 @@ root: http://test
 # --- Variables for substitution ---
 my_string: "world"
 my_number: 123
+eager_var: "initial_value"
+ref_eager_var: "<<eager_var>>"
 my_list: [1, "two", {"three": 3}]
 my_dict:
   key1: "value1"
@@ -121,3 +123,15 @@ RUN:
         - R.json.recursive == "recursive_value"
         - R.json.null_one == None
         - R.json.empty_one == ""
+
+  # --- Test 6: Eager substitution ---
+  - GET: /test?eager=<<ref_eager_var>>
+    tests:
+      - R.status == 200
+      - R.json.args.eager == "initial_value"
+  - SET:
+      eager_var: "modified_value"
+  - GET: /test?eager=<<ref_eager_var>>
+    tests:
+      - R.status == 200
+      - R.json.args.eager == "initial_value" # should still be initial, not modified
