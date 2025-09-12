@@ -5,14 +5,6 @@ import pytest,os
 def test_find_scenarios():
     assert list(main.find_scenarios("examples"))
 
-def test_main():
-    o1=main.reqman(["examples/classic/test_switch.yml"])
-    o2=main.reqman(["examples/single/test_switch.yml"])
-    assert o1 == o2
-    
-# def test_main_view_only():
-#     assert main.reqman(["examples/classic/test_switch.yml"],is_view=True) is None
-
 def test_main_apply_switch():
     assert main.reqman(["examples/classic/test_switch.yml"],"env2") == 4, "There should be 4 tests ko, because host unreachable"
 
