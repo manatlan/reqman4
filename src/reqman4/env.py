@@ -140,7 +140,7 @@ class Env:
 
         try:
             env = {k:self[k] for k in self._data}
-            result = eval(code, {}, env)
+            result = eval(code, dict(tool=tool), env)
         except Exception as e:
             raise RqException(f"Error evaluating expression '{code}': {e}") from e
 
