@@ -22,6 +22,6 @@ RUN:
     respx.get("http://localhost:8080/test").respond(200, text="OK")
 
     # Run reqman with the standalone scenario and the dev switch
-    r = main.ExcecutionTests([str(scenario_file)], switch="dev")
+    r = main.ExecutionTests([str(scenario_file)], switch="dev")
     o = await r.execute()
     assert o.nb_tests_ko == 0

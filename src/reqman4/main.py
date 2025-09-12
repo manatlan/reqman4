@@ -117,7 +117,7 @@ def expand_files(files:list[str]) -> list[str]:
             ll.append(i)
     return ll
 
-class ExcecutionTests:
+class ExecutionTests:
     def __init__(self,files:list,switch:str|None=None,vars:dict={}):
         # fix files : extract files (yml/rml) from potentials directories
         self.files=expand_files(files)
@@ -279,7 +279,7 @@ def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_de
         logging.basicConfig(level=logging.ERROR)
 
     try:
-        r = ExcecutionTests( files,switch,dvars)
+        r = ExecutionTests( files,switch,dvars)
         if is_view:
             r.view()
             return 0

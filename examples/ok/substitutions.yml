@@ -1,3 +1,4 @@
+#! -o
 # Test scenario for variable substitutions using the mock server
 
 root: http://test
