@@ -122,6 +122,8 @@ class StepHttp(Step):
         headers = self.scenario.env.get("headers", {}) or {}
         headers.update(self.headers)
         headers = e.substitute_in_object(headers)
+        # httpx requires header values to be strings, so convert them all
+        headers = {k: str(v) for k, v in headers.items()}
 
         body = self.body
         if body:

@@ -74,13 +74,26 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
     if url.startswith(hostfake):
         if method == "GET" and url.startswith(f"{hostfake}/test"):
             request=httpx.Request(method, url, headers=headers, content=body and str(body))
-            jzon = request.url.params.get("json",None)
-            r= httpx.Response(
-                status_code=200,
-                headers={"content-type": "application/json"},
-                json=json.loads(jzon) if jzon else None,
-                request=request
-            )
+            if "json" in request.url.params:
+                # old behavior for compatibility
+                jzon = request.url.params.get("json",None)
+                r= httpx.Response(
+                    status_code=200,
+                    headers={"content-type": "application/json"},
+                    json=json.loads(jzon) if jzon else None,
+                    request=request
+                )
+            else:
+                # new behavior for testing args and headers
+                r= httpx.Response(
+                    status_code=200,
+                    headers={"content-type": "application/json"},
+                    json={
+                        "args": dict(request.url.params),
+                        "headers": dict(request.headers),
+                    },
+                    request=request
+                )
         elif method == "GET" and url.startswith(f"{hostfake}/headers"):
             request=httpx.Request(method, url, headers=headers, content=body and str(body))
             r= httpx.Response(

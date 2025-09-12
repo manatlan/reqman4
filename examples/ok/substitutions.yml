@@ -1,0 +1,137 @@
+# Test scenario for variable substitutions using the mock server
+
+root: http://test
+
+# --- Variables for substitution ---
+my_string: "world"
+my_number: 123
+eager_var: "initial_value"
+ref_eager_var: "<<eager_var>>"
+my_list: [1, "two", {"three": 3}]
+my_dict:
+  key1: "value1"
+  key2: 42
+
+# --- Python function to generate params ---
+# it will be wrapped in a function with one argument named 'x'
+list_to_params: |
+  return [{"item": item} for item in x]
+
+# --- Sub-scenario for stepCall test ---
+scenar_to_call:
+  - GET: /test?val=<<str(val)>>&source=<<source>>
+    tests:
+      - R.status == 200
+      - R.json.args.val == str(val)
+      - R.json.args.source == source
+
+RUN:
+  # --- Test 1: Substitution in URL, headers, and doc ---
+  - GET: /test?q={{my_string}}&n=<<my_number>>&list_item=<<my_list[1]>>
+    doc: "Request with string '{{my_string}}' and number <<my_number>>"
+    headers:
+      X-My-Header: "{{my_string}}-<<my_number>>"
+      X-My-List-Item: "<<my_list[1]>>"
+      X-My-Dict-Item: "{{my_dict.key1}}"
+      X-My-Dict-Item-2: "{{str(my_dict['key2'])}}"
+    tests:
+      - R.status == 200
+      - R.json.args.q == "world"
+      - R.json.args.n == "123"
+      - R.json.args.list_item == "two"
+      - R.json.headers["x-my-header"] == "world-123"
+      - R.json.headers["x-my-list-item"] == "two"
+      - R.json.headers["x-my-dict-item"] == "value1"
+      - R.json.headers["x-my-dict-item-2"] == "42"
+
+  # --- Test 2: Substitution in request body ---
+  - POST: /test
+    body:
+      a_string: "<<my_string>>"
+      a_number: "{{my_number}}"
+      a_list: "<<my_list>>"
+      a_dict: "{{my_dict}}"
+      computed: "{{ my_number * 2 }}"
+      a_bool: true
+    tests:
+      - R.status == 201
+      - R.json.a_string == "world"
+      - R.json.a_number == 123
+      - R.json.a_list[0] == 1
+      - R.json.a_list[1] == "two"
+      - R.json.a_list[2].three == 3
+      - R.json.a_dict.key1 == "value1"
+      - R.json.a_dict.key2 == 42
+      - R.json.computed == 246
+      - R.json.a_bool == True
+
+  # --- Test 3: Iteration with params on stepHttp ---
+  - GET: /test?item={{str(item)}}
+    doc: "Testing iteration <<item>>"
+    params: <<list_to_params(my_list)>>
+    tests:
+      - R.status == 200
+      - R.json.args.item == str(item)
+
+  # --- Test 4: Iteration with params on stepCall ---
+  - CALL: scenar_to_call
+    params:
+      - val: 10
+        source: "static"
+      - val: "{{my_number}}"
+        source: "<<my_string>>"
+
+  # --- Test 5: Complex cases ---
+  - SET:
+      rec_var2: "recursive_value"
+      null_var: null
+      empty_var: ""
+      my_numbers: [10, 20, 30]
+  - SET:
+      rec_var1: "<<rec_var2>>"
+
+  - GET: /test?recursive=<<rec_var1>>&empty=<<empty_var>>&null=<<null_var>>&user=<<USER>>
+    doc: "Testing complex substitutions"
+    headers:
+        X-Recursive: "<<rec_var1>>"
+        X-Empty: "<<empty_var>>"
+        X-Null: "<<null_var>>"
+        X-User: "<<USER>>"
+    tests:
+      - R.status == 200
+      # Recursive substitution
+      - R.json.args.recursive == "recursive_value"
+      - R.json.headers["x-recursive"] == "recursive_value"
+      # OS Environment variable
+      - R.json.args.user != ""
+      - R.json.headers["x-user"] != ""
+      # Empty and Null values
+      - R.json.args.empty == ""
+      - R.json.headers["x-empty"] == ""
+      - R.json.args.null == "null" # json.dumps(None) is "null"
+      - R.json.headers["x-null"] == "None"
+
+  - POST: /test
+    body:
+        complex_expr: '{{ list(map(lambda i: i+5, my_numbers))[1] }}' # should be 25
+        recursive: "<<rec_var1>>"
+        null_one: "<<null_var>>"
+        empty_one: "<<empty_var>>"
+    tests:
+        - R.status == 201
+        - R.json.complex_expr == 25
+        - R.json.recursive == "recursive_value"
+        - R.json.null_one == None
+        - R.json.empty_one == ""
+
+  # --- Test 6: Eager substitution ---
+  - GET: /test?eager=<<ref_eager_var>>
+    tests:
+      - R.status == 200
+      - R.json.args.eager == "initial_value"
+  - SET:
+      eager_var: "modified_value"
+  - GET: /test?eager=<<ref_eager_var>>
+    tests:
+      - R.status == 200
+      - R.json.args.eager == "initial_value" # should still be initial, not modified
