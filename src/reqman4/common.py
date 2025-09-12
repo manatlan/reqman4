@@ -19,7 +19,16 @@ class RqException(Exception):
     pass
 
 class StepHttpProcessException(RqException):
-    pass
+    def __init__(self, message, step=None):
+        super().__init__(message)
+        self.step = step
+
+    def __str__(self):
+        message = super().__str__()
+        if self.step:
+            return f"[{self.step}] {message}"
+        else:
+            return message
 
 def assert_syntax( condition:bool, msg:str):
     if not condition: raise RqException( msg )

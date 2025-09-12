@@ -111,8 +111,25 @@ def generate_request(r:common.Result) -> str:
 </div>
 """
 
-def generate_error(error: str) -> str:
-    return f'''
+def generate_error(error: Exception) -> str:
+    if hasattr(error, 'step') and error.step:
+        step = error.step
+        # simplified version of generate_request
+        return f"""
+<div class="request">
+    <div class="click" style="background:red;color:white" onclick="this.parentElement.classList.toggle('hide')">
+        <h3>❌ ERROR: {step.method} {step.url}</h3>
+        <div class="doc">{step.doc}</div>
+    </div>
+    <div class="detail">
+<pre class="response" title="error">
+{html.escape(str(error))}
+</pre>
+    </div>
+</div>
+"""
+    else:
+        return f'''
 <div class="request">
     <div class="click" style="background:red;color:white">
         <h3>❌ ERROR</h3>

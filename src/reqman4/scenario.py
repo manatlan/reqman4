@@ -135,7 +135,7 @@ class StepHttp(Step):
 
             return url, headers, body
         except common.RqException as ex:
-            raise common.StepHttpProcessException(ex)
+            raise common.StepHttpProcessException(ex, self)
 
     async def _execute_request(self, e: env.Env, url: str, headers: dict, body: Any) -> httpx.Response:
         start = time.time()
@@ -148,7 +148,7 @@ class StepHttp(Step):
             timeout=e.get("timeout", 60_000) or 60_000,  # 60 sec
         )
         if isinstance(response, ehttp._ResponseError_):
-            raise common.StepHttpProcessException(response.error)
+            raise common.StepHttpProcessException(response.error, self)
 
         diff_ms = round((time.time() - start) * 1000)
         e.set_R_response(response, diff_ms)
