@@ -1,0 +1,24 @@
+#! -oe
+root: http://test
+
+
+RUN:
+  - POST: /test?k={{UNKNOWN}}
+    body: "jjj"
+    doc: test
+    tests:
+      - R.status == 201
+
+  - POST: /test
+    body: "{{UNKNOWN}}"
+    doc: test
+    tests:
+      - R.status == 201
+
+  - POST: /test
+    body: "hll"
+    doc: "{{UNKNOWN}}"
+    tests:
+      - R.status == 201
+
+
