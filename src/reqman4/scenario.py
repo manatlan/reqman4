@@ -172,7 +172,15 @@ class StepHttp(Step):
         return common.Result(response.request, response, results, doc=doc)
 
     async def process(self, e: env.Env) -> AsyncGenerator:
-        params = self.extract_params(e)
+        try:
+            params = self.extract_params(e)
+        except common.RqException as ex:
+            request = httpx.Request(self.method, self.url, headers=self.headers, content=self.body)
+            results=[]
+            for test in self.tests:
+                results.append(common.TestResult(None, test, f"non testable"))
+            yield common.Result(request=request, response=None, tests=results, doc=self.doc, error=common.StepHttpProcessException(ex, self))
+            return
 
         for param in params:
             e.scope_update(param)
@@ -185,7 +193,7 @@ class StepHttp(Step):
                 request = httpx.Request(self.method, self.url, headers=self.headers, content=self.body)
                 results=[]
                 for test in self.tests:
-                    results.append(common.TestResult(None, test, f"non testable"))                
+                    results.append(common.TestResult(None, test, f"non testable"))
                 yield common.Result(request=request, response=None, tests=results, doc=self.doc, error=ex)
             finally:
                 e.scope_revert(param)
