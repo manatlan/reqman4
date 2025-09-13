@@ -14,9 +14,6 @@ to be able to run old reqman files with new rq4 engine
 
 TODO: redo better
 """
-import yaml
-
-
 
 def fix_scenar( conf:dict, steps:list ) -> tuple[dict,list]:
     #TODO: fix old reqman3 files

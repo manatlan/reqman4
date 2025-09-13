@@ -7,7 +7,7 @@
 # https://github.com/manatlan/reqman4
 # #############################################################################
 import os
-import yaml
+from ruamel.yaml import YAML
 import httpx
 from dataclasses import dataclass
 
@@ -70,8 +70,9 @@ def guess_reqman_conf(paths:list[str]) -> str|None:
         return rqc
 
 def load_reqman_conf(path:str) -> dict:
+    yaml=YAML(typ='safe')
     with open(path, 'r') as f:
-        conf = yaml.load( f, Loader=yaml.SafeLoader)
+        conf = yaml.load( f )
     assert_syntax( isinstance(conf, dict) , "reqman.conf must be a mapping")
     return conf
 
@@ -81,7 +82,8 @@ def get_url_content(url:str) -> str:
     return r.text
 
 def load_scenar( yml_str: str) -> tuple[dict,list]:
-    yml = yaml.safe_load(yml_str)
+    yaml=YAML(typ='safe')
+    yml = yaml.load(yml_str)
 
     if isinstance(yml, dict):
         # new reqman4 (yml is a dict, and got a RUN section)

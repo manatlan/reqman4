@@ -6,7 +6,8 @@
 #
 # https://github.com/manatlan/reqman4
 # #############################################################################
-import yaml,os,time
+from ruamel.yaml.error import YAMLError
+import os,time
 import httpx
 from typing import Any, AsyncGenerator
 
@@ -242,7 +243,7 @@ class Scenario(list):
         try:
             conf,scenar = common.load_scenar(yml_str)
             conf,scenar = FIX_SCENAR( conf, scenar)
-        except yaml.YAMLError as ex:
+        except YAMLError as ex:
             raise common.RqException(f"[{file_path}] [Bad syntax] [{ex}]")
 
         self.env.update( conf ) # this override a reqman.conf env !

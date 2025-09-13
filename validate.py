@@ -1,17 +1,18 @@
 
-import yaml
+from ruamel.yaml import YAML
 import json
 from jsonschema import validate
 import sys
 
 def validate_yaml(yaml_file, schema_file):
     """Validates a YAML file against a JSON schema."""
+    yaml=YAML(typ='safe')
     try:
         with open(schema_file, 'r') as f:
             schema = json.load(f)
 
         with open(yaml_file, 'r') as f:
-            yaml_data = yaml.safe_load(f)
+            yaml_data = yaml.load(f)
 
         validate(instance=yaml_data, schema=schema)
         print(f"Validation successful for {yaml_file}")
