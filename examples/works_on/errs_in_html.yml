@@ -3,21 +3,36 @@ root: http://test
 
 
 RUN:
-  - POST: /test?k={{UNKNOWN}}
+  - POST: /test         # it's an error ! TODO: shouldn't block the process !!!
+    body: "jjj"
+    doc: test
+    tests:
+      - R.status == 201
+    params: <<totottt>>
+
+  - POST: /test         # it's an error ! TODO: shouldn't block the process !!!
+    body: "jjj"
+    doc: test
+    tests:
+      - R.status == 201
+    params:
+     - i: <<toto>>
+
+  - POST: /test?k={{UNKNOWN}} # it's an error !
     body: "jjj"
     doc: test
     tests:
       - R.status == 201
 
   - POST: /test
-    body: "{{UNKNOWN}}"
+    body: "{{UNKNOWN}}"   # it's an error !
     doc: test
     tests:
       - R.status == 201
 
   - POST: /test
     body: "hll"
-    doc: "{{UNKNOWN}}"
+    doc: "{{UNKNOWN}}"    # it's not an error (doc are here for fun; not a problem for the request)
     tests:
       - R.status == 201
 
