@@ -1,8 +1,20 @@
-#! -oe
+#! -do
 root: http://test
 
 
+TRY:
+  - POST: /test?k_in_proc={{UNKNOWN}} # it's an error !
+    body: "jjj"
+    doc: test
+    tests:
+      - R.status == 201
+
+
+
 RUN:
+  - CALL: TRY
+    # params: <<jjj>>
+
   - POST: /test         # it's an error !
     body: "jjj"
     doc: test

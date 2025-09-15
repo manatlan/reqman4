@@ -15,8 +15,13 @@ from dataclasses import dataclass
 REQMAN_CONF='reqman.conf'
 
 
-class RqException(Exception):
+class RqException(Exception): # syntax error
     pass
+class ExeException(Exception): # runtime execution error
+    def __init__(self, msg:str, file:str):
+        super().__init__(msg)
+        self.file = file
+
 
 class StepHttpProcessException(RqException):
     def __init__(self, message, step=None):

@@ -185,7 +185,7 @@ class ExecutionTests:
                 async for req in scenar.execute(with_begin=(file == self.files[0]), with_end=(file == self.files[-1])):
                     output.write_a_test(req)
                 self.env = scenar.env  # needed !
-            except common.RqException as ex:
+            except common.ExeException as ex:
                 output.write_an_error(ex)
 
             output.end_scenario()

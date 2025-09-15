@@ -76,7 +76,7 @@ def generate_request(r:common.Result) -> str:
         return f"""
 <div class="request">
     <div class="click" style="background:red;color:white" onclick="this.parentElement.classList.toggle('hide')">
-        <h3>{r.request.method} {html.escape(unquote(str(r.request.url)))}<span class="status">💥ERROR💥</span></h3>
+        <h3>{r.request.method} {html.escape(unquote(str(r.request.url)))}<span class="status" style="color:yellow">💥BUG💥</span></h3>
         <div class="doc">{r.doc}</div>
     </div>
     <div class="detail">

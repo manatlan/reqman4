@@ -53,20 +53,24 @@ class StepCall(Step):
         self.steps=[]
 
         # extract step into local properties
-        name = step[OP.CALL]
+        self.name = step[OP.CALL]
 
         assert_syntax( len(step.keys()) == 1, f"unknowns call'attributes: {list(step.keys())}")
-        assert_syntax( isinstance(name, str),"CALL must be a string")
-        assert_syntax( name in self.scenario.env,f"CALL references unknown scenario '{name}'")
+        assert_syntax( isinstance(self.name, str),"CALL must be a string")
+        assert_syntax( self.name in self.scenario.env,f"CALL references unknown scenario '{self.name}'")
         
-        sub_scenar = self.scenario.env[name]
+        sub_scenar = self.scenario.env[self.name]
         assert_syntax( isinstance(sub_scenar, list),"CALL must reference a list of steps")
 
         self.steps = self.scenario._feed( sub_scenar )
 
     async def process(self,e:env.Env) -> AsyncGenerator:
-
-        params=self.extract_params(e) 
+        try:
+            params = self.extract_params(e)
+        except common.RqException as ex:
+            # errors in params resolutions
+            params=[]
+            raise common.RqException(f"Can't resolve params in 'CALL:{self.name}' : {ex}")
 
         for param in params:
             e.scope_update(param)
@@ -82,9 +86,9 @@ class StepCall(Step):
         for i in self.steps:
             s+= "  - "+repr(i)+"\n"
         if self.params:
-            return f"CALL MULTIPLE with {self.params}:\n"+s
+            return f"CALL:{self.name} with PARAMS {self.params}:\n"+s
         else:
-            return f"CALL:\n"+s
+            return f"CALL:{self.name}:\n"+s
 
 
 
@@ -171,7 +175,20 @@ class StepHttp(Step):
         return common.Result(response.request, response, results, doc=doc)
 
     async def process(self, e: env.Env) -> AsyncGenerator:
-        params = self.extract_params(e)
+
+        def _simulate_error(ex) -> common.Result:
+            request = httpx.Request(self.method, self.url, headers=self.headers, content=self.body)
+            results=[]
+            for test in self.tests:
+                results.append(common.TestResult(None, test, f"non testable"))                
+            return common.Result(request=request, response=None, tests=results, doc=self.doc, error=ex)
+
+        try:
+            params = self.extract_params(e)
+        except common.RqException as ex:
+            # errors in params resolutions
+            yield _simulate_error(ex)
+            params=[]
 
         for param in params:
             e.scope_update(param)
@@ -181,11 +198,7 @@ class StepHttp(Step):
                 yield self._process_response(e, response)
             except common.StepHttpProcessException as ex:
                 # Create a mock request object for reporting
-                request = httpx.Request(self.method, self.url, headers=self.headers, content=self.body)
-                results=[]
-                for test in self.tests:
-                    results.append(common.TestResult(None, test, f"non testable"))                
-                yield common.Result(request=request, response=None, tests=results, doc=self.doc, error=ex)
+                yield _simulate_error(ex)
             finally:
                 e.scope_revert(param)
 
@@ -193,7 +206,7 @@ class StepHttp(Step):
 
     def __repr__(self):
         if self.params:
-            return f"HTTP MULTIPLE {self.method} {self.url} with {self.params}"
+            return f"HTTP {self.method} {self.url} with PARAMS: {self.params}"
         else:   
             return f"HTTP {self.method} {self.url}"
 
@@ -282,7 +295,7 @@ class Scenario(list):
     def __repr__(self):
         return super().__repr__()
     
-    async def execute(self,with_begin:bool=False,with_end:bool=False) -> AsyncGenerator:
+    async def execute(self,with_begin:bool=False,with_end:bool=False) -> AsyncGenerator: # or ExeException
         step = None
         try:
 
@@ -301,7 +314,7 @@ class Scenario(list):
                     yield i
 
         except Exception as ex:
-            raise common.RqException(f"[{self.file_path}] [Error Step {step}] [{ex}]")
+            raise common.ExeException( str(ex), self.file_path)
 
 
 
