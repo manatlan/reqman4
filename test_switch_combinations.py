@@ -99,7 +99,7 @@ async def test_switch_combinations(setup_test_env):
     classic_scenario = tmp_path / "classic" / "scenario.yml"
     os.chdir(tmp_path / "classic")
     r = main.ExecutionTests([str(classic_scenario)], switch="env2")
-    o = await r.execute()
+    o = await r.execute(main.Output("env2"))
     assert o.nb_tests_ko == 0
 
     # Mixed case
@@ -110,7 +110,7 @@ async def test_switch_combinations(setup_test_env):
     mixed_scenario = tmp_path / "mixed" / "scenario.yml"
     os.chdir(tmp_path / "mixed")
     r = main.ExecutionTests([str(mixed_scenario)], switch="env2")
-    o = await r.execute()
+    o = await r.execute(main.Output("env2"))
     assert o.nb_tests_ko == 0
 
     # Single case
@@ -121,5 +121,5 @@ async def test_switch_combinations(setup_test_env):
     single_scenario = tmp_path / "single" / "scenario.yml"
     os.chdir(tmp_path / "single")
     r = main.ExecutionTests([str(single_scenario)], switch="env2")
-    o = await r.execute()
+    o = await r.execute(main.Output("env2"))
     assert o.nb_tests_ko == 0

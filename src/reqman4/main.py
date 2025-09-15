@@ -14,6 +14,7 @@ import traceback
 import tempfile
 import webbrowser
 import click
+import httpx
 from colorama import init, Fore, Style
 from urllib.parse import unquote
 import dotenv; dotenv.load_dotenv()
@@ -44,6 +45,7 @@ class Output:
         self.nb_tests=0
         self.nb_tests_ok=0
         self.nb_req=0
+        self.nb_errors=0
         self.htmls=[ output.generate_base() ]
 
     @property
@@ -56,28 +58,40 @@ class Output:
 
     def write_a_test(self,r:common.Result):
         if r:
-            self.nb_req+=1
-            print(f"{cy(r.request.method)} {unquote(str(r.request.url))} -> {cb(r.response.status_code) if r.response.status_code else cr('X')}")
-            for tr in r.tests:
-                color = {True:cg,False:cr,None:cr}[tr.ok]
-                print(" -",color(str(tr)),":", tr.text)
-                self.nb_tests += 1
-                if tr.ok:
-                    self.nb_tests_ok += 1
-            print()
+            if r.error:
+                self.nb_errors += 1
+                self.nb_tests += len(r.tests)
+                print(cr(f"SCENARIO ERROR: {r.error}"))
+            else:
+                self.nb_req+=1
+                print(f"{cy(r.request.method)} {unquote(str(r.request.url))} -> {cb(r.response.status_code) if r.response.status_code else cr('X')}")
+                for tr in r.tests:
+                    color = {True:cg,False:cr,None:cr}[tr.ok]
+                    print(" -",color(str(tr)),":", tr.text)
+                    self.nb_tests += 1
+                    if tr.ok:
+                        self.nb_tests_ok += 1
+                print()
             self.htmls.append( output.generate_request(r) )
+
+    def write_an_error(self, error: Exception):
+        # create a mock request for reporting
+        request = httpx.Request("ERROR", str(error).replace("\n"," "))
+        result = common.Result(request=request, response=None, tests=[], error=error)
+        self.write_a_test(result)
 
     def end_scenario(self):
         pass
 
     def end_tests(self):
-        self.htmls.append( output.generate_final( self.switch, self.nb_tests_ok, self.nb_tests) )
+        self.htmls.append( output.generate_final( self.switch, self.nb_tests_ok, self.nb_tests, self.nb_errors) )
 
-        r = self.nb_tests_ko
+        r = self.nb_tests_ko + self.nb_errors
         if r==0:
             print(cg(f"{self.nb_tests_ok}/{self.nb_tests}"))
         else:
-            print(cr(f"{self.nb_tests_ok}/{self.nb_tests}"))
+            errors = f" ({self.nb_errors} errors)" if self.nb_errors > 0 else ""
+            print(cr(f"{self.nb_tests_ok}/{self.nb_tests}{errors}"))
 
 
     def open_browser(self):
@@ -161,12 +175,10 @@ class ExecutionTests:
             if "END" in self.env:
                 print("END", scenario.StepCall(s, {scenario.OP.CALL:"END"}) )
 
-    async def execute(self) -> Output:
+    async def execute(self, output: "Output") -> "Output":
         """ Run all tests in files, return number of failed tests """
-        output = Output(self._switch)
-
         for file in self.files:
-            output.begin_scenario(file)
+            output.begin_scenario( os.path.relpath(file) )
 
             try:
                 scenar = scenario.Scenario(file, self.env)
@@ -174,13 +186,7 @@ class ExecutionTests:
                     output.write_a_test(req)
                 self.env = scenar.env  # needed !
             except common.RqException as ex:
-                ex = ReqmanException(ex)
-                try:
-                    ex.env = scenar.env
-                except:
-                    logger.error(f"Can't get the env on exception {ex}")
-                    ex.env = None
-                raise ex
+                output.write_an_error(ex)
 
             output.end_scenario()
 
@@ -278,29 +284,32 @@ def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_de
     else:
         logging.basicConfig(level=logging.ERROR)
 
+    o = Output(switch)
     try:
         r = ExecutionTests( files,switch,dvars)
         if is_view:
             r.view()
             return 0
         else:
-            o = asyncio.run(r.execute())
-
+            o = asyncio.run(r.execute(o))
             if show_env:
                 display_env(r.env)
 
-            if open_browser:
-                o.open_browser()
+            if o.nb_errors > 0:
+                return -1
+            else:
+                return o.nb_tests_ko
 
-            return o.nb_tests_ko
-
-    except ReqmanException as ex:
+    except common.RqException as ex:
+        o.write_an_error(ex)
         if is_debug:
             traceback.print_exc()
         if show_env:
             display_env( ex.env if hasattr(ex,"env") else None)
-        print(cr(f"SCENARIO ERROR: {ex}"))
         return -1
+    finally:
+        if open_browser:
+            o.open_browser()
 
 
     
