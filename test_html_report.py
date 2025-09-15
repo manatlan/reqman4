@@ -21,7 +21,7 @@ RUN:
 
     # Run the scenario
     r = main.ExecutionTests([str(scenario_file)])
-    o = await r.execute()
+    o = await r.execute(main.Output(None))
 
     # Generate the HTML report
     html_report = "\n".join(o.htmls)

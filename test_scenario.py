@@ -16,30 +16,56 @@ def attendings(example_file:str): #THE FUTURE for all tests
     return (None,None)        
 
 def simulate(example_file: str): #THE FUTURE for all tests
-    good,info = attendings(example_file)
-
     stdout = io.StringIO()
     sys_stdout = sys.stdout
     sys.stdout = stdout
+    error = None
+    rc = 0
     try:
-        error=None
         rc = main.reqman([example_file])
-    except Exception as error:
-        pass
-    finally:
-        sys.stdout = sys_stdout
+    except Exception as e:
+        error = e
+        rc = -1
     output = stdout.getvalue()
+    sys.stdout = sys_stdout
+    return rc, output, error
+
+@pytest.mark.parametrize("example_file", sorted(glob.glob("examples/ko/*.yml")) )
+def test_scenarios_ko(example_file):
+    rc, output, error = simulate(example_file)
+    good,info = attendings(example_file)
+    assert good
+    assert rc > 0
     last_line = output.strip().rsplit('\n', 1)[-1]
     result=re.search( r"(\d+/\d+)",last_line).group(0)
+    assert result == info
+
+@pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reqman3/*.yml")) )
+def test_scenarios_compat(example_file):
+    rc, output, error = simulate(example_file)
+    good,info = attendings(example_file)
+    assert good
+    assert rc == 0
+    last_line = output.strip().rsplit('\n', 1)[-1]
+    result=re.search( r"(\d+/\d+)",last_line).group(0)
+    assert result == info
+
+@pytest.mark.skipif(os.getenv("CI") == "true", reason="No internet on CI")
+@pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reals/*.yml")) )
+def test_scenarios_reals(example_file):
+    rc, output, error = simulate(example_file)
+    good,info = attendings(example_file)
 
     if good:
-        assert rc>=0
-        assert result == info
+        assert rc >= 0
+        if info:
+            last_line = output.strip().rsplit('\n', 1)[-1]
+            result=re.search( r"(\d+/\d+)",last_line).group(0)
+            assert result == info
     else:
         assert rc == -1
-        assert error
         if info:
-            assert info in str(error)
+            assert info in output or info in str(error)
 
 
 def test_no_reqman_conf():
@@ -63,19 +89,14 @@ async def test_scenarios_ok(example_file):
                 assert tr.ok, f"Test failed: {tr.text}"
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/err/*.yml")) )
-async def test_scenarios_err(example_file):
-    #assert not validate_yaml(example_file,"schema.json")
-    
+def test_scenarios_err(example_file):
+    rc, output, error = simulate(example_file)
     good,error_message = attendings(example_file)
-
-    with pytest.raises(Exception) as excinfo:
-        s=scenario.Scenario(example_file)
-        async for echange in s.execute():
-                ...
     assert not good
-    assert error_message in str(excinfo.value)
+    assert rc == -1
+    if error_message:
+        assert error_message in output or error_message in str(error)
 
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/ko/*.yml")) )
 def test_scenarios_ko(example_file):

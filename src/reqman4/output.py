@@ -72,6 +72,25 @@ def generate_request(r:common.Result) -> str:
             items.append(f"""<li class={tr.ok} title="{html.escape(tr.ctx)}">{str(tr)} : {tr.text}</li>""")
         return "\n".join(items)
 
+    if r.error:
+        return f"""
+<div class="request">
+    <div class="click" style="background:red;color:white" onclick="this.parentElement.classList.toggle('hide')">
+        <h3>❌ ERROR: {r.request.method} {unquote(str(r.request.url))}</h3>
+        <div class="doc">{r.doc}</div>
+    </div>
+    <div class="detail">
+<pre class="request" title="request">
+{r.request.method} {unquote( str(r.request.url) )}
+{h(r.request.headers)}{c(r.request.content)}
+</pre>
+<pre class="response" title="error">
+{html.escape(str(r.error))}
+</pre>
+    </div>
+</div>
+"""
+
     if r.response.status_code<=0:
         status = "❌"  
         class_hide_response="hideresponse"
@@ -111,9 +130,17 @@ def generate_request(r:common.Result) -> str:
 </div>
 """
 
-def generate_final(switch:str|None, nb_ok:int, nb_tests:int) -> str:
-    title = f"<title>{switch or ''} {nb_ok}/{nb_tests}</title>"
-    return f"<div class='final'>{switch+'<br>' if switch else ''}{nb_ok}/{nb_tests}</div>" + title
+def generate_final(switch:str|None, nb_ok:int, nb_tests:int, nb_errors:int) -> str:
+    title = f"<title>{switch or ''} {nb_ok}/{nb_tests}"
+    if nb_errors > 0:
+        title += f" ({nb_errors} errors)"
+    title += "</title>"
+
+    summary = f"{nb_ok}/{nb_tests}"
+    if nb_errors > 0:
+        summary += f" <span style='color:red'>({nb_errors} errors)</span>"
+
+    return f"<div class='final'>{switch+'<br>' if switch else ''}{summary}</div>" + title
 
 if __name__ == "__main__":
     ...

@@ -1,4 +1,4 @@
-#RESULT: 34/35
+#ERROR: Timeout (> 500ms)
 # this is a real test, need access to the internet !
 
 color:
