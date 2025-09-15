@@ -134,15 +134,10 @@ def generate_request(r:common.Result) -> str:
 </div>
 """
 
-def generate_final(switch:str|None, nb_ok:int, nb_tests:int, nb_errors:int) -> str:
-    title = f"<title>{switch or ''} {nb_ok}/{nb_tests}"
-    if nb_errors > 0:
-        title += f" ({nb_errors} errors)"
-    title += "</title>"
+def generate_final(switch:str|None, nb_ok:int, nb_tests:int) -> str:
+    title = f"<title>{switch or ''} {nb_ok}/{nb_tests}</title>"
 
     summary = f"{nb_ok}/{nb_tests}"
-    if nb_errors > 0:
-        summary += f" <span style='color:red'>({nb_errors} errors)</span>"
 
     return f"<div class='final'>{switch+'<br>' if switch else ''}{summary}</div>" + title
 

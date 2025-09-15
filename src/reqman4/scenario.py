@@ -117,7 +117,7 @@ class StepHttp(Step):
 
 
     def _prepare_request(self, e: env.Env) -> tuple:
-        try:
+        # try:
             url = e.substitute(self.url)
             root = e.get("root", "")
             if root and url.startswith("/"):
@@ -138,8 +138,8 @@ class StepHttp(Step):
                     body = e.substitute_in_object(body)
 
             return url, headers, body
-        except common.RqException as ex:
-            raise common.StepHttpProcessException(ex, self)
+        # except common.RqException as ex:
+        #     raise common.StepHttpProcessException(ex, self)
 
     async def _execute_request(self, e: env.Env, url: str, headers: dict, body: Any) -> httpx.Response:
         start = time.time()
@@ -151,8 +151,8 @@ class StepHttp(Step):
             proxy=e.get("proxy", None),
             timeout=e.get("timeout", 60_000) or 60_000,  # 60 sec
         )
-        if isinstance(response, ehttp._ResponseError_):
-            raise common.StepHttpProcessException(response.error, self)
+        # if isinstance(response, ehttp._ResponseError_):
+        #     raise common.StepHttpProcessException(response.error, self)
 
         diff_ms = round((time.time() - start) * 1000)
         e.set_R_response(response, diff_ms)
@@ -160,47 +160,47 @@ class StepHttp(Step):
 
     def _process_response(self, e: env.Env, response: httpx.Response) -> common.Result:
         results = []
-        for t in self.tests:
-            try:
-                ok, dico = e.eval(t, with_context=True)
-                context = "Variables:\n"
-                for k, v in dico.items():
-                    context += f"  {k}: {env.jzon_dumps(v, indent=None)}\n"
-                results.append(common.TestResult(bool(ok), t, context))
-            except Exception as ex:
-                logger.error(f"Can't eval test [{t}] : {ex}")
-                results.append(common.TestResult(None, t, f"ERROR: {ex}"))
+        for test in self.tests:
+            # try:
+            ok, dico = e.eval(test, with_context=True)
+            result_ctx = "Variables:\n"
+            for k, v in dico.items():
+                result_ctx += f"  {k}: {env.jzon_dumps(v, indent=None)}\n"
+            results.append(common.TestResult(bool(ok), test, result_ctx))
+            # except Exception as ex:
+            #     logger.error(f"Can't eval test [{test}] : {ex}")
+            #     results.append(common.TestResult(None, test, f"ERROR: {ex}"))
 
         doc = e.substitute(self.doc, raise_error=False)
         return common.Result(response.request, response, results, doc=doc)
 
     async def process(self, e: env.Env) -> AsyncGenerator:
 
-        def _simulate_error(ex) -> common.Result:
-            request = httpx.Request(self.method, self.url, headers=self.headers, content=self.body)
-            results=[]
-            for test in self.tests:
-                results.append(common.TestResult(None, test, f"non testable"))                
-            return common.Result(request=request, response=None, tests=results, doc=self.doc, error=ex)
+        # def _simulate_error(ex) -> common.Result:
+        #     request = httpx.Request(self.method, self.url, headers=self.headers, content=self.body)
+        #     results=[]
+        #     for test in self.tests:
+        #         results.append(common.TestResult(None, test, f"non testable"))                
+        #     return common.Result(request=request, response=None, tests=results, doc=self.doc, error=ex)
 
-        try:
-            params = self.extract_params(e)
-        except common.RqException as ex:
-            # errors in params resolutions
-            yield _simulate_error(ex)
-            params=[]
+        # try:
+        params = self.extract_params(e)
+        # except common.RqException as ex:
+        #     # errors in params resolutions
+        #     yield _simulate_error(ex)
+        #     params=[]
 
         for param in params:
             e.scope_update(param)
-            try:
-                url, headers, body = self._prepare_request(e)
-                response = await self._execute_request(e, url, headers, body)
-                yield self._process_response(e, response)
-            except common.StepHttpProcessException as ex:
-                # Create a mock request object for reporting
-                yield _simulate_error(ex)
-            finally:
-                e.scope_revert(param)
+            # try:
+            url, headers, body = self._prepare_request(e)
+            response = await self._execute_request(e, url, headers, body)
+            yield self._process_response(e, response)
+            # except common.StepHttpProcessException as ex:
+            #     # Create a mock request object for reporting
+            #     yield _simulate_error(ex)
+            # finally:
+            e.scope_revert(param)
 
     
 

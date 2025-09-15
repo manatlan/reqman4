@@ -45,7 +45,6 @@ class Output:
         self.nb_tests=0
         self.nb_tests_ok=0
         self.nb_req=0
-        self.nb_errors=0
         self.htmls=[ output.generate_base() ]
 
     @property
@@ -59,7 +58,6 @@ class Output:
     def write_a_test(self,r:common.Result):
         if r:
             if r.error:
-                self.nb_errors += 1
                 self.nb_tests += len(r.tests)
                 print(cr(f"SCENARIO ERROR: {r.error}"))
             else:
@@ -84,14 +82,13 @@ class Output:
         pass
 
     def end_tests(self):
-        self.htmls.append( output.generate_final( self.switch, self.nb_tests_ok, self.nb_tests, self.nb_errors) )
+        self.htmls.append( output.generate_final( self.switch, self.nb_tests_ok, self.nb_tests ) )
 
-        r = self.nb_tests_ko + self.nb_errors
+        r = self.nb_tests_ko
         if r==0:
             print(cg(f"{self.nb_tests_ok}/{self.nb_tests}"))
         else:
-            errors = f" ({self.nb_errors} errors)" if self.nb_errors > 0 else ""
-            print(cr(f"{self.nb_tests_ok}/{self.nb_tests}{errors}"))
+            print(cr(f"{self.nb_tests_ok}/{self.nb_tests}"))
 
 
     def open_browser(self):
@@ -187,6 +184,7 @@ class ExecutionTests:
                 self.env = scenar.env  # needed !
             except common.ExeException as ex:
                 output.write_an_error(ex)
+                raise ex
 
             output.end_scenario()
 
@@ -295,10 +293,7 @@ def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_de
             if show_env:
                 display_env(r.env)
 
-            if o.nb_errors > 0:
-                return -1
-            else:
-                return o.nb_tests_ko
+            return o.nb_tests_ko
 
     except common.RqException as ex:
         o.write_an_error(ex)

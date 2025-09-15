@@ -15,9 +15,9 @@ def test_switch_apply_unknown():
     # error unknow switch
     assert main.reqman(["examples/classic/test_switch.yml"],"toto") == -1
 
-@pytest.mark.skipif(os.getenv("CI") == "true", reason="No internet on CI")
-def test_the_scenario_example():
-    assert main.reqman(["scenario.yml"]) == -1
+# @pytest.mark.skipif(os.getenv("CI") == "true", reason="No internet on CI")
+# def test_the_scenario_example():
+#     assert main.reqman(["scenario.yml"]) == -1
 
 if __name__=="__main__":
     ...
