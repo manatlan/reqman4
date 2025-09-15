@@ -1,4 +1,3 @@
-#ERROR: Invalid url
 root: https://github.com                            # to define a base host for relative url
 
 # proxy: https://proxy:8080                         # you can define a proxy with this key

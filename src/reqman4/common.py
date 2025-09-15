@@ -15,20 +15,8 @@ from dataclasses import dataclass
 REQMAN_CONF='reqman.conf'
 
 
-class RqException(Exception):
+class RqException(Exception): 
     pass
-
-class StepHttpProcessException(RqException):
-    def __init__(self, message, step=None):
-        super().__init__(message)
-        self.step = step
-
-    def __str__(self):
-        message = super().__str__()
-        if self.step:
-            return f"[{self.step}] {message}"
-        else:
-            return message
 
 def assert_syntax( condition:bool, msg:str):
     if not condition: raise RqException( msg )
@@ -44,16 +32,13 @@ class TestResult:
         return {True:"OK",False:"KO",None:"BUG"}[self.ok]
 
 
-from typing import Optional
-
 @dataclass
 class Result:
     request: httpx.Request
-    response: Optional[httpx.Response]
+    response: httpx.Response
     tests: list[TestResult]
     file: str = ""
     doc: str = ""
-    error: Optional[Exception] = None
 
 
 def guess_reqman_conf(paths:list[str]) -> str|None:

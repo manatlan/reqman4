@@ -9,7 +9,6 @@
 import json
 import httpx
 import logging
-import http.cookiejar
 
 # reqman imports
 from .common import assert_syntax
@@ -28,7 +27,7 @@ KNOWNVERBS = set([
     "CONNECT",
 ])
 
-JAR=http.cookiejar.CookieJar()
+JAR=httpx.Cookies()
 
 
 class MyHeaders(httpx.Headers):
