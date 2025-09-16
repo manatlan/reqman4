@@ -279,6 +279,7 @@ class Scenario(list):
                     yield i
 
             for step in self:
+                logger.debug("Execute STEP %s",step)
                 async for i in step.process(self.env):
                     yield i
 
