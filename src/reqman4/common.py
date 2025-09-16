@@ -41,6 +41,25 @@ class Result:
     doc: str = ""
 
 
+def find_scenarios(path_folder: str, filters=(".yml", ".rml")):
+    for folder, subs, files in os.walk(path_folder):
+        if (folder in [".", ".."]) or ( not os.path.basename(folder).startswith((".", "_"))):
+            for filename in files:
+                if filename.lower().endswith(
+                    filters
+                ) and not filename.startswith((".", "_")):
+                    yield os.path.join(folder, filename)
+
+def expand_files(files:list[str]) -> list[str]:
+    """ Expand files list : if a directory is found, extract all scenarios from it """
+    ll=[]
+    for i in files:
+        if os.path.isdir(i):
+            ll.extend( list(find_scenarios(i)) )
+        else:
+            ll.append(i)
+    return ll
+
 def guess_reqman_conf(paths:list[str]) -> str|None:
     if paths:
         cp = os.path.commonpath([os.path.dirname(os.path.abspath(p)) for p in paths])

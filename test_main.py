@@ -1,9 +1,9 @@
-from src.reqman4 import main
+from src.reqman4 import main,common
 import pytest,os
 
 
 def test_find_scenarios():
-    assert list(main.find_scenarios("examples"))
+    assert list(common.find_scenarios("examples"))
 
 def test_main_apply_switch():
     assert main.reqman(["examples/classic/test_switch.yml"],"env2") == 4, "There should be 4 tests ko, because host unreachable"

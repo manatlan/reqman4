@@ -3,7 +3,7 @@ import pytest
 import os
 import sys
 from unittest.mock import MagicMock, patch
-from src.reqman4 import main
+from src.reqman4 import main,common
 
 @pytest.fixture
 def simple_scenario():
@@ -69,7 +69,7 @@ def test_expand_files(tmp_path):
     f4 = d / "_ignored.yml"
     f4.touch()
 
-    files = main.expand_files([str(d), "non_existent_file.yml"])
+    files = common.expand_files([str(d), "non_existent_file.yml"])
     assert len(files) == 4 # 3 scenarios + non_existent_file
     assert str(f1) in files
     assert str(f2) in files

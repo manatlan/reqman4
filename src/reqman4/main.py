@@ -98,29 +98,10 @@ def display_env( x ):
 
 
 
-def find_scenarios(path_folder: str, filters=(".yml", ".rml")):
-    for folder, subs, files in os.walk(path_folder):
-        if (folder in [".", ".."]) or ( not os.path.basename(folder).startswith((".", "_"))):
-            for filename in files:
-                if filename.lower().endswith(
-                    filters
-                ) and not filename.startswith((".", "_")):
-                    yield os.path.join(folder, filename)
-
-def expand_files(files:list[str]) -> list[str]:
-    """ Expand files list : if a directory is found, extract all scenarios from it """
-    ll=[]
-    for i in files:
-        if os.path.isdir(i):
-            ll.extend( list(find_scenarios(i)) )
-        else:
-            ll.append(i)
-    return ll
-
 class ExecutionTests:
     def __init__(self,files:list,switch:str|None=None,vars:dict={}):
         # fix files : extract files (yml/rml) from potentials directories
-        self.files=expand_files(files)
+        self.files=common.expand_files(files)
         
         # init the conf
         reqman_conf = common.guess_reqman_conf(self.files)
@@ -192,7 +173,7 @@ class ExecutionTests:
 
 def guess(args:list):
     ##########################################################################
-    files = expand_files([i for i in args if os.path.exists(i)])
+    files = common.expand_files([i for i in args if os.path.exists(i)])
     reqman_conf = common.guess_reqman_conf(files)
     if reqman_conf:
         conf = common.load_reqman_conf(reqman_conf)
