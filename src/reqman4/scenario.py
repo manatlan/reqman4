@@ -53,13 +53,13 @@ class StepCall(Step):
         self.steps=[]
 
         # extract step into local properties
-        name = step[OP.CALL]
+        self.name = step[OP.CALL]
 
         assert_syntax( len(step.keys()) == 1, f"unknowns call'attributes: {list(step.keys())}")
-        assert_syntax( isinstance(name, str),"CALL must be a string")
-        assert_syntax( name in self.scenario.env,f"CALL references unknown scenario '{name}'")
+        assert_syntax( isinstance(self.name, str),"CALL must be a string")
+        assert_syntax( self.name in self.scenario.env,f"CALL references unknown scenario '{self.name}'")
         
-        sub_scenar = self.scenario.env[name]
+        sub_scenar = self.scenario.env[self.name]
         assert_syntax( isinstance(sub_scenar, list),"CALL must reference a list of steps")
 
         self.steps = self.scenario._feed( sub_scenar )
@@ -82,9 +82,9 @@ class StepCall(Step):
         for i in self.steps:
             s+= "  - "+repr(i)+"\n"
         if self.params:
-            return f"CALL MULTIPLE with {self.params}:\n"+s
+            return f"Step CALL:{self.name} with PARAMS:{self.params}:\n"+s
         else:
-            return f"CALL:\n"+s
+            return f"Step CALL:{self.name}:\n"+s
 
 
 
@@ -177,13 +177,12 @@ class StepHttp(Step):
 
             e.scope_revert(param)
 
-    
 
     def __repr__(self):
         if self.params:
-            return f"HTTP MULTIPLE {self.method} {self.url} with {self.params}"
+            return f"Step {self.method}:{self.url} with PARAMS:{self.params}"
         else:   
-            return f"HTTP {self.method} {self.url}"
+            return f"Step {self.method}:{self.url}"
 
 class StepSet(Step):
     def __init__(self, scenario: "Scenario", step:dict):
@@ -199,7 +198,7 @@ class StepSet(Step):
         yield None
 
     def __repr__(self):
-        return f"SET {self.dico}"
+        return f"Step SET {self.dico}"
 
 
 

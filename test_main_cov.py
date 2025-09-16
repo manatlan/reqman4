@@ -18,7 +18,7 @@ def test_reqman_view_mode(simple_scenario, capsys):
     assert main.reqman([simple_scenario], is_view=True) == 0
     captured = capsys.readouterr()
     assert "Analyse examples/ok/simple.yml" in captured.out
-    assert "HTTP GET /test?json={{ toto }}" in captured.out
+    assert "Step GET:/test?json={{ toto }}" in captured.out
 
 def test_reqman_show_env(simple_scenario, capsys):
     """Test reqman with show environment flag (-e)."""
