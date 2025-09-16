@@ -195,7 +195,7 @@ class StepSet(Step):
         self.dico = dico
 
     async def process(self,e:env.Env) -> AsyncGenerator:
-        e.update( e.substitute_in_object(self.dico,raise_error=False) )
+        e.update( e.substitute_in_object(self.dico,raise_error=True) )
         yield None
 
     def __repr__(self):

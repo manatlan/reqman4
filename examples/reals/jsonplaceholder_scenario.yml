@@ -1,5 +1,8 @@
 #!
 #RESULT: 6/6
+
+timeout: 10_000 # 10sec max
+
 RUN:
   - doc: "Get all posts"
     GET: "https://jsonplaceholder.typicode.com/posts"

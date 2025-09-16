@@ -1,4 +1,7 @@
 #RESULT: 8/8
+
+timeout: 10_000 # 10sec max
+
 RUN:
   - doc: "Make a GET request"
     GET: "https://httpbin.org/get?name=jules"

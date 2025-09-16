@@ -1,3 +1,4 @@
+#ERROR: name 'MYUSER' is not defined
 root: http://test
 yo: <<USER>>
 
