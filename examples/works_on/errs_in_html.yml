@@ -3,26 +3,26 @@ root: http://test
 
 
 RUN:
-  - POST: /test         # it's an error !
-    body: "jjj"
-    doc: test
-    tests:
-      - R.status == 201
-    params: <<totottt>>
+  # - POST: /test         # it's an error !
+  #   body: "jjj"
+  #   doc: test
+  #   tests:
+  #     - R.status == 201
+  #   params: <<totottt>>
 
-  - POST: /test         # it's an error !
-    body: "jjj"
-    doc: test
-    tests:
-      - R.status == 201
-    params:
-     - i: <<toto>>
+  # - POST: /test         # it's an error !
+  #   body: "jjj"
+  #   doc: test
+  #   tests:
+  #     - R.status == 201
+  #   params:
+  #    - i: <<toto>>
 
-  - POST: /test?k={{UNKNOWN}} # it's an error !
-    body: "jjj"
-    doc: test
-    tests:
-      - R.status == 201
+  # - POST: /test?k={{UNKNOWN}} # it's an error !
+  #   body: "jjj"
+  #   doc: test
+  #   tests:
+  #     - R.status == 201
 
   - POST: /test
     body: "{{UNKNOWN}}"   # it's an error !

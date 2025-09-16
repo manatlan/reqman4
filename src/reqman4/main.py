@@ -45,12 +45,14 @@ class Output:
         self.nb_tests_ok=0
         self.nb_req=0
         self.htmls=[ output.generate_base() ]
+        self.error:Exception|None = None
 
     @property
     def nb_tests_ko(self):
         return self.nb_tests - self.nb_tests_ok
 
     def begin_scenario(self,file:str):
+        file = os.path.relpath(file)
         print(cb(f"--- RUN {file} ---"))
         self.htmls.append( output.generate_section(file) )
 
@@ -67,17 +69,24 @@ class Output:
             print()
             self.htmls.append( output.generate_request(r) )
 
+    def write_an_error(self,ex:Exception):
+        self.htmls.append( f"<h3 style='color:red'>{ex}</h3>")
+        self.error = ex
+
+
     def end_scenario(self):
         pass
 
     def end_tests(self):
         self.htmls.append( output.generate_final( self.switch, self.nb_tests_ok, self.nb_tests) )
 
-        r = self.nb_tests_ko
-        if r==0:
-            print(cg(f"{self.nb_tests_ok}/{self.nb_tests}"))
+        if self.error:
+            print(cr(f"SCENARIO ERROR: {self.error}"))
         else:
-            print(cr(f"{self.nb_tests_ok}/{self.nb_tests}"))
+            if self.nb_tests_ko==0:
+                print(cg(f"{self.nb_tests_ok}/{self.nb_tests}"))
+            else:
+                print(cr(f"{self.nb_tests_ok}/{self.nb_tests}"))
 
 
     def open_browser(self):
@@ -89,8 +98,6 @@ class Output:
         # Ouvre le fichier HTML dans le navigateur par défaut
         webbrowser.open(f'file://{os.path.abspath(temp_html_path)}')        
 
-class ReqmanException(Exception):
-    env: env.Env|None
 
 def display_env( x ):
     print(cy("Final environment:"))
@@ -99,9 +106,10 @@ def display_env( x ):
 
 
 class ExecutionTests:
-    def __init__(self,files:list,switch:str|None=None,vars:dict={}):
+    def __init__(self,files:list,switch:str|None=None,vars:dict={},is_debug=False):
         # fix files : extract files (yml/rml) from potentials directories
         self.files=common.expand_files(files)
+        self.is_debug=is_debug
         
         # init the conf
         reqman_conf = common.guess_reqman_conf(self.files)
@@ -155,13 +163,12 @@ class ExecutionTests:
                     output.write_a_test(req)
                 self.env = scenar.env  # needed !
             except common.RqException as ex:
-                ex = ReqmanException(ex)
-                try:
-                    ex.env = scenar.env
-                except:
-                    logger.error(f"Can't get the env on exception {ex}")
-                    ex.env = None
-                raise ex
+                if self.is_debug:
+                    traceback.print_exc()
+
+                output.write_an_error(ex)
+
+                break # stop execution process !!!!
 
             output.end_scenario()
 
@@ -260,7 +267,7 @@ def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_de
         logging.basicConfig(level=logging.ERROR)
 
     try:
-        r = ExecutionTests( files,switch,dvars)
+        r = ExecutionTests( files,switch,dvars, is_debug)
         if is_view:
             r.view()
             return 0
@@ -270,17 +277,22 @@ def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_de
             if show_env:
                 display_env(r.env)
 
+            if o.error:
+                rc = -1
+            else:
+                rc = o.nb_tests_ko
+
             if open_browser:
                 o.open_browser()
 
-            return o.nb_tests_ko
+            return rc
 
-    except ReqmanException as ex:
+    except Exception as ex:
+        # everything that happen here is an real bug/error
+        # and will need a fix !
         if is_debug:
             traceback.print_exc()
-        if show_env:
-            display_env( ex.env if hasattr(ex,"env") else None)
-        print(cr(f"SCENARIO ERROR: {ex}"))
+        print(cr(f"BUG ERROR: {ex}"))
         return -1
 
 
