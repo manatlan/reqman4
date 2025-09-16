@@ -132,6 +132,7 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
                         headers=headers,
                         timeout=timeout/1000,   # seconds!
                     )
+                    JAR.update(client.cookies)
             else:
                 async with httpx.AsyncClient(follow_redirects=True,verify=False,cookies=JAR,proxy=proxy) as client:
                     r = await client.request(
@@ -141,6 +142,7 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
                         headers=headers,
                         timeout=timeout/1000,   # seconds!
                     )
+                    JAR.update(client.cookies)
 
         except httpx.TimeoutException as e:
             r = ResponseTimeout(f"Timeout (> {timeout}ms)")
