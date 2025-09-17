@@ -6,7 +6,8 @@
 #
 # https://github.com/manatlan/reqman4
 # #############################################################################
-import yaml,os,time
+import os,time
+import ruamel.yaml
 import httpx
 from typing import Any, AsyncGenerator
 
@@ -29,7 +30,8 @@ class OP:
 
 class Step:
     params: list|str|None = None
-    
+    line: int = None
+
     async def process(self,e:env.Env) -> AsyncGenerator:
         ...
 
@@ -47,9 +49,10 @@ class Step:
 
 
 class StepCall(Step):
-    def __init__(self, scenario: "Scenario", step: dict, params:list|str|None=None):
+    def __init__(self, scenario: "Scenario", step: dict, params:list|str|None=None, line:int=None):
         self.scenario = scenario
         self.params = params
+        self.line = line
         self.steps=[]
 
         # extract step into local properties
@@ -89,9 +92,10 @@ class StepCall(Step):
 
 
 class StepHttp(Step):
-    def __init__(self, scenario: "Scenario", step: dict, params: list|str|None=None):
+    def __init__(self, scenario: "Scenario", step: dict, params: list|str|None=None, line:int=None):
         self.scenario = scenario
         self.params = params
+        self.line = line
 
         # extract step into local properties
         methods = set(step.keys()) & ehttp.KNOWNVERBS
@@ -185,8 +189,9 @@ class StepHttp(Step):
             return f"Step {self.method}:{self.url}"
 
 class StepSet(Step):
-    def __init__(self, scenario: "Scenario", step:dict):
+    def __init__(self, scenario: "Scenario", step:dict, line:int=None):
         self.scenario = scenario
+        self.line = line
 
         assert_syntax( len(step) == 1,"SET cannot be used with other keys")
         dico = step[OP.SET]
@@ -215,13 +220,13 @@ class Scenario(list):
             try:
                 yml_str = common.get_url_content(file_path)
             except Exception as ex:
-                raise common.RqException(f"[URI:{file_path}] [http error] [{ex}]")
+                raise common.RqException(f"http error: {ex}", file_path=file_path)
         else:
             if os.path.isfile(file_path):
                 with open(file_path, 'r') as fid:
                     yml_str = fid.read()
             else:
-                raise common.RqException(f"[{file_path}] [File not found]")
+                raise common.RqException("File not found", file_path=file_path)
         self.file_path = file_path
 
         list.__init__(self,[])
@@ -229,21 +234,26 @@ class Scenario(list):
         try:
             conf,scenar = common.load_scenar(yml_str)
             conf,scenar = FIX_SCENAR( conf, scenar)
-        except yaml.YAMLError as ex:
-            raise common.RqException(f"[{file_path}] [Bad syntax] [{ex}]")
+        except ruamel.yaml.YAMLError as ex:
+            # Extract line number from ruamel.yaml error
+            line = None
+            if hasattr(ex, 'problem_mark'):
+                line = ex.problem_mark.line + 1
+            raise common.RqException(f"Bad syntax: {ex}", file_path=self.file_path, line=line)
 
         self.env.update( conf ) # this override a reqman.conf env !
         self.extend( self._feed( scenar ) )
 
 
     def _feed(self, liste:list[dict]) -> list[Step]:
+        step=None
         try:
-            step=None
-            assert_syntax(isinstance(liste, list),"RUN must be a list")
+            assert_syntax(isinstance(liste, list),"RUN must be a list", file_path=self.file_path)
 
             ll = []
             for step in liste:
-                assert_syntax( isinstance(step, dict), f"Bad step {step}")
+                line = step.lc.line + 1 if hasattr(step, 'lc') and hasattr(step.lc, 'line') else None
+                assert_syntax( isinstance(step, dict), f"Bad step {step}", file_path=self.file_path, line=line)
                 
                 if "params" in step:
                     params=step["params"]
@@ -252,24 +262,28 @@ class Scenario(list):
                     params=None
 
                 if OP.SET in step:
-                    assert_syntax( params is None, "params cannot be used with set")
-                    ll.append( StepSet( self, step ) )
+                    assert_syntax( params is None, "params cannot be used with set", file_path=self.file_path, line=line)
+                    ll.append( StepSet( self, step, line=line ) )
                 else:
                     if OP.CALL in step:
-                        ll.append( StepCall( self, step, params ) )
+                        ll.append( StepCall( self, step, params, line=line ) )
                     else:
                         if set(step.keys()) & ehttp.KNOWNVERBS:
-                            ll.append( StepHttp( self, step, params ) )
+                            ll.append( StepHttp( self, step, params, line=line ) )
                         else:
-                            raise common.RqException(f"Bad step {step}")
+                            raise common.RqException(f"Bad step {step}", file_path=self.file_path, line=line)
             return ll
         except common.RqException as ex:
-            raise common.RqException(f"[{self.file_path}] [Bad step {step}] [{ex}]")
+            # Re-raise with more context
+            line = ex.line or (step.lc.line + 1 if hasattr(step, 'lc') and hasattr(step.lc, 'line') else None)
+            raise common.RqException(f"Bad step: {ex.msg}", file_path=self.file_path, line=line)
+
     
     def __repr__(self):
         return super().__repr__()
     
     async def execute(self,with_begin:bool=False,with_end:bool=False) -> AsyncGenerator:
+        step = None
         try:
 
             if with_begin and self.env.get("BEGIN"):
@@ -288,7 +302,12 @@ class Scenario(list):
                     yield i
 
         except Exception as ex:
-            raise common.RqException(f"[{self.file_path}] [Error Step {step}] [{ex}]")
+            line = None
+            if isinstance(ex, common.RqException) and ex.line:
+                line = ex.line
+            elif step:
+                line = step.line
+            raise common.RqException(f"Error during execution: {ex}", file_path=self.file_path, line=line)
 
 
 

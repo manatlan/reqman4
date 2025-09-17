@@ -1,6 +1,7 @@
-import yaml
+import ruamel.yaml
 from src.reqman4 import env
 
+yaml = ruamel.yaml.YAML(typ='safe')
 
 def test_declare_methods():
     t="""
@@ -19,7 +20,7 @@ def test_declare_methods():
     """
 
 
-    e=env.Env( **yaml.safe_load(t) )
+    e=env.Env( **yaml.load(t) )
 
     assert e["mymethod2"]() == "hello"          # call with no parameter !
     assert e["toto"]["mymethod"]( 1 ) == 23

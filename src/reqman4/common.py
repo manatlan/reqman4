@@ -7,19 +7,32 @@
 # https://github.com/manatlan/reqman4
 # #############################################################################
 import os
-import yaml
 import httpx
 from dataclasses import dataclass
+import ruamel.yaml
 
 
 REQMAN_CONF='reqman.conf'
 
 
-class RqException(Exception): 
-    pass
+class RqException(Exception):
+    def __init__(self, msg: str, file_path: str = None, line: int = None):
+        self.msg = msg
+        self.file_path = file_path
+        self.line = line
+        super().__init__(self.msg)
 
-def assert_syntax( condition:bool, msg:str):
-    if not condition: raise RqException( msg )
+    def __str__(self):
+        if self.file_path and self.line:
+            return f"[{self.file_path}:{self.line}] {self.msg}"
+        elif self.file_path:
+            return f"[{self.file_path}] {self.msg}"
+        else:
+            return self.msg
+
+
+def assert_syntax( condition:bool, msg:str, file_path: str = None, line: int = None):
+    if not condition: raise RqException( msg, file_path=file_path, line=line )
 
 
 @dataclass
@@ -74,8 +87,9 @@ def guess_reqman_conf(paths:list[str]) -> str|None:
         return rqc
 
 def load_reqman_conf(path:str) -> dict:
+    yaml = ruamel.yaml.YAML(typ='safe')
     with open(path, 'r') as f:
-        conf = yaml.load( f, Loader=yaml.SafeLoader)
+        conf = yaml.load( f )
     assert_syntax( isinstance(conf, dict) , "reqman.conf must be a mapping")
     return conf
 
@@ -85,7 +99,8 @@ def get_url_content(url:str) -> str:
     return r.text
 
 def load_scenar( yml_str: str) -> tuple[dict,list]:
-    yml = yaml.safe_load(yml_str)
+    yaml = ruamel.yaml.YAML(typ='rt')
+    yml = yaml.load(yml_str)
 
     if isinstance(yml, dict):
         # new reqman4 (yml is a dict, and got a RUN section)

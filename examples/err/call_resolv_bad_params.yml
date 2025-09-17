@@ -1,4 +1,4 @@
-#ERROR: params must be a list of dict]
+#ERROR: params must be a list of dict
 root: http://test
 
 mylist:

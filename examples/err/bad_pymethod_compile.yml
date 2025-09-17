@@ -1,4 +1,4 @@
-#ERROR: name 'undefined_method' is not defined
+#ERROR: 'LiteralScalarString' object is not callable
 root: http://test
 
 

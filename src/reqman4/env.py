@@ -43,19 +43,34 @@ class R:
             return ""
 
 class MyDict(dict):
-    def __init__(self, dico: dict):
+    def __init__(self, dico: dict, ruamel_obj=None):
         super().__init__(dico)
+        self._ruamel_obj = ruamel_obj
+
+    @property
+    def lc(self):
+        return getattr(self._ruamel_obj, 'lc', None)
+
     def __getattr__(self, key):
+        if key.startswith('__') or key == '_ruamel_obj':
+            raise AttributeError(f"Special attribute {key} not found")
         if "_" in key:
             okey = key.replace("_","-")
             if okey in self:
                 return super().__getitem__(okey)
-        return super().__getitem__(key)
-    
+        try:
+            return super().__getitem__(key)
+        except KeyError:
+            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{key}'")
 
 class MyList(list):
-    def __init__(self, liste: list):
+    def __init__(self, liste: list, ruamel_obj=None):
         super().__init__(liste)
+        self._ruamel_obj = ruamel_obj
+
+    @property
+    def lc(self):
+        return getattr(self._ruamel_obj, 'lc', None)
 
 # transforme un objet python (pouvant contenir des dict et des list) en objet avec accès par attribut
 def _convert(obj) -> Any:
@@ -63,12 +78,12 @@ def _convert(obj) -> Any:
         dico = {}
         for k,v in obj.items():
             dico[k]=_convert(v)
-        return MyDict(dico)
+        return MyDict(dico, ruamel_obj=obj)
     elif isinstance(obj, list):
         liste = []
         for v in obj:
             liste.append( _convert(v) )
-        return MyList(liste)
+        return MyList(liste, ruamel_obj=obj)
     else:
         return obj
 
@@ -239,7 +254,7 @@ class Env:
         """ Compile python method found in the dict and children """
         def declare_methods(d):
             if isinstance(d, dict):
-                for k, v in d.items():
+                for k, v in list(d.items()):
                     code = pycode.is_python(k, v)
                     if code:
                         logger.warning(f"Security warning: Compiling and executing python method '{k}'. Ensure that the code is from a trusted source.")
@@ -249,8 +264,8 @@ class Env:
                     else:
                         declare_methods(v)
             elif isinstance(d, list):
-                for i in range(len(d)):
-                    declare_methods(d[i])
+                for i,item in enumerate(d):
+                    d[i] = declare_methods(item)
         declare_methods(self._data)
 
     def __repr__(self):

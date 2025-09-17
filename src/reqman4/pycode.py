@@ -1,40 +1,18 @@
-# -*- coding: utf-8 -*-
-# #############################################################################
-# Copyright (C) 2025 manatlan manatlan[at]gmail(dot)com
-#
-# MIT licence
-#
-# https://github.com/manatlan/reqman4
-# #############################################################################
-import logging,ast
-from types import CodeType
+import re
+from typing import Any
 
-# reqman imports
-from .common import RqException
-
-logger = logging.getLogger(__name__)
-
-def is_python_code(s: str) -> bool:
-    try:
-        ast.parse(s)
-        return True
-    except SyntaxError:
-        return False
-
-def is_python(k,v) -> CodeType|None:
-    if type(v) == str and "return" in v and is_python_code(v):
-
-        def declare(k:str,code:str) -> str:
-            return f"def {k}(x=None):\n" + ("\n".join(["  " + i for i in code.splitlines()]))
-
-        try:
-            logger.info("*** DECLARE METHOD PYTHON: %s",k)
-            return compile(declare(k,v), f"method '{k}'", "exec")
-        except Exception as e:
-            raise RqException(f"Python Compilation Error : {e}")
-
-
-if __name__=="__main__":
-    ...
-    # logging.basicConfig(level=logging.DEBUG)
-
+def is_python(name:str, value:Any) -> str|None:
+    if isinstance(value, str) and value.strip().startswith(("def ","lambda ")):
+        signature = value.strip().splitlines()[0]
+        # check if it's a valid python function definition
+        if signature.startswith("def ") and signature.endswith(":"):
+            # extract function name
+            match = re.search(r'def\s+([a-zA-Z_][a-zA-Z0-9_]*)', signature)
+            if match:
+                func_name = match.group(1)
+                if func_name == name:
+                    return value
+        elif signature.startswith("lambda "):
+            # it's a lambda, but the key must be the same
+            return f"{name} = {value}"
+    return None
