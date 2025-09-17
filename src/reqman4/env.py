@@ -45,17 +45,19 @@ class R:
 class MyDict(dict):
     def __init__(self, dico: dict):
         super().__init__(dico)
+        self.lc = None
     def __getattr__(self, key):
         if "_" in key:
             okey = key.replace("_","-")
             if okey in self:
                 return super().__getitem__(okey)
         return super().__getitem__(key)
-    
+
 
 class MyList(list):
     def __init__(self, liste: list):
         super().__init__(liste)
+        self.lc = None
 
 # transforme un objet python (pouvant contenir des dict et des list) en objet avec accès par attribut
 def _convert(obj) -> Any:
@@ -63,12 +65,18 @@ def _convert(obj) -> Any:
         dico = {}
         for k,v in obj.items():
             dico[k]=_convert(v)
-        return MyDict(dico)
+        md = MyDict(dico)
+        if hasattr(obj, 'lc'):
+            md.lc = obj.lc
+        return md
     elif isinstance(obj, list):
         liste = []
         for v in obj:
             liste.append( _convert(v) )
-        return MyList(liste)
+        ml = MyList(liste)
+        if hasattr(obj, 'lc'):
+            ml.lc = obj.lc
+        return ml
     else:
         return obj
 
@@ -186,9 +194,17 @@ class Env:
             if isinstance(o, str):
                 return self.substitute(o,raise_error)
             elif isinstance(o, dict):
-                return {k: _sub_in_object(v) for k, v in o.items()}
+                new_dict = {k: _sub_in_object(v) for k, v in o.items()}
+                md = MyDict(new_dict)
+                if hasattr(o, 'lc'):
+                    md.lc = o.lc
+                return md
             elif isinstance(o, list):
-                return [_sub_in_object(v) for v in o]
+                new_list = [_sub_in_object(v) for v in o]
+                ml = MyList(new_list)
+                if hasattr(o, 'lc'):
+                    ml.lc = o.lc
+                return ml
             else:
                 return o
 
@@ -205,9 +221,9 @@ class Env:
         for i in ["switch", "switches", "switchs"]:   #TODO: compat rq & reqman
             if i in self._data:
                 switchs = self._data.get(i, {})
-                assert_syntax(isinstance(switchs, dict), "switch must be a dictionary")
+                assert_syntax(isinstance(switchs, dict), "switch must be a dictionary", item=switchs)
                 for k, v in switchs.items():
-                    assert_syntax(isinstance(v, dict), "switch item must be a dictionary")
+                    assert_syntax(isinstance(v, dict), "switch item must be a dictionary", item=v)
                     d[k] = v
                 return d
         return d

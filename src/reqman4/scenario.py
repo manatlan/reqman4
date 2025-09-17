@@ -299,7 +299,8 @@ class Scenario(list):
             e.filename = self.file_path
             raise e
         except Exception as ex:
-            raise common.RqException(f"[{self.file_path}] [Error Step {step}] [{ex}]")
+            item = getattr(ex, 'item', None)
+            raise common.RqException(f"[{self.file_path}] [Error Step {step}] [{ex}]", item=item)
 
 
 

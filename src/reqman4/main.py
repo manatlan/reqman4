@@ -131,7 +131,13 @@ class ExecutionTests:
                 # just load to get switches in self.env
                 scenario.Scenario(file, self.env)
 
-            common.assert_syntax(switch in self.env.switchs.keys(), f"Unknown switch '{switch}'")
+            switch_obj = None
+            for i in ["switch", "switches", "switchs"]:
+                if i in self.env:
+                    switch_obj = self.env.get(i)
+                    break
+
+            common.assert_syntax(switch in self.env.switchs, f"Unknown switch '{switch}'", item=switch_obj)
             self.env.update( self.env.switchs[switch] )
         self._switch = switch
 

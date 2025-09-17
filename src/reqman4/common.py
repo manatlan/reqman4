@@ -24,7 +24,7 @@ class RqException(Exception):
         self.item = item
         self.filename = None
         self.lineno = None
-        if item and hasattr(item,"lc"):
+        if item and hasattr(item,"lc") and item.lc:
             self.lineno = item.lc.line + 1
         super().__init__(msg)
 
