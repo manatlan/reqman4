@@ -1,9 +1,8 @@
-#ERROR: name 'UNKNOW_VAR' is not defined
+#ERROR: Error evaluating expression 'UNKNOW_VAR': name 'UNKNOW_VAR' is not defined
 root: http://test
-
 RUN:
   - POST: /test
-    body: 
-      <<UNKNOW_VAR>>
+    body:
+      value: <<UNKNOW_VAR>>
     tests:
-      - R.status == 201
+      - R.status == 200

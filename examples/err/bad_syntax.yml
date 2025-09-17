@@ -1,5 +1,3 @@
-#ERROR: Bad syntax
-root: http://test
-
-- list
-
+#ERROR: [examples/err/bad_syntax.yml] [Bad syntax]
+RUN
+  - GET: /test

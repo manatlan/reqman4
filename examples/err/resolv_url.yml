@@ -1,7 +1,7 @@
-#ERROR: name 'UNKNOW_VAR' is not defined
+#ERROR: Error evaluating expression 'UNKNOW_VAR': name 'UNKNOW_VAR' is not defined
 root: http://test
 
 RUN:
-  - GET: /test?var=<<UNKNOW_VAR>>
+  - GET: /test?p=<<UNKNOW_VAR>>
     tests:
-      - R.status == 201
+      - R.status == 200

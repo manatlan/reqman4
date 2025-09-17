@@ -1,6 +1,2 @@
-#ERROR: RUN must be a list
-root: http://test
-
-RUN:
-  GET: /test
-
+#ERROR: [Bad step None] [RUN must be a list
+RUN: yo

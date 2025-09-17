@@ -1,7 +1,5 @@
-#ERROR: SET cannot be used with other keys
-root: http://test
-
+#ERROR: [Bad step {'SET': {'root': 'toto'}, 'other': 'was?'}] [SET cannot be used with other keys
 RUN:
   - SET:
       root: toto
-    other: "was?"
+    other: was?

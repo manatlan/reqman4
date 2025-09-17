@@ -1,10 +1,8 @@
-#ERROR: name 'mylist' is not defined
+#ERROR: Error evaluating expression 'mylist': name 'mylist' is not defined
 root: http://test
 
 RUN:
-
   - GET: /testdict?a=<<a>>
+    params: <<mylist>>
     tests:
       - R.status == 200
-    params: <<mylist>>
-

@@ -1,4 +1,4 @@
-#ERROR: unknown scenario 'RUN'
+#ERROR: [Bad step {'CALL': 'RUN'}] [CALL references unknown scenario 'RUN'
 # press CTRL+F5 to run this scenario with current py/repo (under vscode)
 
 RUN:

@@ -1,14 +1,8 @@
-#ERROR: object is not callable
-root: http://test
+#ERROR: Error evaluating expression 'bugged()': 'str' object is not callable
 
-
-bugged: |
-  // 78
-  return True
+bugged: not a method
 
 RUN:
-
-  - GET: /test<<bugged()>>
+  - GET: http://test/test?p=<<bugged()>>
     tests:
       - R.status == 200
-

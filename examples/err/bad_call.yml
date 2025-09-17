@@ -1,5 +1,8 @@
-#ERROR: unknown scenario 
+#ERROR: [Bad step {'CALL': 'UNKNOW_PROC'}] [CALL references unknown scenario 'UNKNOW_PROC'
 root: http://test
+
+PROC:
+  - GET: /test
 
 RUN:
   - CALL: UNKNOW_PROC

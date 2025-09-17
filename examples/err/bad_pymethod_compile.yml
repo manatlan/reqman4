@@ -1,14 +1,8 @@
-#ERROR: name 'undefined_method' is not defined
-root: http://test
-
-
+#ERROR: Error evaluating expression 'bugged()': name 'undefined_method' is not defined
 bugged: |
-  undefined_method()
-  return True
+    return undefined_method()
 
 RUN:
-
-  - GET: /test<<bugged()>>
+  - GET: http://test/test?p=<<bugged()>>
     tests:
       - R.status == 200
-

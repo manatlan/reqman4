@@ -34,6 +34,7 @@ def simulate(example_file: str): #THE FUTURE for all tests
 
     if good:
         assert rc>=0
+        print(f"Expected: {info}, Got: {result}")
         assert result == info
     else:
         assert rc == -1
@@ -75,7 +76,7 @@ async def test_scenarios_err(example_file):
         async for echange in s.execute():
                 ...
     assert not good
-    assert error_message in str(excinfo.value)
+    assert str(excinfo.value).startswith(error_message)
 
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/ko/*.yml")) )
 def test_scenarios_ko(example_file):

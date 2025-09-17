@@ -1,9 +1,9 @@
-#ERROR: name 'UNKNOW_VAR' is not defined
+#ERROR: Error evaluating expression 'UNKNOW_VAR': name 'UNKNOW_VAR' is not defined
 root: http://test
 
 RUN:
-  - GET: /tests
+  - GET: /headers
     headers:
-      X-Var: <<UNKNOW_VAR>>
+        X-Custom-Header: <<UNKNOW_VAR>>
     tests:
-      - R.status == 201
+      - R.status == 200

@@ -1,7 +1,4 @@
-#ERROR: tests must be a list of strings
-root: http://test
-
+#ERROR: [Bad step {'GET': '/test', 'tests': 'R.status == 201'}] [tests must be a list of strings
 RUN:
   - GET: /test
-    tests:
-      R.status == 201   
+    tests: R.status == 201

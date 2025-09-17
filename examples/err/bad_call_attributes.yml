@@ -1,18 +1,10 @@
-#ERROR: unknowns call'attributes
+#ERROR: [Bad step {'CALL': 'PROC', 'tests': ['R.status == 2']}] [unknowns call'attributes: ['CALL', 'tests']
 root: http://test
 
-mylist:
-  - a: 1
-  - a: 2
-
 PROC:
-  - GET: /test?a=<<a>>
-    tests:
-      - R.status == 200
+  - GET: /test
 
 RUN:
   - CALL: PROC
-    params: <<mylist>>
-    tests:                  # <- no more possible !!!
+    tests:
       - R.status == 2
-

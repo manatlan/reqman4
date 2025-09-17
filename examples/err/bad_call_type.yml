@@ -1,7 +1,10 @@
-#ERROR: CALL must be a string
+#ERROR: [Bad step {'CALL': ['UNKNOW_PROC', 'UNKNOW_PROC2']}] [CALL must be a string
 root: http://test
+
+PROC:
+  - GET: /test
 
 RUN:
   - CALL: 
-      - UNKNOW_PROC
-      - UNKNOW_PROC2
+    - UNKNOW_PROC
+    - UNKNOW_PROC2

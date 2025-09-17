@@ -6,7 +6,11 @@
 #
 # https://github.com/manatlan/reqman4
 # #############################################################################
-import yaml,os,time
+from ruamel.yaml import YAML
+import os,time
+
+yaml = YAML(typ='safe')
+yaml.allow_duplicate_keys = True
 import httpx
 from typing import Any, AsyncGenerator
 
@@ -41,8 +45,8 @@ class Step:
             # params is something like "<<myheaders()>>"" or <<myheaders>>
             params = e.substitute(params)
 
-        assert_syntax( isinstance(params, list),"params must be a list of dict")
-        assert_syntax( all( isinstance(p, dict) for p in params ),"params must be a list of dict")
+        assert_syntax( isinstance(params, list),"params must be a list of dict", item=params)
+        assert_syntax( all( isinstance(p, dict) for p in params ),"params must be a list of dict", item=params)
         return e.substitute_in_object(params)
 
 
@@ -55,12 +59,12 @@ class StepCall(Step):
         # extract step into local properties
         self.name = step[OP.CALL]
 
-        assert_syntax( len(step.keys()) == 1, f"unknowns call'attributes: {list(step.keys())}")
-        assert_syntax( isinstance(self.name, str),"CALL must be a string")
-        assert_syntax( self.name in self.scenario.env,f"CALL references unknown scenario '{self.name}'")
+        assert_syntax( len(step.keys()) == 1, f"unknowns call'attributes: {list(step.keys())}", item=step)
+        assert_syntax( isinstance(self.name, str),"CALL must be a string", item=step)
+        assert_syntax( self.name in self.scenario.env,f"CALL references unknown scenario '{self.name}'", item=step)
         
         sub_scenar = self.scenario.env[self.name]
-        assert_syntax( isinstance(sub_scenar, list),"CALL must reference a list of steps")
+        assert_syntax( isinstance(sub_scenar, list),"CALL must reference a list of steps", item=sub_scenar)
 
         self.steps = self.scenario._feed( sub_scenar )
 
@@ -95,11 +99,11 @@ class StepHttp(Step):
 
         # extract step into local properties
         methods = set(step.keys()) & ehttp.KNOWNVERBS
-        assert_syntax( len(methods) == 1,f"Step must contain exactly one HTTP method, found {methods}")
+        assert_syntax( len(methods) == 1,f"Step must contain exactly one HTTP method, found {methods}", item=step)
         method = methods.pop()
         attributs = set(step.keys()) - set([method])
 
-        assert_syntax( not attributs - {"doc","headers","body","tests"},f"unknowns http'attributes {list(step.keys())}")
+        assert_syntax( not attributs - {"doc","headers","body","tests"},f"unknowns http'attributes {list(step.keys())}", item=step)
 
         self.method = method
         self.url = step[method]
@@ -108,8 +112,8 @@ class StepHttp(Step):
         self.body = step.get("body",None)
         self.tests = FIX_TESTS( step.get("tests",[]) )
 
-        assert_syntax(isinstance(self.tests,list),"tests must be a list of strings")
-        assert_syntax(all( isinstance(t,str) for t in self.tests ),"tests must be a list of strings")
+        assert_syntax(isinstance(self.tests,list),"tests must be a list of strings", item=self.tests)
+        assert_syntax(all( isinstance(t,str) for t in self.tests ),"tests must be a list of strings", item=self.tests)
 
 
     def _prepare_request(self, e: env.Env) -> tuple:
@@ -188,9 +192,9 @@ class StepSet(Step):
     def __init__(self, scenario: "Scenario", step:dict):
         self.scenario = scenario
 
-        assert_syntax( len(step) == 1,"SET cannot be used with other keys")
+        assert_syntax( len(step) == 1,"SET cannot be used with other keys", item=step)
         dico = step[OP.SET]
-        assert_syntax(isinstance(dico, dict),"SET must be a dictionary")
+        assert_syntax(isinstance(dico, dict),"SET must be a dictionary", item=dico)
         self.dico = dico
 
     async def process(self,e:env.Env) -> AsyncGenerator:
@@ -229,7 +233,10 @@ class Scenario(list):
         try:
             conf,scenar = common.load_scenar(yml_str)
             conf,scenar = FIX_SCENAR( conf, scenar)
-        except yaml.YAMLError as ex:
+        except common.RqException as e:
+            e.filename = self.file_path
+            raise e
+        except Exception as ex:
             raise common.RqException(f"[{file_path}] [Bad syntax] [{ex}]")
 
         self.env.update( conf ) # this override a reqman.conf env !
@@ -239,11 +246,11 @@ class Scenario(list):
     def _feed(self, liste:list[dict]) -> list[Step]:
         try:
             step=None
-            assert_syntax(isinstance(liste, list),"RUN must be a list")
+            assert_syntax(isinstance(liste, list),"RUN must be a list", item=liste)
 
             ll = []
             for step in liste:
-                assert_syntax( isinstance(step, dict), f"Bad step {step}")
+                assert_syntax( isinstance(step, dict), f"Bad step {step}", item=step)
                 
                 if "params" in step:
                     params=step["params"]
@@ -252,7 +259,7 @@ class Scenario(list):
                     params=None
 
                 if OP.SET in step:
-                    assert_syntax( params is None, "params cannot be used with set")
+                    assert_syntax( params is None, "params cannot be used with set", item=step)
                     ll.append( StepSet( self, step ) )
                 else:
                     if OP.CALL in step:
@@ -261,10 +268,11 @@ class Scenario(list):
                         if set(step.keys()) & ehttp.KNOWNVERBS:
                             ll.append( StepHttp( self, step, params ) )
                         else:
-                            raise common.RqException(f"Bad step {step}")
+                            raise common.RqException(f"Bad step {step}", item=step)
             return ll
         except common.RqException as ex:
-            raise common.RqException(f"[{self.file_path}] [Bad step {step}] [{ex}]")
+            ex.filename = self.file_path
+            raise common.RqException(f"[Bad step {step}] [{ex}]", item=ex.item)
     
     def __repr__(self):
         return super().__repr__()
@@ -287,6 +295,9 @@ class Scenario(list):
                 async for i in StepCall(self, {OP.CALL:"END"} ).process(self.env):
                     yield i
 
+        except common.RqException as e:
+            e.filename = self.file_path
+            raise e
         except Exception as ex:
             raise common.RqException(f"[{self.file_path}] [Error Step {step}] [{ex}]")
 

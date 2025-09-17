@@ -1,6 +1,3 @@
-#ERROR: Bad step
-root: http://test
-
+#ERROR: [Bad step hello] [Bad step hello
 RUN:
-  - hello
-
+    - hello

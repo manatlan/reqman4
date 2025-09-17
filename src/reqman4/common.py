@@ -7,19 +7,38 @@
 # https://github.com/manatlan/reqman4
 # #############################################################################
 import os
-import yaml
+from ruamel.yaml import YAML
 import httpx
 from dataclasses import dataclass
+
+yaml = YAML(typ='safe')
+yaml.allow_duplicate_keys = True
 
 
 REQMAN_CONF='reqman.conf'
 
 
-class RqException(Exception): 
-    pass
+class RqException(Exception):
+    def __init__(self, msg:str, item=None):
+        self.msg = msg
+        self.item = item
+        self.filename = None
+        self.lineno = None
+        if item and hasattr(item,"lc"):
+            self.lineno = item.lc.line + 1
+        super().__init__(msg)
 
-def assert_syntax( condition:bool, msg:str):
-    if not condition: raise RqException( msg )
+    def __str__(self):
+        if self.filename and self.lineno:
+            return f"{self.msg} in {self.filename} at line {self.lineno}"
+        elif self.filename:
+            return f"{self.msg} in {self.filename}"
+        else:
+            return self.msg
+
+def assert_syntax( condition:bool, msg:str, item=None):
+    if not condition:
+        raise RqException( msg, item=item )
 
 
 @dataclass
@@ -75,8 +94,9 @@ def guess_reqman_conf(paths:list[str]) -> str|None:
 
 def load_reqman_conf(path:str) -> dict:
     with open(path, 'r') as f:
-        conf = yaml.load( f, Loader=yaml.SafeLoader)
-    assert_syntax( isinstance(conf, dict) , "reqman.conf must be a mapping")
+        content = f.read()
+    conf = yaml.load( content )
+    assert_syntax( isinstance(conf, dict) , "reqman.conf must be a mapping", item=conf)
     return conf
 
 def get_url_content(url:str) -> str:
@@ -85,7 +105,7 @@ def get_url_content(url:str) -> str:
     return r.text
 
 def load_scenar( yml_str: str) -> tuple[dict,list]:
-    yml = yaml.safe_load(yml_str)
+    yml = yaml.load(yml_str)
 
     if isinstance(yml, dict):
         # new reqman4 (yml is a dict, and got a RUN section)
@@ -101,5 +121,4 @@ def load_scenar( yml_str: str) -> tuple[dict,list]:
         scenar = yml
         return ({},scenar)
     else:
-        raise Exception("scenario must be a dict or a list]")
-
+        raise RqException("scenario must be a dict or a list", item=yml)

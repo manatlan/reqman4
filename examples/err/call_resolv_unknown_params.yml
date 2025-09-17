@@ -1,6 +1,5 @@
-#ERROR: name 'mylist' is not defined
+#ERROR: Error evaluating expression 'mylist': name 'mylist' is not defined
 root: http://test
-
 
 PROC:
   - GET: /testdict?a=<<a>>
@@ -10,4 +9,3 @@ PROC:
 RUN:
   - CALL: PROC
     params: <<mylist>>
-

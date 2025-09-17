@@ -1,6 +1,3 @@
-#ERROR: Bad step
-root: http://test
-
+#ERROR: [Bad step {'toto': '/test'}] [Bad step {'toto': '/test'}
 RUN:
-  - toto: /test
-
+    - toto: /test

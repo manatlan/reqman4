@@ -1,10 +1,10 @@
-#ERROR: unknowns http'attributes
+#ERROR: [Bad step {'GET': '/testdict?a=<<a>>', 'query': 'yo', 'tests': ['R.status == 200']}] [unknowns http'attributes ['GET', 'query', 'tests']
 root: http://test
 
-RUN:
+a: 1
 
+RUN:
   - GET: /testdict?a=<<a>>
-    query: yo                   # <- NO "query" or others
+    query: yo
     tests:
       - R.status == 200
-
