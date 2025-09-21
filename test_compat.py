@@ -1,5 +1,5 @@
-import yaml
-from src.reqman4 import compat
+
+from src.reqman4 import compat,common
 
 def test_fix_expr():
     # reqman
@@ -17,14 +17,14 @@ def test_fix_expr():
 
 
 def test_fix_tests_base():
-    d=yaml.safe_load("""
+    d=common.yload("""
 tests:
     status: 200
     json.result: ok
 """)
     assert compat.fix_tests(d["tests"]) == ['R.status == 200', 'R.json.result == "ok"']
 
-    d=yaml.safe_load("""
+    d=common.yload("""
 tests:
     status:
         - 200
@@ -33,14 +33,14 @@ tests:
 """)
     assert compat.fix_tests(d["tests"]) == ['R.status in [200, 201]', 'R.json.result == "ok"']
 
-    d=yaml.safe_load("""
+    d=common.yload("""
 tests:
     - status: 200
     - json.result: ok
 """)
     assert compat.fix_tests(d["tests"]) == ['R.status == 200', 'R.json.result == "ok"']
 
-    d=yaml.safe_load("""
+    d=common.yload("""
 tests:
     - status:
         - 200
@@ -51,13 +51,13 @@ tests:
 
 
 def test_fix_tests_more():
-    d=yaml.safe_load("""
+    d=common.yload("""
 tests:
     - content: hello
 """)
     assert compat.fix_tests(d["tests"]) == ['R.content == "hello"'] # BAD by design
 
-    d=yaml.safe_load("""
+    d=common.yload("""
 tests:
     - json.result1: <<val>>
     - json.result2: <<val|transform>>
@@ -66,7 +66,7 @@ tests:
 
 
 def test_fix_tests_compatible_new_version():
-    d=yaml.safe_load("""
+    d=common.yload("""
 tests:
     - R.status == 200
     - R.json.result == "ok"
@@ -75,7 +75,7 @@ tests:
 
 
 def test_fix_tests_comparaison():
-    d=yaml.safe_load("""
+    d=common.yload("""
 tests:
     status:    .>= 200
     status:    .>200 
@@ -83,7 +83,7 @@ tests:
 """)
     assert compat.fix_tests(d["tests"]) == ['R.status > 200', 'R.json.result == "ok"']
 
-    d=yaml.safe_load("""
+    d=common.yload("""
 tests:
     - status:    .>= 200
     - status:    .>200 
@@ -93,7 +93,7 @@ tests:
 
 
 def test_fix_tests_comparaison_more():
-    d=yaml.safe_load("""
+    d=common.yload("""
 tests:
     - status:    .!= 200
     - status:    .  <=   200 

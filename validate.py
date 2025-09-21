@@ -1,8 +1,8 @@
 
-import yaml
 import json
 from jsonschema import validate
 import sys
+from src.reqman4 import common
 
 def validate_yaml(yaml_file, schema_file):
     """Validates a YAML file against a JSON schema."""
@@ -10,9 +10,7 @@ def validate_yaml(yaml_file, schema_file):
         with open(schema_file, 'r') as f:
             schema = json.load(f)
 
-        with open(yaml_file, 'r') as f:
-            yaml_data = yaml.safe_load(f)
-
+        yaml_data = common.yload( open(yaml_file,"r") )
         validate(instance=yaml_data, schema=schema)
         print(f"Validation successful for {yaml_file}")
         return True

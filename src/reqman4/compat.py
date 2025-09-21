@@ -14,7 +14,6 @@ to be able to run old reqman files with new rq4 engine
 
 TODO: redo better
 """
-import yaml
 
 
 

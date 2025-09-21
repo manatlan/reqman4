@@ -1,4 +1,4 @@
-import yaml
+from src.reqman4 import common
 from src.reqman4 import env
 
 
@@ -19,7 +19,7 @@ def test_declare_methods():
     """
 
 
-    e=env.Env( **yaml.safe_load(t) )
+    e=env.Env( **common.yload(t) )
 
     assert e["mymethod2"]() == "hello"          # call with no parameter !
     assert e["toto"]["mymethod"]( 1 ) == 23
