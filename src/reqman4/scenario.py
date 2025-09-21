@@ -269,7 +269,7 @@ class Scenario(list):
                             raise common.RqException(f"Bad step {step}")
             return ll
         except common.RqException as ex:
-            line_info = f":{step.lc.line}" if hasattr(step, 'lc') and step.lc else ""
+            line_info = f":{step.lc.line+1}" if hasattr(step, 'lc') and step.lc else ""
             raise common.RqException(f"[{self.file_path}{line_info}] [Bad step {step}] [{ex}]")
     
     def __repr__(self):
@@ -295,7 +295,7 @@ class Scenario(list):
                     yield i
 
         except Exception as ex:
-            line_info = f":{step.line}" if hasattr(step, 'line') and step.line else ""
+            line_info = f":{step.line+1}" if hasattr(step, 'line') and step.line else ""
             raise common.RqException(f"[{self.file_path}{line_info}] [Error Step {step}] [{ex}]")
 
 
