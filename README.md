@@ -61,7 +61,7 @@ It will open an html report in your default browser, and you can easily check wh
 
 #### For [jules](https://jules.google.com/)
 
-    This project use "uv":
+This project use "uv":
 
-     - use "uv sync --dev" to setup the ".venv" 
-     - use "uv run pytest" to validate all unittests
+    - use "uv sync --dev" to setup the ".venv" 
+    - use "uv run pytest" to validate all unittests
