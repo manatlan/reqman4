@@ -29,6 +29,7 @@ class OP:
 
 class Step:
     params: list|str|None = None
+    line: int|None = None
     
     async def process(self,e:env.Env) -> AsyncGenerator:
         ...
@@ -47,7 +48,8 @@ class Step:
 
 
 class StepCall(Step):
-    def __init__(self, scenario: "Scenario", step: dict, params:list|str|None=None):
+    def __init__(self, scenario: "Scenario", step: dict, params:list|str|None=None, line:int|None=None):
+        self.line = line
         self.scenario = scenario
         self.params = params
         self.steps=[]
@@ -89,7 +91,8 @@ class StepCall(Step):
 
 
 class StepHttp(Step):
-    def __init__(self, scenario: "Scenario", step: dict, params: list|str|None=None):
+    def __init__(self, scenario: "Scenario", step: dict, params: list|str|None=None, line:int|None=None):
+        self.line = line
         self.scenario = scenario
         self.params = params
 
@@ -185,7 +188,8 @@ class StepHttp(Step):
             return f"Step {self.method}:{self.url}"
 
 class StepSet(Step):
-    def __init__(self, scenario: "Scenario", step:dict):
+    def __init__(self, scenario: "Scenario", step:dict, line:int|None=None):
+        self.line = line
         self.scenario = scenario
 
         assert_syntax( len(step) == 1,"SET cannot be used with other keys")
@@ -243,6 +247,7 @@ class Scenario(list):
 
             ll = []
             for step in liste:
+                line = step.lc.line if hasattr(step, 'lc') else None
                 assert_syntax( isinstance(step, dict), f"Bad step {step}")
                 
                 if "params" in step:
@@ -253,23 +258,25 @@ class Scenario(list):
 
                 if OP.SET in step:
                     assert_syntax( params is None, "params cannot be used with set")
-                    ll.append( StepSet( self, step ) )
+                    ll.append( StepSet( self, step, line ) )
                 else:
                     if OP.CALL in step:
-                        ll.append( StepCall( self, step, params ) )
+                        ll.append( StepCall( self, step, params, line ) )
                     else:
                         if set(step.keys()) & ehttp.KNOWNVERBS:
-                            ll.append( StepHttp( self, step, params ) )
+                            ll.append( StepHttp( self, step, params, line ) )
                         else:
                             raise common.RqException(f"Bad step {step}")
             return ll
         except common.RqException as ex:
-            raise common.RqException(f"[{self.file_path}] [Bad step {step}] [{ex}]")
+            line_info = f":{step.lc.line}" if hasattr(step, 'lc') and step.lc else ""
+            raise common.RqException(f"[{self.file_path}{line_info}] [Bad step {step}] [{ex}]")
     
     def __repr__(self):
         return super().__repr__()
     
     async def execute(self,with_begin:bool=False,with_end:bool=False) -> AsyncGenerator:
+        step=None
         try:
 
             if with_begin and self.env.get("BEGIN"):
@@ -288,7 +295,8 @@ class Scenario(list):
                     yield i
 
         except Exception as ex:
-            raise common.RqException(f"[{self.file_path}] [Error Step {step}] [{ex}]")
+            line_info = f":{step.line}" if hasattr(step, 'line') and step.line else ""
+            raise common.RqException(f"[{self.file_path}{line_info}] [Error Step {step}] [{ex}]")
 
 
 

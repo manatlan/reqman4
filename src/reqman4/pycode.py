@@ -22,7 +22,7 @@ def is_python_code(s: str) -> bool:
         return False
 
 def is_python(k,v) -> CodeType|None:
-    if type(v) == str and "return" in v and is_python_code(v):
+    if isinstance(v,str) and "return" in v and is_python_code(v):
 
         def declare(k:str,code:str) -> str:
             return f"def {k}(x=None):\n" + ("\n".join(["  " + i for i in code.splitlines()]))

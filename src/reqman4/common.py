@@ -14,7 +14,7 @@ from dataclasses import dataclass
 REQMAN_CONF='reqman.conf'
 
 import ruamel.yaml
-yaml = ruamel.yaml.YAML(typ='safe')
+yaml = ruamel.yaml.YAML(typ='rt')
 yaml.allow_duplicate_keys = True
 
 def yload(y):
