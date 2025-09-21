@@ -63,5 +63,5 @@ It will open an html report in your default browser, and you can easily check wh
 
 This project use "uv":
 
-    - use "uv sync --dev" to setup the ".venv" 
-    - use "uv run pytest" to validate all unittests
+ - use "uv sync --dev" to setup the ".venv" 
+ - use "uv run pytest" to validate all unittests
