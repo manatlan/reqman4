@@ -46,11 +46,13 @@ class MyDict(dict):
     def __init__(self, dico: dict):
         super().__init__(dico)
     def __getattr__(self, key):
+        if key in self:
+            return self[key]
         if "_" in key:
             okey = key.replace("_","-")
             if okey in self:
-                return super().__getitem__(okey)
-        return super().__getitem__(key)
+                return self[okey]
+        raise AttributeError(f"'MyDict' object has no attribute '{key}'")
     
 
 class MyList(list):
