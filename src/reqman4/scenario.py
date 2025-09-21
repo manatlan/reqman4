@@ -221,6 +221,7 @@ class Scenario(list):
             except Exception as ex:
                 raise common.RqException(f"[URI:{file_path}] [http error] [{ex}]")
         else:
+            file_path = os.path.relpath(file_path)
             if os.path.isfile(file_path):
                 with open(file_path, 'r') as fid:
                     yml_str = fid.read()
@@ -248,7 +249,7 @@ class Scenario(list):
             ll = []
             for step in liste:
                 line = step.lc.line if hasattr(step, 'lc') else None
-                assert_syntax( isinstance(step, dict), f"Bad step {step}")
+                assert_syntax( isinstance(step, dict), f"Bad Dict {step}")
                 
                 if "params" in step:
                     params=step["params"]
@@ -266,11 +267,12 @@ class Scenario(list):
                         if set(step.keys()) & ehttp.KNOWNVERBS:
                             ll.append( StepHttp( self, step, params, line ) )
                         else:
-                            raise common.RqException(f"Bad step {step}")
+                            raise common.RqException(f"Bad Dict {step}")
             return ll
         except common.RqException as ex:
+            # this is an ERROR at compilation time
             line_info = f":{step.lc.line+1}" if hasattr(step, 'lc') and step.lc else ""
-            raise common.RqException(f"[{self.file_path}{line_info}] [Bad step {step}] [{ex}]")
+            raise common.RqException(f"[{self.file_path}{line_info}] [Bad {step}] [{ex}]")
     
     def __repr__(self):
         return super().__repr__()
@@ -295,8 +297,9 @@ class Scenario(list):
                     yield i
 
         except Exception as ex:
+            # this is an ERROR at execution time
             line_info = f":{step.line+1}" if hasattr(step, 'line') and step.line else ""
-            raise common.RqException(f"[{self.file_path}{line_info}] [Error Step {step}] [{ex}]")
+            raise common.RqException(f"[{self.file_path}{line_info}] [Error {step}] [{ex}]")
 
 
 

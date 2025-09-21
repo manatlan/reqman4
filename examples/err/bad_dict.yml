@@ -1,4 +1,4 @@
-#ERROR: Bad step
+#ERROR: Bad Dict
 root: http://test
 
 RUN:
