@@ -81,7 +81,7 @@ tests:
     status:    .>200 
     json.result: ok
 """)
-    assert compat.fix_tests(d["tests"]) == ['R.status > 200', 'R.json.result == "ok"']
+    assert compat.fix_tests(d["tests"]) == ['R.status >= 200', 'R.json.result == "ok"']
 
     d=common.yload("""
 tests:
@@ -101,3 +101,6 @@ tests:
     - json.result: . !? ko
 """)
     assert compat.fix_tests(d["tests"]) == ['R.status != 200', 'R.status <= 200', '"ok" in R.json.result', '"ko" not in R.json.result']
+
+if __name__ == "__main__":
+    test_fix_tests_comparaison()

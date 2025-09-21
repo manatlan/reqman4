@@ -7,19 +7,22 @@
 # https://github.com/manatlan/reqman4
 # #############################################################################
 import os,io
-import yaml
 import httpx
 from dataclasses import dataclass
 
 
 REQMAN_CONF='reqman.conf'
 
+import ruamel.yaml
+yaml = ruamel.yaml.YAML(typ='safe')
+yaml.allow_duplicate_keys = True
+
 def yload(y):
     if isinstance(y,str):
-        return yaml.safe_load(y)
+        return yaml.load(y)
     elif isinstance(y,io.TextIOWrapper):
         with y:
-            return yaml.safe_load(y)
+            return yaml.load(y)
     else:
         raise Exception("????")
         
