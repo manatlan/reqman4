@@ -99,11 +99,6 @@ class Output:
         webbrowser.open(f'file://{os.path.abspath(temp_html_path)}')        
 
 
-def display_env( x ):
-    print(cy("Final environment:"))
-    print(x if x is not None else "no env")
-
-
 
 class ExecutionTests:
     def __init__(self,files:list,switch:str|None=None,vars:dict={},is_debug=False):
@@ -275,7 +270,8 @@ def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_de
             o = asyncio.run(r.execute())
 
             if show_env:
-                display_env(r.env)
+                print(cy("Final environment:"))
+                print(r.env)
 
             if o.error:
                 rc = -1
