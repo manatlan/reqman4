@@ -105,9 +105,10 @@ class Env:
 
     def __getitem__(self, key):
         v=self._data[key]
-        if isinstance(v,str) and ("<<" in v or "{{" in v):
+        if isinstance(v,str) and v.startswith((r"<<",r"{{")) and v.endswith((r">>",r"}}")):
             try:
-                new_v = self.substitute(v)
+                new_v = self.eval(v[2:-2])
+                # new_v = self.substitute(v)
                 if new_v is not v:
                     # if substitution happened, cache the result for eager-like behavior
                     self._data[key] = new_v
