@@ -1,26 +1,24 @@
-#RESULT: 5/5
-- GET: /test
-  doc: hello
-  headers: 
-    user-agent: me
-    content-type: application/json
-  tests: # tests as a list
-    - status: 200
-    - status: .!= 500
-    - status: .> 100
-    - status: .>= 100
-  params:
-    - root: http://test
-  
+# test scenar as list
 
-- GET: /test?json=[1,2]
-  doc: hello
-  headers: 
-    user-agent: me
-    content-type: application/json
-  tests:  # tests as a dict
-    status: 200
-    # json: [1,2]
-  params:
+- METHOD:
+  - GET: http://test/test
+    tests:
+      - status: .== 200
+
+- GET: http://test/test
+  tests:
+    - status: .>= 200
+  foreach:
     - root: http://test
-  
+
+- GET: http://test/test
+  tests:
+    status: .<= 200
+
+- break
+
+- GET: http://test/test
+  tests:
+    - status: .== 200
+
+- call: METHOD

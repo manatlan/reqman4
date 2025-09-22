@@ -6,15 +6,18 @@
 #
 # https://github.com/manatlan/reqman4
 # #############################################################################
-import os,io
+import os,io,sys
 import httpx
 from dataclasses import dataclass
 
+from . import compat
+FIX_SCENAR = compat.fix_scenar
 
 REQMAN_CONF='reqman.conf'
 
 import ruamel.yaml
-yaml = ruamel.yaml.YAML(typ='rt')
+from ruamel.yaml.comments import CommentedMap as YDict,CommentedSeq as YList
+yaml = ruamel.yaml.YAML() # typ=rt
 yaml.allow_duplicate_keys = True
 
 def yload(y):
@@ -97,22 +100,53 @@ def get_url_content(url:str) -> str:
     r.raise_for_status()
     return r.text
 
-def load_scenar( yml_str: str) -> tuple[dict,list]:
-    yml = yload(yml_str)
 
-    if isinstance(yml, dict):
-        # new reqman4 (yml is a dict, and got a RUN section)
-        if "RUN" in yml:
-            scenar = yml["RUN"]
-            del yml["RUN"]
 
-            return (yml,scenar)
+
+class YScenario:
+    def __init__(self, yml:str|io.TextIOWrapper):
+
+        def load_scenar( yml_thing:str|io.TextIOWrapper) -> tuple[YDict,YList]:
+            yml = yload(yml_thing)
+
+            if isinstance(yml, YDict):
+                # new reqman4 (yml is a dict, and got a RUN section)
+                if "RUN" in yml:
+                    scenar = yml["RUN"]
+                    del yml["RUN"]
+
+                    return (yml,scenar)
+                else:
+                    return (yml,YList())
+            elif isinstance(yml, YList):
+                # for simple compat, reqman4 can accept list (but no conf!)
+                scenar = yml
+                return (YDict(),scenar)
+            else:
+                raise Exception("scenario must be a dict or a list]")
+
+        if isinstance(yml,io.TextIOWrapper):
+            self.filename = yml.name
         else:
-            return (yml,[])
-    elif isinstance(yml, list):
-        # for simple compat, reqman4 can accept list (but no conf!)
-        scenar = yml
-        return ({},scenar)
-    else:
-        raise Exception("scenario must be a dict or a list]")
+            self.filename = "buffer"
+        self._conf,self._steps = load_scenar(yml)
+        self._conf,self._steps=FIX_SCENAR(self._conf,self._steps)
+
+
+    def save(self): #TODO: continue here
+        assert self.filename != "buffer"
+        base=self._conf
+        base["RUN"] = self._steps
+        base.yaml_set_start_comment("Converted !!!!!!!!!!!!!!!!!!")
+        yaml.indent(mapping=2, sequence=2, offset=0)
+        yaml.dump(base, sys.stdout)
+
+    def __str__(self):
+        return f"YScenario '{self.filename}'\n* DICT:{self._conf}\n* LIST:{self._steps}"
+
+# if __name__=="__main__":
+#     yaml_file="examples/works_on/old.yml"
+#     ys=YScenario( open(yaml_file,"r") )
+#     # ys.save()    
+#     print(ys)
 

@@ -8,14 +8,12 @@
 # #############################################################################
 
 import re,json
-
+from ruamel.yaml.comments import CommentedSeq as YList
 """
 to be able to run old reqman files with new rq4 engine
 
 TODO: redo better
 """
-
-
 
 def fix_scenar( conf:dict, steps:list ) -> tuple[dict,list]:
     #TODO: fix old reqman3 files
@@ -25,7 +23,54 @@ def fix_scenar( conf:dict, steps:list ) -> tuple[dict,list]:
     # - "query" ?
     # - "foreach" ?
 
-    return conf,steps
+    return conf, steps
+
+    new_steps=[]
+    if isinstance(steps,list):
+        while len(steps)>0:
+            step = steps.pop(0)
+            print("-STUDY:",step)
+            if isinstance(step,dict) and len(step.keys()) == 1 and (list(step.keys())[0] not in ["call","break","if"]+["GET","POST","DELETE","PUT","HEAD","OPTIONS","TRACE","PATCH","CONNECT"]+["SET","CALL"]):
+                print("FIX DECLARE PROC") 
+                proc_name,content = list(step.items())[0]
+                if isinstance(content,dict):
+                    content = YList( content )
+                _, conf[proc_name] = fix_scenar( conf, content )
+            else:
+                if "SET" in step:
+                    new_steps.append( step )
+                    continue
+                if "CALL" in step:
+                    new_steps.append( step )
+                    continue
+                if "tests" in step:
+                    print("FIX TESTS") 
+                    step["tests"] = fix_tests( step["tests"] )
+                    new_steps.append( step )
+                if "foreach" in step: 
+                    print("FIX foreach") 
+                    old=step["foreach"]
+                    del step["foreach"]
+                    step["params"] = old
+                    new_steps.append( step )
+                if "call" in step:      #TODO: attention a doc tests foreach params !!!!
+                    print("FIX call") 
+                    old=step["call"]
+                    del step["call"]
+                    step["CALL"] = old
+                    print(step)
+                    new_steps.append( step )
+                if "if" in step:
+                    raise Exception("there is a 'if' ---> no conversion")
+                if "break" in step:
+                    print("FIX break") 
+                    # don't reuse break
+                    print("WARNING ... there is a 'break' (removed)....")
+                else:
+                    new_steps.append( step )
+    else:
+        new_steps = steps
+    return conf,new_steps
 
 
 def _fix_expr( text: str ) -> str:

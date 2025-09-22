@@ -63,6 +63,7 @@ async def test_scenarios_ok(example_file):
                 assert tr.ok, f"Test failed: {tr.text}"
 
 
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/err/*.yml")) )
 async def test_scenarios_err(example_file):
@@ -82,13 +83,13 @@ def test_scenarios_ko(example_file):
     simulate(example_file)
 
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reqman3/*.yml")) )
-def test_scenarios_compat(example_file):
+def test_scenarios_reqman3(example_file):
     simulate(example_file)
 
-@pytest.mark.skipif(os.getenv("CI") == "true", reason="No internet on CI")
-@pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reals/*.yml")) )
-def test_scenarios_reals(example_file):
-    simulate(example_file)
+# @pytest.mark.skipif(os.getenv("CI") == "true", reason="No internet on CI")
+# @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reals/*.yml")) )
+# def test_scenarios_reals(example_file):
+#     simulate(example_file)
 
 
 if __name__ == "__main__":

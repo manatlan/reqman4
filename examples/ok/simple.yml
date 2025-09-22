@@ -1,3 +1,4 @@
+#! -o
 root: http://test
 toto1: 42
 yo: <<USER>>

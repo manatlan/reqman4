@@ -1,0 +1,12 @@
+# test scenar as list
+
+toto: 43 # val
+
+RUN:
+  - SET:
+      root: http://test
+      
+  - GET: /test
+    tests:
+      - R.status == 200
+      
