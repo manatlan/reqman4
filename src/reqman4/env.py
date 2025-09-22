@@ -42,9 +42,17 @@ class R:
         else:
             return ""
 
-class MyDict(dict):
-    def __init__(self, dico: dict):
-        super().__init__(dico)
+class DDict(dict):
+    forbidden = {"items", "clear", "copy", "pop", "popitem", "update", "setdefault"}
+
+    def __init__(self, *args, **kwargs):
+        super(DDict, self).__init__(*args, **kwargs)
+
+    def __getattribute__(self, name):
+        if name in object.__getattribute__(self, 'forbidden'):
+            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+        return super().__getattribute__(name)
+
     def __getattr__(self, key):
         if key in self:
             return self[key]
