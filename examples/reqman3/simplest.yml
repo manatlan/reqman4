@@ -1,0 +1,5 @@
+#RESULT: 1/1
+
+- GET: http://test/test
+  tests:
+    - status: 200

@@ -136,7 +136,7 @@ class StepHttp(Step):
         return url, headers, body
 
     async def _execute_request(self, e: env.Env, url: str, headers: dict, body: Any) -> httpx.Response:
-        print(f"Executing request: method={self.method}, url={url}, headers={headers}, body={body}")
+        #print(f"Executing request: method={self.method}, url={url}, headers={headers}, body={body}")
         start = time.time()
         response = await ehttp.call(
             self.method,
@@ -205,7 +205,7 @@ class StepSet(Step):
 
 
 class Scenario(list):
-    def __init__(self, file_path: str, e:env.Env|None=None):
+    def __init__(self, file_path: str, e:env.Env|None=None, is_compatibility:int=0):
         if e:
             assert isinstance(e,env.Env)
         else:
@@ -221,8 +221,7 @@ class Scenario(list):
         else:
             file_path = os.path.relpath(file_path)
             if os.path.isfile(file_path):
-                with open(file_path, 'r') as fid:
-                    yml_str = fid.read()
+                yml_str = open(file_path, 'r')
             else:
                 raise common.RqException(f"[{file_path}] [File not found]")
         self.file_path = file_path
@@ -230,7 +229,7 @@ class Scenario(list):
         list.__init__(self,[])
 
         try:
-            self.ys = common.YScenario(yml_str)
+            self.ys = common.YScenario(yml_str,is_compatibility)
         except Exception as ex:
             raise common.RqException(f"[{file_path}] [Bad syntax] [{ex}]")
 

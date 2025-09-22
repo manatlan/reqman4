@@ -9,7 +9,7 @@
 import os,io,sys
 import httpx
 from dataclasses import dataclass
-
+import datetime
 from . import compat
 FIX_SCENAR = compat.fix_scenar
 
@@ -104,7 +104,7 @@ def get_url_content(url:str) -> str:
 
 
 class YScenario:
-    def __init__(self, yml:str|io.TextIOWrapper):
+    def __init__(self, yml:str|io.TextIOWrapper,compatibility:int=0):
 
         def load_scenar( yml_thing:str|io.TextIOWrapper) -> tuple[YDict,YList]:
             yml = yload(yml_thing)
@@ -130,16 +130,24 @@ class YScenario:
         else:
             self.filename = "buffer"
         self._conf,self._steps = load_scenar(yml)
-        self._conf,self._steps=FIX_SCENAR(self._conf,self._steps)
+        if compatibility>0:
+            self._conf,self._steps=FIX_SCENAR(self._conf,self._steps)
+            if compatibility>1:
+                self.save()
+
 
 
     def save(self): #TODO: continue here
         assert self.filename != "buffer"
         base=self._conf
         base["RUN"] = self._steps
-        base.yaml_set_start_comment("Converted !!!!!!!!!!!!!!!!!!")
+        base.yaml_set_start_comment(f"Converted from {self.filename} {datetime.datetime.now()}")
         yaml.indent(mapping=2, sequence=2, offset=0)
-        yaml.dump(base, sys.stdout)
+        # shutil.copy2(self.filename,self.filename)
+        new_file=self.filename+".new.yml"
+        with open(new_file,"w+") as fid:
+            yaml.dump(base, fid)
+        print("CREATE NEW REQMAN4 FILE:",new_file)
 
     def __str__(self):
         return f"YScenario '{self.filename}'\n* DICT:{self._conf}\n* LIST:{self._steps}"

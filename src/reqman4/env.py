@@ -48,12 +48,17 @@ class MyDict(dict):
     def __init__(self, *args, **kwargs):
         super(MyDict, self).__init__(*args, **kwargs)
 
-    def __getattribute__(self, name):
-        if name in object.__getattribute__(self, 'forbidden'):
-            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
-        return super().__getattribute__(name)
+    # def __getattribute__(self, name:str):
+    #     if name in object.__getattribute__(self, 'forbidden'):
+    #         raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+    #     return super().__getattribute__(name)
+
 
     def __getattr__(self, key):
+        # if key.startswith("_my_"):
+        #     # return self[key[4:]]
+        #     return getattr(super(),key[4:])
+
         if key in self:
             return self[key]
         if "_" in key:
@@ -254,7 +259,7 @@ class Env:
                 for k, v in d.items():
                     code = pycode.is_python(k, v)
                     if code:
-                        logger.warning(f"Security warning: Compiling and executing python method '{k}'. Ensure that the code is from a trusted source.")
+                        # logger.warning(f"Security warning: Compiling and executing python method '{k}'. Ensure that the code is from a trusted source.")
                         scope = {}
                         exec(code, dict(ENV=self, tool=tool), scope)  # declare ENV&tool in method!
                         d[k] = scope[k]

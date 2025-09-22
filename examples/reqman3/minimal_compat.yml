@@ -1,8 +1,0 @@
-# test scenar as list
-
-- SET:
-    root: http://test
-    
-- GET: /test
-  tests:
-    - R.status == 200

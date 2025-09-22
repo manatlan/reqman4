@@ -31,7 +31,15 @@ def test_convert():
     assert d.liste[1] == 2 # type: ignore
     assert d.liste[2].key == "val" # type: ignore
     assert len(d.liste) == 3 # type: ignore
-    
+
+# def test_convert_items():
+#     data={
+#         "items":[1,2,{"key":"val"}],
+#     }
+#     d=_convert(data)
+#     assert d.items == [1,2,{"key":"val"}]  # type: ignore
+#     assert d._my_items() #<- the real items() dict method
+
 def test_substitute():
     e=Env( v=42 )
     assert e.substitute("val is {{v}}") == "val is 42"
@@ -123,4 +131,4 @@ def test_protect_scope():
 
 if __name__=="__main__":
     ...      
-    test_complexe2()
+    # test_convert_items()

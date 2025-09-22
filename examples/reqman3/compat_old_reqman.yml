@@ -1,13 +1,5 @@
 #RESULT: 2/2
 
-# (not sure yet if we want to keep it this way)
-# (not sure yet if we want to keep it this way)
-# (not sure yet if we want to keep it this way)
-# this file is the state of the art for old reqman compatibility
-# (not sure yet if we want to keep it this way)
-# (not sure yet if we want to keep it this way)
-# (not sure yet if we want to keep it this way)
-
 - GET: http://test/test?json={"result":"ok"}
   tests:
     - status: 200

@@ -15,15 +15,15 @@ def attendings(example_file:str): #THE FUTURE for all tests
             return (True, line[len("#RESULT:"):].strip() ) # ex (True, "4/5")
     return (None,None)        
 
-def simulate(example_file: str): #THE FUTURE for all tests
+def simulate(example_file: str,compatibility=0): #THE FUTURE for all tests
     good,info = attendings(example_file)
-
+    print(good,info)
     stdout = io.StringIO()
     sys_stdout = sys.stdout
     sys.stdout = stdout
     try:
         error=None
-        rc = main.reqman([example_file])
+        rc = main.reqman([example_file],compatibility=compatibility)
     except Exception as error:
         pass
     finally:
@@ -84,7 +84,7 @@ def test_scenarios_ko(example_file):
 
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reqman3/*.yml")) )
 def test_scenarios_reqman3(example_file):
-    simulate(example_file)
+    simulate(example_file,True)
 
 # @pytest.mark.skipif(os.getenv("CI") == "true", reason="No internet on CI")
 # @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reals/*.yml")) )
@@ -94,3 +94,4 @@ def test_scenarios_reqman3(example_file):
 
 if __name__ == "__main__":
     ...
+    test_scenarios_reqman3("examples/reqman3/simplest.yml")

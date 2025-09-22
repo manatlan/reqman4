@@ -101,11 +101,12 @@ class Output:
 
 
 class ExecutionTests:
-    def __init__(self,files:list,switch:str|None=None,vars:dict={},is_debug=False):
+    def __init__(self,files:list,switch:str|None=None,vars:dict={},is_debug=False, compatibility:int=0):
         # fix files : extract files (yml/rml) from potentials directories
         self.files=common.expand_files(files)
         self.is_debug=is_debug
-        
+        self.compatibility=compatibility
+
         # init the conf
         reqman_conf = common.guess_reqman_conf(self.files)
         if reqman_conf is None:
@@ -124,7 +125,7 @@ class ExecutionTests:
             # First, load all scenarios to get all possible switches
             for file in self.files:
                 # just load to get switches in self.env
-                scenario.Scenario(file, self.env)
+                scenario.Scenario(file, self.env, compatibility)
 
             common.assert_syntax(switch in self.env.switchs.keys(), f"Unknown switch '{switch}'")
             self.env.update( self.env.switchs[switch] )
@@ -134,7 +135,7 @@ class ExecutionTests:
     def view(self):
         for f in self.files:
             print(cb(f"Analyse {f}"))
-            s=scenario.Scenario(f, self.env)
+            s=scenario.Scenario(f, self.env, self.compatibility)
 
             if "BEGIN" in self.env:
                 print("BEGIN", scenario.StepCall(s, {scenario.OP.CALL:"BEGIN"}) )
@@ -153,7 +154,7 @@ class ExecutionTests:
             output.begin_scenario(file)
 
             try:
-                scenar = scenario.Scenario(file, self.env)
+                scenar = scenario.Scenario(file, self.env, self.compatibility)
                 async for req in scenar.execute(with_begin=(file == self.files[0]), with_end=(file == self.files[-1])):
                     output.write_a_test(req)
                 self.env = scenar.env  # needed !
@@ -178,6 +179,13 @@ from itertools import chain
 import glob
 def guess(args:list):
     ##########################################################################
+    if "-cc" in args: #TODO: must be redone !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        compatibility=2
+    elif "-c" in args:
+        compatibility=1
+    else:
+        compatibility=0
+
     args=[glob.glob(i,recursive=True) for i in args if not i.startswith("-")]
     args = list(chain.from_iterable(args))
 #- ---------------------------------------------------------- #TODO: make better
@@ -191,7 +199,7 @@ def guess(args:list):
 
     if len(files)==1:
         # an unique file
-        s = scenario.Scenario(files[0],env.Env(**conf))
+        s = scenario.Scenario(files[0],env.Env(**conf),compatibility)
         if s.env.switchs:
             print(cy(f"Using switches from {files[0]}"))
         return s.env.switchs
@@ -239,13 +247,23 @@ def patch_docstring(f):
 @click.option('-s',"vars",help="Set variables (ex: -s token=DEADBEAF,id=42)")
 @click.option('-i',"is_shebang",is_flag=True,default=False,help="interactif mode (with shebang)")
 @click.option('-o',"open_browser",is_flag=True,default=False,help="open result in an html page")
+@click.option('-c',"compatibility",is_flag=True,default=False,help="accept old reqman3 scenarios")
+@click.option('-cc',"comp_convert",is_flag=True,default=False,help="accept old reqman3 and generate new version")
+
 @patch_docstring
 def command(**p) -> int:
     """Test an http service with pre-made scenarios, whose are simple yaml files
 (More info on https://github.com/manatlan/reqman4) """
     return reqman(**p)
 
-def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_debug:bool=False,is_view:bool=False,is_shebang:bool=False,open_browser:bool=False) -> int:
+def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_debug:bool=False,is_view:bool=False,is_shebang:bool=False,open_browser:bool=False,compatibility:bool=False,comp_convert:bool=False) -> int:
+    if compatibility:
+        comp_mode=1
+    elif comp_convert:
+        comp_mode=2
+    else:
+        comp_mode=0
+
     if vars:
         dvars = dict( [ i.split("=",1) for i in vars.split(",") if "=" in i ] )
     else:
@@ -269,7 +287,7 @@ def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_de
         logging.basicConfig(level=logging.ERROR)
 
     try:
-        r = ExecutionTests( files,switch,dvars, is_debug)
+        r = ExecutionTests( files,switch,dvars, is_debug, comp_mode)
         if is_view:
             r.view()
             return 0
