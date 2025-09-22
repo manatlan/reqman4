@@ -42,11 +42,11 @@ class R:
         else:
             return ""
 
-class DDict(dict):
+class MyDict(dict):
     forbidden = {"items", "clear", "copy", "pop", "popitem", "update", "setdefault"}
 
     def __init__(self, *args, **kwargs):
-        super(DDict, self).__init__(*args, **kwargs)
+        super(MyDict, self).__init__(*args, **kwargs)
 
     def __getattribute__(self, name):
         if name in object.__getattribute__(self, 'forbidden'):
