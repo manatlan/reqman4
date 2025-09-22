@@ -173,8 +173,15 @@ class ExecutionTests:
 
 
 
+#- ----------------------------------------------------------
+from itertools import chain 
+import glob
 def guess(args:list):
     ##########################################################################
+    args=[glob.glob(i,recursive=True) for i in args if not i.startswith("-")]
+    args = list(chain.from_iterable(args))
+#- ---------------------------------------------------------- #TODO: make better
+    
     files = common.expand_files([i for i in args if os.path.exists(i)])
     reqman_conf = common.guess_reqman_conf(files)
     if reqman_conf:
