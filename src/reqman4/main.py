@@ -13,6 +13,10 @@ import logging
 import traceback
 import tempfile
 import webbrowser
+from itertools import chain 
+import glob
+
+# pypi packages
 import click
 from colorama import init, Fore, Style
 from urllib.parse import unquote
@@ -180,59 +184,6 @@ class ExecutionTests:
 
 
 #- ----------------------------------------------------------
-from itertools import chain 
-import glob
-# def guess(args:list):
-#     ##########################################################################
-#     if "-cc" in args: #TODO: must be redone !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#         compatibility=2
-#     elif "-c" in args:
-#         compatibility=1
-#     else:
-#         compatibility=0
-
-#     args=[glob.glob(i,recursive=True) for i in args if not i.startswith("-")]
-#     args = list(chain.from_iterable(args))
-# #- ---------------------------------------------------------- #TODO: make better
-    
-#     files = common.expand_files([i for i in args if os.path.exists(i)])
-#     print("FILES GUESS",files)
-#     reqman_conf = common.guess_reqman_conf(files)
-#     if reqman_conf:
-#         conf = common.load_reqman_conf(reqman_conf)
-#     else:
-#         conf = {}
-
-#     if len(files)==1:
-#         # an unique file
-#         s = scenario.Scenario(files[0],env.Env(**conf),compatibility)
-#         if s.env.switchs:
-#             print(cy(f"Using switches from {files[0]}"))
-#         return s.env.switchs
-#     else:
-#         return env.Env(**conf).switchs
-#     ##########################################################################
-
-# def options_from_files(opt_name:str):
-#     try:
-#         d=guess(sys.argv[1:] or [])
-#     except common.RqException as ex:
-#         print(cr(f"GUESS ERROR: {ex}"))
-#         sys.exit(-1)
-
-#     ll=[dict( name=k, switch=f"--{k}", help=v.get("doc","???") ) for k,v in d.items()]
-
-#     def decorator(f):
-#         for p in reversed(ll):
-#             click.option( p['switch'], opt_name, 
-#                 is_flag = True,
-#                 flag_value=p['name'],
-#                 required = False,
-#                 help = p['help'],
-#             )(f)
-#         return f
-#     return decorator
-
 
 @click.group()
 def cli():
