@@ -205,12 +205,7 @@ class StepSet(Step):
 
 
 class Scenario(list):
-    def __init__(self, file_path: str, e:env.Env|None=None, is_compatibility:int=0):
-        if e:
-            assert isinstance(e,env.Env)
-        else:
-            e=env.Env()
-
+    def __init__(self, file_path: str, e:env.Env, is_compatibility:int=0,update=True):
         self.env = e
 
         if file_path.startswith("http"):
@@ -233,7 +228,8 @@ class Scenario(list):
         except Exception as ex:
             raise common.RqException(f"[{file_path}] [Bad syntax] [{ex}]")
 
-        self.env.update( self.ys._conf ) # this override a reqman.conf env !
+        if update:
+            self.env.update( self.ys._conf ) # this override a reqman.conf env !
         self.extend( self._feed( self.ys._steps ) )
 
 
@@ -281,6 +277,7 @@ class Scenario(list):
                 logger.debug("Execute BEGIN statement")
                 async for i in StepCall(self, {OP.CALL:"BEGIN"}).process(self.env):
                     yield i
+
 
             for step in self:
                 logger.debug("Execute STEP %s",step)

@@ -1,6 +1,6 @@
 import pytest,os
 import glob,io,sys,re
-from src.reqman4 import scenario,main,common
+from src.reqman4 import scenario,main,common,env
 from validate import validate_yaml
 
 
@@ -23,7 +23,7 @@ def simulate(example_file: str,compatibility=0): #THE FUTURE for all tests
     sys.stdout = stdout
     try:
         error=None
-        rc = main.reqman([example_file],compatibility=compatibility)
+        rc = main.reqman(None,[example_file],compatibility=True if compatibility else False)
     except Exception as error:
         pass
     finally:
@@ -53,7 +53,7 @@ async def test_scenarios_ok(example_file):
 
     assert validate_yaml(example_file,"schema.json")
 
-    s=scenario.Scenario(example_file)
+    s=scenario.Scenario(example_file,env.Env())
     print(s) # test repr
     for step in s:
         print(step) # test step.__repr__
@@ -72,7 +72,7 @@ async def test_scenarios_err(example_file):
     good,error_message = attendings(example_file)
 
     with pytest.raises(Exception) as excinfo:
-        s=scenario.Scenario(example_file)
+        s=scenario.Scenario(example_file,env.Env())
         async for echange in s.execute():
                 ...
     assert not good
@@ -84,7 +84,7 @@ def test_scenarios_ko(example_file):
 
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reqman3/*.yml")) )
 def test_scenarios_reqman3(example_file):
-    simulate(example_file,True)
+    simulate(example_file,1)
 
 # @pytest.mark.skipif(os.getenv("CI") == "true", reason="No internet on CI")
 # @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reals/*.yml")) )

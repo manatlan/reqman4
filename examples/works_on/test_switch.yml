@@ -1,0 +1,20 @@
+root: http://test
+
+switch:
+  env1:
+    doc: for dev
+    root: http://dev/
+
+  env2:
+    doc: for verification
+    root: http://verification/
+
+  env3:
+    doc: for validation
+    root: http://validation/
+
+RUN:
+
+  - GET: /test?json=[1,2,3]
+    tests:
+      - len(R.json) == 3

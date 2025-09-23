@@ -102,7 +102,6 @@ class Output:
 
 class ExecutionTests:
     def __init__(self,files:list,switch:str|None=None,vars:dict={},is_debug=False, compatibility:int=0):
-        # fix files : extract files (yml/rml) from potentials directories
         self.files=common.expand_files(files)
         self.is_debug=is_debug
         self.compatibility=compatibility
@@ -120,14 +119,20 @@ class ExecutionTests:
 
         self.env = env.Env( **conf )
 
+        if len(self.files)==1:
+            # just load to get switches in self.env
+            logger.debug("Import conf from solo file '%s'",self.files[0])
+            scenario.Scenario(self.files[0], self.env, compatibility) #TODO: do better here
+
         # apply the switch
         if switch:
-            # First, load all scenarios to get all possible switches
-            for file in self.files:
-                # just load to get switches in self.env
-                scenario.Scenario(file, self.env, compatibility)
+            # # First, load all scenarios to get all possible switches
+            # for file in self.files:
+            #     # just load to get switches in self.env
+            #     scenario.Scenario(file, self.env, compatibility)
 
             common.assert_syntax(switch in self.env.switchs.keys(), f"Unknown switch '{switch}'")
+            logger.debug("Apply switch %s <- %s",switch,self.env.switchs[switch])
             self.env.update( self.env.switchs[switch] )
         self._switch = switch
 
@@ -135,7 +140,7 @@ class ExecutionTests:
     def view(self):
         for f in self.files:
             print(cb(f"Analyse {f}"))
-            s=scenario.Scenario(f, self.env, self.compatibility)
+            s=scenario.Scenario(f, self.env, self.compatibility,update=False)
 
             if "BEGIN" in self.env:
                 print("BEGIN", scenario.StepCall(s, {scenario.OP.CALL:"BEGIN"}) )
@@ -154,7 +159,7 @@ class ExecutionTests:
             output.begin_scenario(file)
 
             try:
-                scenar = scenario.Scenario(file, self.env, self.compatibility)
+                scenar = scenario.Scenario(file, self.env, self.compatibility, update=False)
                 async for req in scenar.execute(with_begin=(file == self.files[0]), with_end=(file == self.files[-1])):
                     output.write_a_test(req)
                 self.env = scenar.env  # needed !
@@ -177,55 +182,56 @@ class ExecutionTests:
 #- ----------------------------------------------------------
 from itertools import chain 
 import glob
-def guess(args:list):
-    ##########################################################################
-    if "-cc" in args: #TODO: must be redone !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        compatibility=2
-    elif "-c" in args:
-        compatibility=1
-    else:
-        compatibility=0
+# def guess(args:list):
+#     ##########################################################################
+#     if "-cc" in args: #TODO: must be redone !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#         compatibility=2
+#     elif "-c" in args:
+#         compatibility=1
+#     else:
+#         compatibility=0
 
-    args=[glob.glob(i,recursive=True) for i in args if not i.startswith("-")]
-    args = list(chain.from_iterable(args))
-#- ---------------------------------------------------------- #TODO: make better
+#     args=[glob.glob(i,recursive=True) for i in args if not i.startswith("-")]
+#     args = list(chain.from_iterable(args))
+# #- ---------------------------------------------------------- #TODO: make better
     
-    files = common.expand_files([i for i in args if os.path.exists(i)])
-    reqman_conf = common.guess_reqman_conf(files)
-    if reqman_conf:
-        conf = common.load_reqman_conf(reqman_conf)
-    else:
-        conf = {}
+#     files = common.expand_files([i for i in args if os.path.exists(i)])
+#     print("FILES GUESS",files)
+#     reqman_conf = common.guess_reqman_conf(files)
+#     if reqman_conf:
+#         conf = common.load_reqman_conf(reqman_conf)
+#     else:
+#         conf = {}
 
-    if len(files)==1:
-        # an unique file
-        s = scenario.Scenario(files[0],env.Env(**conf),compatibility)
-        if s.env.switchs:
-            print(cy(f"Using switches from {files[0]}"))
-        return s.env.switchs
-    else:
-        return env.Env(**conf).switchs
-    ##########################################################################
+#     if len(files)==1:
+#         # an unique file
+#         s = scenario.Scenario(files[0],env.Env(**conf),compatibility)
+#         if s.env.switchs:
+#             print(cy(f"Using switches from {files[0]}"))
+#         return s.env.switchs
+#     else:
+#         return env.Env(**conf).switchs
+#     ##########################################################################
 
-def options_from_files(opt_name:str):
-    try:
-        d=guess(sys.argv[1:] or [])
-    except common.RqException as ex:
-        print(cr(f"START ERROR: {ex}"))
-        sys.exit(-1)
+# def options_from_files(opt_name:str):
+#     try:
+#         d=guess(sys.argv[1:] or [])
+#     except common.RqException as ex:
+#         print(cr(f"GUESS ERROR: {ex}"))
+#         sys.exit(-1)
 
-    ll=[dict( name=k, switch=f"--{k}", help=v.get("doc","???") ) for k,v in d.items()]
+#     ll=[dict( name=k, switch=f"--{k}", help=v.get("doc","???") ) for k,v in d.items()]
 
-    def decorator(f):
-        for p in reversed(ll):
-            click.option( p['switch'], opt_name, 
-                is_flag = True,
-                flag_value=p['name'],
-                required = False,
-                help = p['help'],
-            )(f)
-        return f
-    return decorator
+#     def decorator(f):
+#         for p in reversed(ll):
+#             click.option( p['switch'], opt_name, 
+#                 is_flag = True,
+#                 flag_value=p['name'],
+#                 required = False,
+#                 help = p['help'],
+#             )(f)
+#         return f
+#     return decorator
 
 
 @click.group()
@@ -237,10 +243,8 @@ def patch_docstring(f):
     f.__doc__+= f" (version:{VERSION})"
     return f
 
-@cli.command()
+@cli.command(context_settings=dict(allow_extra_args=True, ignore_unknown_options=True))
 @click.argument('files', nargs=-1, required=True ) #help="Scenarios yml/rml (local or http)"
-# @click.argument('files', type=click.Path(exists=True,), nargs=-1, required=True)
-@options_from_files("switch")
 @click.option('-v',"is_view",is_flag=True,default=False,help="Analyze only, do not execute requests")
 @click.option('-d',"is_debug",is_flag=True,default=False,help="debug mode")
 @click.option('-e',"show_env",is_flag=True,default=False,help="Display final environment")
@@ -249,14 +253,24 @@ def patch_docstring(f):
 @click.option('-o',"open_browser",is_flag=True,default=False,help="open result in an html page")
 @click.option('-c',"compatibility",is_flag=True,default=False,help="accept old reqman3 scenarios")
 @click.option('-cc',"comp_convert",is_flag=True,default=False,help="accept old reqman3 and generate new version")
+@click.option("-h",'--help',"need_help",is_flag=True,default=False,help="to get help")
+@click.pass_context
+
 
 @patch_docstring
-def command(**p) -> int:
+def command(ctx,**p):
     """Test an http service with pre-made scenarios, whose are simple yaml files
 (More info on https://github.com/manatlan/reqman4) """
-    return reqman(**p)
+    files = [f for f in p["files"] if not f.startswith("--")]
+    switchs = [f[2:] for f in p["files"] if f.startswith("--")]
+    p["switch"] = switchs[0] if switchs else None
+    return reqman(ctx,**p)
 
-def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_debug:bool=False,is_view:bool=False,is_shebang:bool=False,open_browser:bool=False,compatibility:bool=False,comp_convert:bool=False) -> int:
+def reqman(ctx, files:list,vars:str="",show_env:bool=False,is_debug:bool=False,is_view:bool=False,is_shebang:bool=False,open_browser:bool=False,compatibility:bool=False,comp_convert:bool=False,need_help:bool=False,switch:str|None=None) -> int:
+
+
+    files = list(chain.from_iterable([glob.glob(i,recursive=True) for i in files]))
+
     if compatibility:
         comp_mode=1
     elif comp_convert:
@@ -288,6 +302,13 @@ def reqman(files:list,switch:str|None=None,vars:str="",show_env:bool=False,is_de
 
     try:
         r = ExecutionTests( files,switch,dvars, is_debug, comp_mode)
+        if need_help:
+            click.echo(ctx.get_help())
+            if r.env and r.env.switchs:
+                for k,v in r.env.switchs.items():
+                    click.echo(f"  --{k}      {v.get('doc','??')}")
+            return 0
+
         if is_view:
             r.view()
             return 0
