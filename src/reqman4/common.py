@@ -29,6 +29,17 @@ def yload(y):
     else:
         raise Exception("????")
         
+class Conf(dict):
+    """ Manage Configuration dict, with support for --switch keys """
+    def __init__(self, conf:dict):
+        self.switchs = {k[2:]:v for k,v in conf.items() if k.startswith("--")}
+        assert all(isinstance(v,dict) for k,v in self.switchs.items()), "all switch values must be dict"
+        super().__init__({k:v for k,v in conf.items() if not k.startswith("--")})
+    def apply(self, *switchs:str) -> "Conf":
+        for s in switchs:
+            eswitch = self.switchs.get(s)
+            if eswitch: self.update( eswitch )
+        return self
 
 
 
