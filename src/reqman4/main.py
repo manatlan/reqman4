@@ -118,6 +118,18 @@ class ExecutionTests:
             print(cy(f"Using {os.path.relpath(reqman_conf)}"))
             conf = common.load_reqman_conf(reqman_conf)
 
+            #TODO: here will be "conf=Conf(conf).apply(switch)"
+            #TODO: here will be "conf=Conf(conf).apply(switch)"
+            #TODO: here will be "conf=Conf(conf).apply(switch)"
+            #TODO: here will be "conf=Conf(conf).apply(switch)"
+            #TODO: here will be "conf=Conf(conf).apply(switch)"
+            #TODO: here will be "conf=Conf(conf).apply(switch)"
+            #TODO: here will be "conf=Conf(conf).apply(switch)"
+            #TODO: here will be "conf=Conf(conf).apply(switch)"
+            #TODO: here will be "conf=Conf(conf).apply(switch)"
+            #TODO: here will be "conf=Conf(conf).apply(switch)"
+            #TODO: here will be "conf=Conf(conf).apply(switch)"
+
         # update with vars from command line
         conf.update(vars)
 
@@ -143,19 +155,19 @@ class ExecutionTests:
         self._switch = switch
 
 
-    def view(self):
-        for f in self.files:
-            print(cb(f"Analyse {f}"))
-            s=scenario.Scenario(f, self.compatibility)
-            s.compile(self.env,update=False)
-            if "BEGIN" in self.env:
-                print("BEGIN", scenario.StepCall(s, {scenario.OP.CALL:"BEGIN"}, self.env) )
+    # def view(self):
+    #     for f in self.files:
+    #         print(cb(f"Analyse {f}"))
+    #         s=scenario.Scenario(f, self.compatibility)
+    #         s.compile(self.env,update=False)
+    #         if "BEGIN" in self.env:
+    #             print("BEGIN", scenario.StepCall(s, {scenario.OP.CALL:"BEGIN"}, self.env) )
 
-            for i in s:
-                print(i)
+    #         for i in s:
+    #             print(i)
 
-            if "END" in self.env:
-                print("END", scenario.StepCall(s, {scenario.OP.CALL:"END"}, self.env) )
+    #         if "END" in self.env:
+    #             print("END", scenario.StepCall(s, {scenario.OP.CALL:"END"}, self.env) )
 
     async def execute(self) -> Output:
         """ Run all tests in files, return number of failed tests """
@@ -199,7 +211,7 @@ def patch_docstring(f):
 
 @cli.command(context_settings=dict(allow_extra_args=True, ignore_unknown_options=True))
 @click.argument('files', nargs=-1, required=True ) #help="Scenarios yml/rml (local or http)"
-@click.option('-v',"is_view",is_flag=True,default=False,help="Analyze only, do not execute requests")
+# @click.option('-v',"is_view",is_flag=True,default=False,help="Analyze only, do not execute requests")
 @click.option('-d',"is_debug",is_flag=True,default=False,help="debug mode")
 @click.option('-e',"show_env",is_flag=True,default=False,help="Display final environment")
 @click.option('-s',"vars",help="Set variables (ex: -s token=DEADBEAF,id=42)")
