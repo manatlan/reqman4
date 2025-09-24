@@ -126,7 +126,9 @@ class ExecutionTests:
         if len(self.files)==1:
             # just load to get switches in self.env
             logger.debug("Import conf from solo file '%s'",self.files[0])
-            scenario.Scenario(self.files[0], self.env, compatibility) #TODO: do better here
+            s=scenario.Scenario(self.files[0], compatibility) #TODO: do better here
+            s.compile( self.env, update=True)
+
 
         # apply the switch
         if switch:
@@ -144,16 +146,16 @@ class ExecutionTests:
     def view(self):
         for f in self.files:
             print(cb(f"Analyse {f}"))
-            s=scenario.Scenario(f, self.env, self.compatibility,update=False)
-
+            s=scenario.Scenario(f, self.compatibility)
+            s.compile(self.env,update=False)
             if "BEGIN" in self.env:
-                print("BEGIN", scenario.StepCall(s, {scenario.OP.CALL:"BEGIN"}) )
+                print("BEGIN", scenario.StepCall(s, {scenario.OP.CALL:"BEGIN"}, self.env) )
 
             for i in s:
                 print(i)
 
             if "END" in self.env:
-                print("END", scenario.StepCall(s, {scenario.OP.CALL:"END"}) )
+                print("END", scenario.StepCall(s, {scenario.OP.CALL:"END"}, self.env) )
 
     async def execute(self) -> Output:
         """ Run all tests in files, return number of failed tests """
@@ -163,10 +165,11 @@ class ExecutionTests:
             output.begin_scenario(file)
 
             try:
-                scenar = scenario.Scenario(file, self.env, self.compatibility, update=False)
-                async for req in scenar.execute(with_begin=(file == self.files[0]), with_end=(file == self.files[-1])):
+                scenar = scenario.Scenario(file, self.compatibility)
+                scenar.compile( self.env, update=False)
+                async for req in scenar.execute(self.env,with_begin=(file == self.files[0]), with_end=(file == self.files[-1])):
                     output.write_a_test(req)
-                self.env = scenar.env  # needed !
+                # self.env = scenar.env  # needed !
             except common.RqException as ex:
                 if self.is_debug:
                     traceback.print_exc()

@@ -46,7 +46,7 @@ class Step:
 
 
 class StepCall(Step):
-    def __init__(self, scenario: "Scenario", step: dict, params:list|str|None=None, line:int|None=None):
+    def __init__(self, scenario: "Scenario", step: dict, env:env.Env, params:list|str|None=None, line:int|None=None):
         self.line = line
         self.scenario = scenario
         self.params = params
@@ -57,12 +57,12 @@ class StepCall(Step):
 
         assert_syntax( len(step.keys()) == 1, f"unknowns call'attributes: {list(step.keys())}")
         assert_syntax( isinstance(self.name, str),"CALL must be a string")
-        assert_syntax( self.name in self.scenario.env,f"CALL references unknown scenario '{self.name}'")
+        assert_syntax( self.name in env,f"CALL references unknown scenario '{self.name}'")
         
-        sub_scenar = self.scenario.env[self.name]
+        sub_scenar = env[self.name]
         assert_syntax( isinstance(sub_scenar, list),"CALL must reference a list of steps")
 
-        self.steps = self.scenario._feed( sub_scenar )
+        self.steps = self.scenario._feed( env, sub_scenar )
 
     async def process(self,e:env.Env) -> AsyncGenerator:
 
@@ -113,29 +113,29 @@ class StepHttp(Step):
         assert_syntax(all( isinstance(t,str) for t in self.tests ),"tests must be a list of strings")
 
 
-    def _prepare_request(self, e: env.Env) -> tuple:
-        url = e.substitute(self.url)
-        root = e.get("root", "")
+    def _prepare_request(self, env: env.Env) -> tuple:
+        url = env.substitute(self.url)
+        root = env.get("root", "")
         if root and url.startswith("/"):
             url = root + url
         assert_syntax(url.startswith("http"), f"url must start with http, found {url}")
 
-        headers = self.scenario.env.get("headers", {}) or {}
+        headers = env.get("headers", {}) or {}
         headers.update(self.headers)
-        headers = e.substitute_in_object(headers)
+        headers = env.substitute_in_object(headers)
         # httpx requires header values to be strings, so convert them all
         headers = {k: str(v) for k, v in headers.items()}
 
         body = self.body
         if body:
             if isinstance(body, str):
-                body = e.substitute(body)
+                body = env.substitute(body)
             elif isinstance(body, (dict, list)):
-                body = e.substitute_in_object(body)
+                body = env.substitute_in_object(body)
 
         return url, headers, body
 
-    async def _execute_request(self, e: env.Env, url: str, headers: dict, body: Any) -> httpx.Response:
+    async def _execute_request(self, env: env.Env, url: str, headers: dict, body: Any) -> httpx.Response:
         #print(f"Executing request: method={self.method}, url={url}, headers={headers}, body={body}")
         start = time.time()
         response = await ehttp.call(
@@ -143,18 +143,18 @@ class StepHttp(Step):
             url,
             body,
             headers=httpx.Headers(headers),
-            proxy=e.get("proxy", None),
-            timeout=e.get("timeout", 60_000) or 60_000,  # 60 sec
+            proxy=env.get("proxy", None),
+            timeout=env.get("timeout", 60_000) or 60_000,  # 60 sec
         )
         diff_ms = round((time.time() - start) * 1000)
-        e.set_R_response(response, diff_ms)
+        env.set_R_response(response, diff_ms)
         return response
 
-    def _process_response(self, e: env.Env, response: httpx.Response) -> common.Result:
+    def _process_response(self, enw: env.Env, response: httpx.Response) -> common.Result:
         results = []
         for t in self.tests:
             try:
-                ok, dico = e.eval(t, with_context=True)
+                ok, dico = enw.eval(t, with_context=True)
                 context = "Variables:\n"
                 for k, v in dico.items():
                     context += f"  {k}: {env.jzon_dumps(v, indent=None)}\n"
@@ -163,7 +163,7 @@ class StepHttp(Step):
                 logger.error(f"Can't eval test [{t}] : {ex}")
                 results.append(common.TestResult(None, t, f"ERROR: {ex}"))
 
-        doc = e.substitute(self.doc, raise_error=False)
+        doc = enw.substitute(self.doc, raise_error=False)
         return common.Result(response.request, response, results, doc=doc)
 
     async def process(self, e: env.Env) -> AsyncGenerator:
@@ -205,8 +205,7 @@ class StepSet(Step):
 
 
 class Scenario(list):
-    def __init__(self, file_path: str, e:env.Env, is_compatibility:int=0,update=True):
-        self.env = e
+    def __init__(self, file_path: str, is_compatibility:int=0):
 
         if file_path.startswith("http"):
             try:
@@ -228,12 +227,14 @@ class Scenario(list):
         except Exception as ex:
             raise common.RqException(f"[{file_path}] [Bad syntax] [{ex}]")
 
+    def compile(self,env:env.Env, update:bool):
         if update:
-            self.env.update( self.ys._conf ) # this override a reqman.conf env !
-        self.extend( self._feed( self.ys._steps ) )
+            env.update( self.ys._conf ) # this override a reqman.conf env !
+        self.extend( self._feed( env, self.ys._steps ) )
 
 
-    def _feed(self, liste:list[dict]) -> list[Step]:
+
+    def _feed(self, env:env.Env, liste:list[dict]) -> list[Step]:
         try:
             step=None
             assert_syntax(isinstance(liste, list),"RUN must be a list")
@@ -254,7 +255,7 @@ class Scenario(list):
                     ll.append( StepSet( self, step, line ) )
                 else:
                     if OP.CALL in step:
-                        ll.append( StepCall( self, step, params, line ) )
+                        ll.append( StepCall( self, step, env, params, line ) )
                     else:
                         if set(step.keys()) & ehttp.KNOWNVERBS:
                             ll.append( StepHttp( self, step, params, line ) )
@@ -269,24 +270,24 @@ class Scenario(list):
     def __repr__(self):
         return super().__repr__()
     
-    async def execute(self,with_begin:bool=False,with_end:bool=False) -> AsyncGenerator:
+    async def execute(self,env,with_begin:bool=False,with_end:bool=False) -> AsyncGenerator:
         step=None
         try:
 
-            if with_begin and self.env.get("BEGIN"):
+            if with_begin and env.get("BEGIN"):
                 logger.debug("Execute BEGIN statement")
-                async for i in StepCall(self, {OP.CALL:"BEGIN"}).process(self.env):
+                async for i in StepCall(self, {OP.CALL:"BEGIN"}, env).process(env):
                     yield i
 
 
             for step in self:
                 logger.debug("Execute STEP %s",step)
-                async for i in step.process(self.env):
+                async for i in step.process(env):
                     yield i
 
-            if with_end and self.env.get("END"):
+            if with_end and env.get("END"):
                 logger.debug("Execute END statement")
-                async for i in StepCall(self, {OP.CALL:"END"} ).process(self.env):
+                async for i in StepCall(self, {OP.CALL:"END"}, env ).process(env):
                     yield i
 
         except Exception as ex:
