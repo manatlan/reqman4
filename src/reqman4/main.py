@@ -113,10 +113,10 @@ class ExecutionTests:
         # init the conf
         reqman_conf = common.guess_reqman_conf(self.files)
         if reqman_conf is None:
-            conf = {}
+            conf = common.Conf({})
         else:
             print(cy(f"Using {os.path.relpath(reqman_conf)}"))
-            conf = common.load_reqman_conf(reqman_conf)
+            conf = common.Conf(common.load_reqman_conf(reqman_conf))
 
             #TODO: here will be "conf=Conf(conf).apply(switch)"
             #TODO: here will be "conf=Conf(conf).apply(switch)"
@@ -154,6 +154,12 @@ class ExecutionTests:
             self.env.update( self.env.switchs[switch] )
         self._switch = switch
 
+    @property
+    def switchs(self) -> dict:
+        if self.env:
+            return self.env.switchs
+        else:
+            return {}
 
     # def view(self):
     #     for f in self.files:
@@ -270,9 +276,8 @@ def reqman(ctx, files:list,vars:str="",show_env:bool=False,is_debug:bool=False,i
         r = ExecutionTests( files,switch,dvars, is_debug, comp_mode)
         if need_help:
             click.echo(ctx.get_help())
-            if r.env and r.env.switchs:
-                for k,v in r.env.switchs.items():
-                    click.echo(f"  --{k}      {v.get('doc','??')}")
+            for k,v in r.switch.items():
+                click.echo(f"  --{k}      {v.get('doc','??')}")
             return 0
 
         if is_view:
