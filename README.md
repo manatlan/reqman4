@@ -18,9 +18,9 @@ Major differences :
 - use httpx !
 - options are inverted (--i -> -i & (switch) -dev --> --dev)
 - step operator is always in uppercase (SET, CALL, 'VERB-HTTP' ).
-- one SWITCH param only (may change)
-- reqman.conf -> reqman.yml
-- scenars(yml/rml) & reqman.yml are yaml/dict only !
+- reqman.conf -> reqman.yml, renamed !
+- switch mechanism based on "--key" in reqman.yml / scenars
+- scenars(*.yml) & reqman.yml are yaml/dict only !
 - scenars must(/can for compat) have a "RUN:" section (others keys are the global env)
 - tests are simple python statements
 - no break!

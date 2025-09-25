@@ -69,7 +69,7 @@ class Result:
     doc: str = ""
 
 
-def find_scenarios(path_folder: str, filters=(".yml", ".rml")):
+def find_scenarios(path_folder: str, filters=(".yml",)):
     for folder, subs, files in os.walk(path_folder):
         if (folder in [".", ".."]) or ( not os.path.basename(folder).startswith((".", "_"))):
             for filename in files:
