@@ -145,7 +145,7 @@ class YScenario:
             self._conf,self._steps=FIX_SCENAR(self._conf,self._steps)
             if compatibility>1:
                 self.save()
-
+        self.conf = Conf( self._conf )
 
 
     def save(self): #TODO: continue here

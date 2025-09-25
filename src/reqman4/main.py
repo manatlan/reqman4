@@ -43,7 +43,7 @@ cw = lambda t: colorize(Fore.WHITE, t)
 
 
 class Output:
-    def __init__(self,switchs:list):
+    def __init__(self,switchs:tuple):
         self.switchs = switchs
         self.nb_tests=0
         self.nb_tests_ok=0
@@ -113,41 +113,27 @@ class ExecutionTests:
         # init the conf
         reqman_conf = common.guess_reqman_conf(self.files)
         if reqman_conf is None:
-            conf = common.Conf({})
+            self.conf_global = common.Conf({})
         else:
             print(cy(f"Using {os.path.relpath(reqman_conf)}"))
-            conf = common.Conf(common.load_reqman_conf(reqman_conf))
+            self.conf_global = common.Conf(common.load_reqman_conf(reqman_conf))
 
         # init with the switchs from conf
-        self._switchs = conf.switchs
+        self.switchs = self.conf_global.switchs
 
         # update with vars from command line
-        conf.update(vars)
+        self.conf_global.update(vars)
 
-        self.env = env.Env( **conf )
+        self.env = env.Env( **self.conf_global )
 
+
+        self.scenarios=[]
         # merge the switchs from others files
         for f in self.files:
             s=scenario.Scenario(f, compatibility)
-            self._switchs.update(common.Conf(s.ys._conf).switchs)
+            self.switchs.update( s.ys.conf.switchs )
+            self.scenarios.append(s)
 
-        # if len(self.files)==1:
-        #     # just load to get switches in self.env
-        #     logger.debug("Import conf from solo file '%s'",self.files[0])
-        #     s=scenario.Scenario(self.files[0], compatibility) #TODO: do better here
-        #     s.compile( self.env, update=True)
-
-
-        # apply the switch
-        # if switch:
-        #     common.assert_syntax(switch in self.env.switchs.keys(), f"Unknown switch '{switch}'")
-        #     logger.debug("Apply switch %s <- %s",switch,self.env.switchs[switch])
-        #     self.env.update( self.env.switchs[switch] )
-        # self._switch = switch
-
-    @property
-    def switchs(self) -> dict:
-        return self._switchs
 
     # def view(self):
     #     for f in self.files:
@@ -167,13 +153,12 @@ class ExecutionTests:
         """ Run all tests in files, return number of failed tests """
         output = Output(switchs)
 
-        for file in self.files:
-            output.begin_scenario(file)
+        for idx,scenar in enumerate(self.scenarios):
+            output.begin_scenario(scenar.file_path)
 
             try:
-                scenar = scenario.Scenario(file, self.compatibility)
                 scenar.compile( self.env, update=False)
-                async for req in scenar.execute(self.env,with_begin=(file == self.files[0]), with_end=(file == self.files[-1])):
+                async for req in scenar.execute( self.env, with_begin=(idx==0), with_end=(idx==len(self.scenarios)) ):
                     output.write_a_test(req)
                 # self.env = scenar.env  # needed !
             except common.RqException as ex:

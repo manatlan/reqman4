@@ -227,6 +227,10 @@ class Scenario(list):
         except Exception as ex:
             raise common.RqException(f"[{file_path}] [Bad syntax] [{ex}]")
 
+    @property
+    def conf(self) -> common.Conf:
+        return self.ys.conf
+
     def compile(self,env:env.Env, update:bool):
         if update:
             env.update( self.ys._conf ) # this override a reqman.yml env !
