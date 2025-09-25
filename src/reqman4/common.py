@@ -6,14 +6,15 @@
 #
 # https://github.com/manatlan/reqman4
 # #############################################################################
-import os,io,sys
+import os
+import io
 import httpx
 from dataclasses import dataclass
 import datetime
 from . import compat
 FIX_SCENAR = compat.fix_scenar
 
-REQMAN_CONF='reqman.conf'
+REQMAN_CONF='reqman.yml'
 
 import ruamel.yaml
 from ruamel.yaml.comments import CommentedMap as YDict,CommentedSeq as YList
@@ -69,7 +70,7 @@ class Result:
     doc: str = ""
 
 
-def find_scenarios(path_folder: str, filters=(".yml", ".rml")):
+def find_scenarios(path_folder: str, filters=(".yml",)):
     for folder, subs, files in os.walk(path_folder):
         if (folder in [".", ".."]) or ( not os.path.basename(folder).startswith((".", "_"))):
             for filename in files:
@@ -103,7 +104,7 @@ def guess_reqman_conf(paths:list[str]) -> str|None:
 
 def load_reqman_conf(path:str) -> dict:
     conf = yload( open(path, 'r') )
-    assert_syntax( isinstance(conf, dict) , "reqman.conf must be a mapping")
+    assert_syntax( isinstance(conf, dict) , "reqman.yml must be a mapping")
     return conf
 
 def get_url_content(url:str) -> str:
@@ -145,7 +146,7 @@ class YScenario:
             self._conf,self._steps=FIX_SCENAR(self._conf,self._steps)
             if compatibility>1:
                 self.save()
-
+        self.conf = Conf( self._conf )
 
 
     def save(self): #TODO: continue here

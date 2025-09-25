@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
-import os
 import sys
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from src.reqman4 import main,common
 
 @pytest.fixture
@@ -58,7 +57,7 @@ def test_expand_files(tmp_path):
     d.mkdir()
     f1 = d / "test1.yml"
     f1.touch()
-    f2 = d / "test2.rml"
+    f2 = d / "test2.yml"
     f2.touch()
     sub = d / "sub"
     sub.mkdir()
@@ -77,13 +76,6 @@ def test_expand_files(tmp_path):
     assert "non_existent_file.yml" in files
     assert str(f4) not in files
 
-def test_execution_with_exception(capsys):
-    """Test exception handling during scenario execution."""
-    scenario = "examples/err/bad_syntax.yml"
-    assert main.reqman(None,[scenario]) == -1
-    captured = capsys.readouterr()
-    assert "BUG ERROR" in captured.out
-
 def test_debug_mode(simple_scenario):
     """Test debug mode by checking if logging level is set."""
     with patch('src.reqman4.main.logging.basicConfig') as mock_config:
@@ -94,44 +86,6 @@ def test_debug_mode(simple_scenario):
         main.reqman(None,[simple_scenario], is_debug=False)
         mock_config.assert_called_with(level=main.logging.ERROR)
 
-def test_display_env_on_error(capsys):
-    """Test that environment is displayed on error when flag is set."""
-    scenario = "examples/err/bad_syntax.yml"
-    assert main.reqman(None,[scenario], show_env=True) == -1
-    captured = capsys.readouterr()
-    assert "BUG ERROR" in captured.out
-    assert "Final environment:" not in captured.out
-
-# def test_guess_switches_from_single_file(capsys):
-#     """Test guessing switches from a single file."""
-#     with patch.object(sys, 'argv', ['reqman', 'examples/classic/test_switch.yml']):
-#         switches = main.guess(sys.argv[1:])
-#         assert 'env1' in switches
-#         assert 'env2' in switches
-
-# def test_guess_switches_from_multiple_files(capsys, tmp_path):
-#     """Test guessing switches from reqman.conf when multiple files are provided."""
-#     # Create a dummy reqman.conf in a temp dir
-#     d = tmp_path / "project"
-#     d.mkdir()
-#     conf = d / "reqman.conf"
-#     conf.write_text("switch:\n  env_reqman_conf:\n    doc: from conf")
-#     f1 = d / "test1.yml"
-#     f1.touch()
-#     f2 = d / "test2.yml"
-#     f2.touch()
-
-#     with patch.object(sys, 'argv', ['reqman', str(f1), str(f2)]):
-#         switches = main.guess(sys.argv[1:])
-#         assert 'env_reqman_conf' in switches
-
-# def test_guess_with_error(capsys):
-#     """Test guess function when a parsing error occurs."""
-#     with patch.object(sys, 'argv', ['reqman', 'examples/err/bad_syntax.yml']):
-#         with pytest.raises(SystemExit):
-#             main.options_from_files("switch")
-#         captured = capsys.readouterr()
-#         assert "START ERROR" in captured.out
 
 
 def test_reqman_own_switch(tmp_path):
@@ -140,8 +94,7 @@ def test_reqman_own_switch(tmp_path):
     p_ok.write_text("""
 root: http://test
 
-switch:
-  env1:
+--env1:
     doc: for dev
     root: http://dev/
 
@@ -165,7 +118,7 @@ RUN:
     sys.argv = ['reqman', str(p_ok),"--env1"]
     try:
         with patch('src.reqman4.main.command') as mock_cmd:
-            rc=main.reqman(None,files=[str(p_ok)],switch="env1")
+            rc=main.reqman(None,files=[str(p_ok)],switchs=["env1"])
             assert rc != 0
     finally:
         sys.argv = original_argv

@@ -6,7 +6,8 @@
 #
 # https://github.com/manatlan/reqman4
 # #############################################################################
-import logging,ast
+import logging
+import ast
 from types import CodeType
 
 # reqman imports

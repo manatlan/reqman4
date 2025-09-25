@@ -1,4 +1,3 @@
-import pytest
 from src.reqman4.env import Env, _convert, MyList,jzon_dumps,httpx
 
 def test_jzon_dumps():

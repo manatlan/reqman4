@@ -15,7 +15,7 @@ Special keys :
  * proxy: <string>          # default None
  * timeout: <milliseconds>  # default 60_000 ms
  * root: <string>           # default None
- * switch: <dict/mapping>   # default {}
+ * --<switch>: <dict/mapping>   # default {}
  * headers: <dict/mapping>   # default {}
  * BEGIN: <list>
  * END: <list>

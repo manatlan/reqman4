@@ -43,8 +43,8 @@ cw = lambda t: colorize(Fore.WHITE, t)
 
 
 class Output:
-    def __init__(self,switch:str|None):
-        self.switch = switch
+    def __init__(self,switchs:tuple):
+        self.switchs = switchs
         self.nb_tests=0
         self.nb_tests_ok=0
         self.nb_req=0
@@ -82,7 +82,7 @@ class Output:
         pass
 
     def end_tests(self):
-        self.htmls.append( output.generate_final( self.switch, self.nb_tests_ok, self.nb_tests) )
+        self.htmls.append( output.generate_final( self.switchs, self.nb_tests_ok, self.nb_tests) )
 
         if self.error:
             print(cr(f"SCENARIO ERROR: {self.error}"))
@@ -105,89 +105,55 @@ class Output:
 
 
 class ExecutionTests:
-    def __init__(self,files:list,switch:str|None=None,vars:dict={},is_debug=False, compatibility:int=0):
+    def __init__(self,files:list,vars:dict={},is_debug=False, compatibility:int=0):
         self.files=common.expand_files(files)
         self.is_debug=is_debug
-        self.compatibility=compatibility
+        self.env=None
 
         # init the conf
         reqman_conf = common.guess_reqman_conf(self.files)
         if reqman_conf is None:
-            conf = common.Conf({})
+            self.conf_global = common.Conf({})
         else:
             print(cy(f"Using {os.path.relpath(reqman_conf)}"))
-            conf = common.Conf(common.load_reqman_conf(reqman_conf))
+            self.conf_global = common.Conf(common.load_reqman_conf(reqman_conf))
 
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
+        # init with the switchs from conf
+        self.switchs = self.conf_global.switchs
 
         # update with vars from command line
-        conf.update(vars)
-
-        self.env = env.Env( **conf )
-
-        if len(self.files)==1:
-            # just load to get switches in self.env
-            logger.debug("Import conf from solo file '%s'",self.files[0])
-            s=scenario.Scenario(self.files[0], compatibility) #TODO: do better here
-            s.compile( self.env, update=True)
+        self.conf_global.update(vars)
 
 
-        # apply the switch
-        if switch:
-            # # First, load all scenarios to get all possible switches
-            # for file in self.files:
-            #     # just load to get switches in self.env
-            #     scenario.Scenario(file, self.env, compatibility)
+        self.scenarios=[]
+        # merge the switchs from others files
+        for f in self.files:
+            s=scenario.Scenario(f, compatibility)
+            self.switchs.update( s._ys.conf.switchs )
+            self.scenarios.append(s)
 
-            common.assert_syntax(switch in self.env.switchs.keys(), f"Unknown switch '{switch}'")
-            logger.debug("Apply switch %s <- %s",switch,self.env.switchs[switch])
-            self.env.update( self.env.switchs[switch] )
-        self._switch = switch
 
-    @property
-    def switchs(self) -> dict:
-        if self.env:
-            return self.env.switchs
-        else:
-            return {}
 
-    # def view(self):
-    #     for f in self.files:
-    #         print(cb(f"Analyse {f}"))
-    #         s=scenario.Scenario(f, self.compatibility)
-    #         s.compile(self.env,update=False)
-    #         if "BEGIN" in self.env:
-    #             print("BEGIN", scenario.StepCall(s, {scenario.OP.CALL:"BEGIN"}, self.env) )
+    async def execute(self,*switchs) -> Output:
+        """ Run all tests in files """
 
-    #         for i in s:
-    #             print(i)
+        # apply switchs for global conf (aka reqman_conf)
+        self.conf_global.apply(*switchs)
 
-    #         if "END" in self.env:
-    #             print("END", scenario.StepCall(s, {scenario.OP.CALL:"END"}, self.env) )
+        # create the real env
+        self.env = env.Env( **self.conf_global )
 
-    async def execute(self) -> Output:
-        """ Run all tests in files, return number of failed tests """
-        output = Output(self._switch)
+        output = Output(switchs)
 
-        for file in self.files:
-            output.begin_scenario(file)
+        for idx,scenar in enumerate(self.scenarios):
+            output.begin_scenario(scenar.file_path)
 
+            # update conf of scenar into env
+            self.env.update( scenar.conf.apply(*switchs) )
+    
             try:
-                scenar = scenario.Scenario(file, self.compatibility)
-                scenar.compile( self.env, update=False)
-                async for req in scenar.execute(self.env,with_begin=(file == self.files[0]), with_end=(file == self.files[-1])):
+                async for req in scenar.execute( self.env, with_begin=(idx==0), with_end=(idx==len(self.scenarios)) ):
                     output.write_a_test(req)
-                # self.env = scenar.env  # needed !
             except common.RqException as ex:
                 if self.is_debug:
                     traceback.print_exc()
@@ -217,7 +183,6 @@ def patch_docstring(f):
 
 @cli.command(context_settings=dict(allow_extra_args=True, ignore_unknown_options=True))
 @click.argument('files', nargs=-1, required=True ) #help="Scenarios yml/rml (local or http)"
-# @click.option('-v',"is_view",is_flag=True,default=False,help="Analyze only, do not execute requests")
 @click.option('-d',"is_debug",is_flag=True,default=False,help="debug mode")
 @click.option('-e',"show_env",is_flag=True,default=False,help="Display final environment")
 @click.option('-s',"vars",help="Set variables (ex: -s token=DEADBEAF,id=42)")
@@ -234,11 +199,11 @@ def command(ctx,**p):
     """Test an http service with pre-made scenarios, whose are simple yaml files
 (More info on https://github.com/manatlan/reqman4) """
     files = [f for f in p["files"] if not f.startswith("--")]
-    switchs = [f[2:] for f in p["files"] if f.startswith("--")]
-    p["switch"] = switchs[0] if switchs else None
-    return reqman(ctx,**p)
+    p["switchs"] = [f[2:] for f in p["files"] if f.startswith("--")]
+    p["files"] = files
+    sys.exit( reqman(ctx,**p) )
 
-def reqman(ctx, files:list,vars:str="",show_env:bool=False,is_debug:bool=False,is_view:bool=False,is_shebang:bool=False,open_browser:bool=False,compatibility:bool=False,comp_convert:bool=False,need_help:bool=False,switch:str|None=None) -> int:
+def reqman(ctx, files:list,vars:str="",show_env:bool=False,is_debug:bool=False,is_shebang:bool=False,open_browser:bool=False,compatibility:bool=False,comp_convert:bool=False,need_help:bool=False,switchs:list=[]) -> int:
 
 
     files = list(chain.from_iterable([glob.glob(i,recursive=True) for i in files]))
@@ -273,32 +238,27 @@ def reqman(ctx, files:list,vars:str="",show_env:bool=False,is_debug:bool=False,i
         logging.basicConfig(level=logging.ERROR)
 
     try:
-        r = ExecutionTests( files,switch,dvars, is_debug, comp_mode)
+        r = ExecutionTests( files,dvars, is_debug, comp_mode)
         if need_help:
             click.echo(ctx.get_help())
-            for k,v in r.switch.items():
+            for k,v in r.switchs.items():
                 click.echo(f"  --{k}      {v.get('doc','??')}")
             return 0
+        o = asyncio.run(r.execute(*switchs))
 
-        if is_view:
-            r.view()
-            return 0
+        if show_env:
+            print(cy("Final environment:"))
+            print(r.env)
+
+        if o.error:
+            rc = -1
         else:
-            o = asyncio.run(r.execute())
+            rc = o.nb_tests_ko
 
-            if show_env:
-                print(cy("Final environment:"))
-                print(r.env)
+        if open_browser:
+            o.open_browser()
 
-            if o.error:
-                rc = -1
-            else:
-                rc = o.nb_tests_ko
-
-            if open_browser:
-                o.open_browser()
-
-            return rc
+        return rc
 
     except Exception as ex:
         # everything that happen here is an real bug/error

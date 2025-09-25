@@ -6,8 +6,10 @@
 #
 # https://github.com/manatlan/reqman4
 # #############################################################################
-import re,os
-import httpx,json
+import re
+import os
+import httpx
+import json
 import ast
 from typing import Any
 from dataclasses import dataclass
@@ -183,7 +185,7 @@ class Env:
             else:
                 try:
                     val = self.eval(expr)
-                except Exception as e:
+                except Exception:
                     #val = f"***ERROR: {e}***"
                     val = l # return the original <<expr>>
             logger.debug(f"SUBSTITUTE {l} by {val} ({type(val)})")

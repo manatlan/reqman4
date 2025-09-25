@@ -9,12 +9,11 @@ def setup_test_env(tmp_path):
     # Create classic folder
     classic_path = tmp_path / "classic"
     classic_path.mkdir()
-    (classic_path / "reqman.conf").write_text("""
-switch:
-    env1:
-        root: http://classic-env1
-    env2:
-        root: http://classic-env2
+    (classic_path / "reqman.yml").write_text("""
+--env1:
+      root: http://classic-env1
+--env2:
+      root: http://classic-env2
 BEGIN:
     - GET: /begin
       tests:
@@ -34,11 +33,10 @@ RUN:
     # Create mixed folder
     mixed_path = tmp_path / "mixed"
     mixed_path.mkdir()
-    (mixed_path / "reqman.conf").write_text("""
-switch:
-    env1:
+    (mixed_path / "reqman.yml").write_text("""
+--env1:
         root: http://mixed-env1
-    env2:
+--env2:
         root: http://mixed-env2
 """)
     (mixed_path / "scenario.yml").write_text("""
@@ -98,8 +96,8 @@ async def test_switch_combinations(setup_test_env):
 
     classic_scenario = tmp_path / "classic" / "scenario.yml"
     os.chdir(tmp_path / "classic")
-    r = main.ExecutionTests([str(classic_scenario)], switch="env2")
-    o = await r.execute()
+    r = main.ExecutionTests([str(classic_scenario)])
+    o = await r.execute("env2")
     assert o.nb_tests_ko == 0
 
     # Mixed case
@@ -109,8 +107,8 @@ async def test_switch_combinations(setup_test_env):
 
     mixed_scenario = tmp_path / "mixed" / "scenario.yml"
     os.chdir(tmp_path / "mixed")
-    r = main.ExecutionTests([str(mixed_scenario)], switch="env2")
-    o = await r.execute()
+    r = main.ExecutionTests([str(mixed_scenario)])
+    o = await r.execute("env2")
     assert o.nb_tests_ko == 0
 
     # Single case
@@ -120,6 +118,6 @@ async def test_switch_combinations(setup_test_env):
 
     single_scenario = tmp_path / "single" / "scenario.yml"
     os.chdir(tmp_path / "single")
-    r = main.ExecutionTests([str(single_scenario)], switch="env2")
-    o = await r.execute()
+    r = main.ExecutionTests([str(single_scenario)])
+    o = await r.execute("env2")
     assert o.nb_tests_ko == 0

@@ -7,8 +7,7 @@ import respx
 async def test_standalone_switch(tmp_path):
     # Create a scenario file with its own switch
     scenario_content = """
-switch:
-    dev:
+--dev:
         root: http://localhost:8080
 RUN:
     - GET: /test
@@ -22,6 +21,6 @@ RUN:
     respx.get("http://localhost:8080/test").respond(200, text="OK")
 
     # Run reqman with the standalone scenario and the dev switch
-    r = main.ExecutionTests([str(scenario_file)], switch="dev")
-    o = await r.execute()
+    r = main.ExecutionTests([str(scenario_file)])
+    o = await r.execute("dev")
     assert o.nb_tests_ko == 0

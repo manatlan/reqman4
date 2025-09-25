@@ -1,15 +1,14 @@
 root: http://test
 
-switch:
-  env1:
+--env1:
     doc: for dev
     root: http://dev/
 
-  env2:
+--env2:
     doc: for verification
     root: http://verification/
 
-  env3:
+--env3:
     doc: for validation
     root: http://validation/
 

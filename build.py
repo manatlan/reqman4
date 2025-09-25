@@ -6,7 +6,12 @@
 #
 # https://github.com/manatlan/RQ
 # #############################################################################
-import os,sys,shutil,re,subprocess,time
+import os
+import sys
+import shutil
+import re
+import subprocess
+import time
 
 ########################################################################
 def DO_WINDOWS( version:str ):

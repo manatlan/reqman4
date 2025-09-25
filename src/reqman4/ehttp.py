@@ -57,7 +57,7 @@ class ResponseUnreachable(_ResponseError_):
 
 class ResponseInvalid(_ResponseError_):
     def __init__(self):
-        _ResponseError_.__init__(self,f"Invalid url")
+        _ResponseError_.__init__(self,"Invalid url")
 
 async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = httpx.Headers(), timeout:int=60_000, proxy:str|None=None) -> httpx.Response:
     logger.debug(f"REQUEST {method} {url} with body={body} headers={headers} timeout={timeout} proxy={proxy}")
@@ -150,7 +150,7 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
         except httpx.ConnectError as e:
             r = ResponseUnreachable()
             r.request = e.request
-        except (httpx.InvalidURL,httpx.UnsupportedProtocol,ValueError) as e:
+        except (httpx.InvalidURL,httpx.UnsupportedProtocol,ValueError):
             r = ResponseInvalid()
             r.request = httpx.Request(method, url, headers=headers, content=body and str(body))
 

@@ -7,7 +7,8 @@
 # https://github.com/manatlan/reqman4
 # #############################################################################
 
-import re,json
+import re
+import json
 from ruamel.yaml.comments import CommentedSeq as YList
 """
 to be able to run old reqman files with new rq4 engine

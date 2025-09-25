@@ -7,7 +7,9 @@
 # https://github.com/manatlan/reqman4
 # #############################################################################
 import logging
-import json,html,httpx
+import json
+import html
+import httpx
 from urllib.parse import unquote
 
 # reqman imports
@@ -111,7 +113,8 @@ def generate_request(r:common.Result) -> str:
 </div>
 """
 
-def generate_final(switch:str|None, nb_ok:int, nb_tests:int) -> str:
+def generate_final(switchs:list, nb_ok:int, nb_tests:int) -> str:
+    switch = ", ".join(switchs)
     title = f"<title>{switch or ''} {nb_ok}/{nb_tests}</title>"
     return f"<div class='final'>{switch+'<br>' if switch else ''}{nb_ok}/{nb_tests}</div>" + title
 
