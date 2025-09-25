@@ -105,7 +105,7 @@ class Output:
 
 
 class ExecutionTests:
-    def __init__(self,files:list,switch:str|None=None,vars:dict={},is_debug=False, compatibility:int=0):
+    def __init__(self,files:list,vars:dict={},is_debug=False, compatibility:int=0):
         self.files=common.expand_files(files)
         self.is_debug=is_debug
         self.compatibility=compatibility
@@ -118,48 +118,36 @@ class ExecutionTests:
             print(cy(f"Using {os.path.relpath(reqman_conf)}"))
             conf = common.Conf(common.load_reqman_conf(reqman_conf))
 
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
-            #TODO: here will be "conf=Conf(conf).apply(switch)"
+        # init with the switchs from conf
+        self._switchs = conf.switchs
 
         # update with vars from command line
         conf.update(vars)
 
         self.env = env.Env( **conf )
 
-        if len(self.files)==1:
-            # just load to get switches in self.env
-            logger.debug("Import conf from solo file '%s'",self.files[0])
-            s=scenario.Scenario(self.files[0], compatibility) #TODO: do better here
-            s.compile( self.env, update=True)
+        # merge the switchs from others files
+        for f in self.files:
+            s=scenario.Scenario(f, compatibility)
+            self._switchs.update(common.Conf(s.ys._conf).switchs)
+
+        # if len(self.files)==1:
+        #     # just load to get switches in self.env
+        #     logger.debug("Import conf from solo file '%s'",self.files[0])
+        #     s=scenario.Scenario(self.files[0], compatibility) #TODO: do better here
+        #     s.compile( self.env, update=True)
 
 
         # apply the switch
-        if switch:
-            # # First, load all scenarios to get all possible switches
-            # for file in self.files:
-            #     # just load to get switches in self.env
-            #     scenario.Scenario(file, self.env, compatibility)
-
-            common.assert_syntax(switch in self.env.switchs.keys(), f"Unknown switch '{switch}'")
-            logger.debug("Apply switch %s <- %s",switch,self.env.switchs[switch])
-            self.env.update( self.env.switchs[switch] )
-        self._switch = switch
+        # if switch:
+        #     common.assert_syntax(switch in self.env.switchs.keys(), f"Unknown switch '{switch}'")
+        #     logger.debug("Apply switch %s <- %s",switch,self.env.switchs[switch])
+        #     self.env.update( self.env.switchs[switch] )
+        # self._switch = switch
 
     @property
     def switchs(self) -> dict:
-        if self.env:
-            return self.env.switchs
-        else:
-            return {}
+        return self._switchs
 
     # def view(self):
     #     for f in self.files:
@@ -175,9 +163,9 @@ class ExecutionTests:
     #         if "END" in self.env:
     #             print("END", scenario.StepCall(s, {scenario.OP.CALL:"END"}, self.env) )
 
-    async def execute(self) -> Output:
+    async def execute(self,switch:str|None=None) -> Output:
         """ Run all tests in files, return number of failed tests """
-        output = Output(self._switch)
+        output = Output(switch)
 
         for file in self.files:
             output.begin_scenario(file)
@@ -273,10 +261,10 @@ def reqman(ctx, files:list,vars:str="",show_env:bool=False,is_debug:bool=False,i
         logging.basicConfig(level=logging.ERROR)
 
     try:
-        r = ExecutionTests( files,switch,dvars, is_debug, comp_mode)
+        r = ExecutionTests( files,dvars, is_debug, comp_mode)
         if need_help:
             click.echo(ctx.get_help())
-            for k,v in r.switch.items():
+            for k,v in r.switchs.items():
                 click.echo(f"  --{k}      {v.get('doc','??')}")
             return 0
 
@@ -284,7 +272,7 @@ def reqman(ctx, files:list,vars:str="",show_env:bool=False,is_debug:bool=False,i
             r.view()
             return 0
         else:
-            o = asyncio.run(r.execute())
+            o = asyncio.run(r.execute(switch))
 
             if show_env:
                 print(cy("Final environment:"))

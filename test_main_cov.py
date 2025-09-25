@@ -110,11 +110,11 @@ def test_display_env_on_error(capsys):
 #         assert 'env2' in switches
 
 # def test_guess_switches_from_multiple_files(capsys, tmp_path):
-#     """Test guessing switches from reqman.conf when multiple files are provided."""
-#     # Create a dummy reqman.conf in a temp dir
+#     """Test guessing switches from reqman.yml when multiple files are provided."""
+#     # Create a dummy reqman.yml in a temp dir
 #     d = tmp_path / "project"
 #     d.mkdir()
-#     conf = d / "reqman.conf"
+#     conf = d / "reqman.yml"
 #     conf.write_text("switch:\n  env_reqman_conf:\n    doc: from conf")
 #     f1 = d / "test1.yml"
 #     f1.touch()
@@ -140,8 +140,7 @@ def test_reqman_own_switch(tmp_path):
     p_ok.write_text("""
 root: http://test
 
-switch:
-  env1:
+--env1:
     doc: for dev
     root: http://dev/
 

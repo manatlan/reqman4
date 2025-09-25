@@ -229,7 +229,7 @@ class Scenario(list):
 
     def compile(self,env:env.Env, update:bool):
         if update:
-            env.update( self.ys._conf ) # this override a reqman.conf env !
+            env.update( self.ys._conf ) # this override a reqman.yml env !
         self.extend( self._feed( env, self.ys._steps ) )
 
 

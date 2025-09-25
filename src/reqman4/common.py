@@ -13,7 +13,7 @@ import datetime
 from . import compat
 FIX_SCENAR = compat.fix_scenar
 
-REQMAN_CONF='reqman.conf'
+REQMAN_CONF='reqman.yml'
 
 import ruamel.yaml
 from ruamel.yaml.comments import CommentedMap as YDict,CommentedSeq as YList
@@ -103,7 +103,7 @@ def guess_reqman_conf(paths:list[str]) -> str|None:
 
 def load_reqman_conf(path:str) -> dict:
     conf = yload( open(path, 'r') )
-    assert_syntax( isinstance(conf, dict) , "reqman.conf must be a mapping")
+    assert_syntax( isinstance(conf, dict) , "reqman.yml must be a mapping")
     return conf
 
 def get_url_content(url:str) -> str:

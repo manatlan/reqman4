@@ -43,7 +43,7 @@ def simulate(example_file: str,compatibility=0): #THE FUTURE for all tests
 
 
 def test_no_reqman_conf():
-    """ ensure there no reqman.conf, because it will interact with
+    """ ensure there no reqman.yml, because it will interact with
     scenarios tested in examples folder """
     assert common.guess_reqman_conf([".","examples"]) is None
 
