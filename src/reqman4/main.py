@@ -205,7 +205,6 @@ def patch_docstring(f):
 
 @cli.command(context_settings=dict(allow_extra_args=True, ignore_unknown_options=True))
 @click.argument('files', nargs=-1, required=True ) #help="Scenarios yml/rml (local or http)"
-# @click.option('-v',"is_view",is_flag=True,default=False,help="Analyze only, do not execute requests")
 @click.option('-d',"is_debug",is_flag=True,default=False,help="debug mode")
 @click.option('-e',"show_env",is_flag=True,default=False,help="Display final environment")
 @click.option('-s',"vars",help="Set variables (ex: -s token=DEADBEAF,id=42)")
@@ -225,7 +224,7 @@ def command(ctx,**p):
     switchs = [f[2:] for f in p["files"] if f.startswith("--")]
     return reqman(ctx,**p)
 
-def reqman(ctx, files:list,vars:str="",show_env:bool=False,is_debug:bool=False,is_view:bool=False,is_shebang:bool=False,open_browser:bool=False,compatibility:bool=False,comp_convert:bool=False,need_help:bool=False,switchs:list=[]) -> int:
+def reqman(ctx, files:list,vars:str="",show_env:bool=False,is_debug:bool=False,is_shebang:bool=False,open_browser:bool=False,compatibility:bool=False,comp_convert:bool=False,need_help:bool=False,switchs:list=[]) -> int:
 
 
     files = list(chain.from_iterable([glob.glob(i,recursive=True) for i in files]))
@@ -267,25 +266,21 @@ def reqman(ctx, files:list,vars:str="",show_env:bool=False,is_debug:bool=False,i
                 click.echo(f"  --{k}      {v.get('doc','??')}")
             return 0
 
-        if is_view:
-            r.view()
-            return 0
+        o = asyncio.run(r.execute(*switchs))
+
+        if show_env:
+            print(cy("Final environment:"))
+            print(r.env)
+
+        if o.error:
+            rc = -1
         else:
-            o = asyncio.run(r.execute(*switchs))
+            rc = o.nb_tests_ko
 
-            if show_env:
-                print(cy("Final environment:"))
-                print(r.env)
+        if open_browser:
+            o.open_browser()
 
-            if o.error:
-                rc = -1
-            else:
-                rc = o.nb_tests_ko
-
-            if open_browser:
-                o.open_browser()
-
-            return rc
+        return rc
 
     except Exception as ex:
         # everything that happen here is an real bug/error
