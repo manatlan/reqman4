@@ -223,20 +223,17 @@ class Scenario(list):
         list.__init__(self,[])
 
         try:
-            self.ys = common.YScenario(yml_str,is_compatibility)
+            self._ys = common.YScenario(yml_str,is_compatibility)
         except Exception as ex:
             raise common.RqException(f"[{file_path}] [Bad syntax] [{ex}]")
 
     @property
     def conf(self) -> common.Conf:
-        return self.ys.conf
+        return self._ys.conf
 
-    def compile(self,env:env.Env, update:bool):
-        # if update:
-        #     env.update( self.ys._conf ) # this override a reqman.yml env !
-        ...
-
-
+    @property
+    def steps(self) -> list:
+        return self._ys._steps
 
     def _feed(self, env:env.Env, liste:list[dict]) -> list[Step]:
         try:
@@ -276,7 +273,7 @@ class Scenario(list):
     
     async def execute(self,env,with_begin:bool=False,with_end:bool=False) -> AsyncGenerator:
         self.clear()
-        self.extend( self._feed( env, self.ys._steps ) )
+        self.extend( self._feed( env, self.steps ) )
 
         step=None
         try:
@@ -285,7 +282,6 @@ class Scenario(list):
                 logger.debug("Execute BEGIN statement")
                 async for i in StepCall(self, {OP.CALL:"BEGIN"}, env).process(env):
                     yield i
-
 
             for step in self:
                 logger.debug("Execute STEP %s",step)

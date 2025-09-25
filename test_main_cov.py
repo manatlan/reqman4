@@ -77,12 +77,6 @@ def test_expand_files(tmp_path):
     assert "non_existent_file.yml" in files
     assert str(f4) not in files
 
-# def test_execution_with_exception(capsys):
-#     """Test exception handling during scenario execution."""
-#     scenario = "examples/err/bad_syntax.yml"
-#     assert main.reqman(None,[scenario]) == -1
-#     assert capsys.readouterr()
-
 def test_debug_mode(simple_scenario):
     """Test debug mode by checking if logging level is set."""
     with patch('src.reqman4.main.logging.basicConfig') as mock_config:
@@ -93,44 +87,6 @@ def test_debug_mode(simple_scenario):
         main.reqman(None,[simple_scenario], is_debug=False)
         mock_config.assert_called_with(level=main.logging.ERROR)
 
-# def test_display_env_on_error(capsys):
-#     """Test that environment is displayed on error when flag is set."""
-#     scenario = "examples/err/bad_syntax.yml"
-#     assert main.reqman(None,[scenario], show_env=True) == -1
-#     captured = capsys.readouterr()
-#     assert "BUG ERROR" in captured.out
-#     assert "Final environment:" not in captured.out
-
-# def test_guess_switches_from_single_file(capsys):
-#     """Test guessing switches from a single file."""
-#     with patch.object(sys, 'argv', ['reqman', 'examples/classic/test_switch.yml']):
-#         switches = main.guess(sys.argv[1:])
-#         assert 'env1' in switches
-#         assert 'env2' in switches
-
-# def test_guess_switches_from_multiple_files(capsys, tmp_path):
-#     """Test guessing switches from reqman.yml when multiple files are provided."""
-#     # Create a dummy reqman.yml in a temp dir
-#     d = tmp_path / "project"
-#     d.mkdir()
-#     conf = d / "reqman.yml"
-#     conf.write_text("switch:\n  env_reqman_conf:\n    doc: from conf")
-#     f1 = d / "test1.yml"
-#     f1.touch()
-#     f2 = d / "test2.yml"
-#     f2.touch()
-
-#     with patch.object(sys, 'argv', ['reqman', str(f1), str(f2)]):
-#         switches = main.guess(sys.argv[1:])
-#         assert 'env_reqman_conf' in switches
-
-# def test_guess_with_error(capsys):
-#     """Test guess function when a parsing error occurs."""
-#     with patch.object(sys, 'argv', ['reqman', 'examples/err/bad_syntax.yml']):
-#         with pytest.raises(SystemExit):
-#             main.options_from_files("switch")
-#         captured = capsys.readouterr()
-#         assert "START ERROR" in captured.out
 
 
 def test_reqman_own_switch(tmp_path):

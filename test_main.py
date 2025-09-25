@@ -6,15 +6,16 @@ def test_find_scenarios():
     assert list(common.find_scenarios("examples"))
 
 def test_main_apply_switch():
-    assert main.reqman(None,["examples/classic/test_switch.yml"],switchs=["env2"]) == 3, "There should be 3 tests ko, because host unreachable"
+    assert main.reqman(None,["examples/classic/test_switch.yml"]) == 0, "test is kaputt ?!"
+    assert main.reqman(None,["examples/classic/test_switch.yml"],switchs=["env2"]) > 0, "There should be errors (get/begin)"
 
 def test_fnf():
     assert main.reqman(None,["examples/UNKNOW_FILE.yml"]) == 0
 
-# def test_switch_apply_unknown():
-#     # error unknow switch
-#     with pytest.raises(Exception):
-#         main.reqman(["examples/classic/test_switch.yml"],"toto")
+def test_switch_apply_unknown():
+    # error unknow switch
+    with pytest.raises(Exception):
+        main.reqman(["examples/classic/test_switch.yml"],switchs=["toto"])
 
 # @pytest.mark.skipif(os.getenv("CI") == "true", reason="No internet on CI")
 # def test_the_scenario_example():

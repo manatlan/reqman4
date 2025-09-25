@@ -129,29 +129,18 @@ class ExecutionTests:
         # merge the switchs from others files
         for f in self.files:
             s=scenario.Scenario(f, compatibility)
-            self.switchs.update( s.ys.conf.switchs )
+            self.switchs.update( s._ys.conf.switchs )
             self.scenarios.append(s)
 
 
-    # def view(self):
-    #     for f in self.files:
-    #         print(cb(f"Analyse {f}"))
-    #         s=scenario.Scenario(f, self.compatibility)
-    #         s.compile(self.env,update=False)
-    #         if "BEGIN" in self.env:
-    #             print("BEGIN", scenario.StepCall(s, {scenario.OP.CALL:"BEGIN"}, self.env) )
-
-    #         for i in s:
-    #             print(i)
-
-    #         if "END" in self.env:
-    #             print("END", scenario.StepCall(s, {scenario.OP.CALL:"END"}, self.env) )
 
     async def execute(self,*switchs) -> Output:
-        """ Run all tests in files, return number of failed tests """
+        """ Run all tests in files """
 
+        # apply switchs for global conf (aka reqman_conf)
         self.conf_global.apply(*switchs)
 
+        # create the real env
         self.env = env.Env( **self.conf_global )
 
         output = Output(switchs)
@@ -159,13 +148,12 @@ class ExecutionTests:
         for idx,scenar in enumerate(self.scenarios):
             output.begin_scenario(scenar.file_path)
 
+            # update conf of scenar into env
             self.env.update( scenar.conf.apply(*switchs) )
     
             try:
-                scenar.compile( self.env, update=False)
                 async for req in scenar.execute( self.env, with_begin=(idx==0), with_end=(idx==len(self.scenarios)) ):
                     output.write_a_test(req)
-                # self.env = scenar.env  # needed !
             except common.RqException as ex:
                 if self.is_debug:
                     traceback.print_exc()
@@ -266,7 +254,7 @@ def reqman(ctx, files:list,vars:str="",show_env:bool=False,is_debug:bool=False,i
             rc = -1
         else:
             rc = o.nb_tests_ko
-            
+
         if open_browser:
             o.open_browser()
 
