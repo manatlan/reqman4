@@ -21,9 +21,9 @@ def switch_scenario():
 
 def test_reqman_show_env(simple_scenario, capsys):
     """Test reqman with show environment flag (-e)."""
-    assert main.reqman(None,[simple_scenario], show_env=True) == 0 # respx mock will make it pass
+    assert main.reqman(None,[simple_scenario], is_debug=True) == 0 # respx mock will make it pass
     captured = capsys.readouterr()
-    assert "Final environment:" in captured.out
+    assert "Environment:" in captured.out
     assert '"root": "http://test"' in captured.out
 
 @patch('src.reqman4.main.webbrowser.open')

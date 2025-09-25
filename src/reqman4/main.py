@@ -178,19 +178,18 @@ def cli():
 
 
 def patch_docstring(f):
-    f.__doc__+= f" (version:{VERSION})"
+    f.__doc__+= f"Version:{VERSION}"
     return f
 
 @cli.command(context_settings=dict(allow_extra_args=True, ignore_unknown_options=True))
-@click.argument('files', nargs=-1, required=True ) #help="Scenarios yml/rml (local or http)"
-@click.option('-d',"is_debug",is_flag=True,default=False,help="debug mode")
-@click.option('-e',"show_env",is_flag=True,default=False,help="Display final environment")
+@click.argument('files', nargs=-1, required=False ) #help="Scenarios yml/rml (local or http)"
+@click.option('-d',"is_debug",is_flag=True,default=False,help="Debug mode")
 @click.option('-s',"vars",help="Set variables (ex: -s token=DEADBEAF,id=42)")
-@click.option('-i',"is_shebang",is_flag=True,default=False,help="interactif mode (with shebang)")
-@click.option('-o',"open_browser",is_flag=True,default=False,help="open result in an html page")
-@click.option('-c',"compatibility",is_flag=True,default=False,help="accept old reqman3 scenarios")
-@click.option('-cc',"comp_convert",is_flag=True,default=False,help="accept old reqman3 and generate new version")
-@click.option("-h",'--help',"need_help",is_flag=True,default=False,help="to get help")
+@click.option('-i',"is_shebang",is_flag=True,default=False,help="Interactif mode (with shebang)")
+@click.option('-o',"open_browser",is_flag=True,default=False,help="Open a report in an html page")
+@click.option('-c',"compatibility",is_flag=True,default=False,help="Accept old reqman3 scenarios")
+@click.option('-cc',"comp_convert",is_flag=True,default=False,help="Accept old reqman3 and generate new version")
+@click.option("-h",'--help',"need_help",is_flag=True,default=False,help="Display this help")
 @click.pass_context
 
 
@@ -201,9 +200,11 @@ def command(ctx,**p):
     files = [f for f in p["files"] if not f.startswith("--")]
     p["switchs"] = [f[2:] for f in p["files"] if f.startswith("--")]
     p["files"] = files
+    if not files:
+        p["need_help"] = True
     sys.exit( reqman(ctx,**p) )
 
-def reqman(ctx, files:list,vars:str="",show_env:bool=False,is_debug:bool=False,is_shebang:bool=False,open_browser:bool=False,compatibility:bool=False,comp_convert:bool=False,need_help:bool=False,switchs:list=[]) -> int:
+def reqman(ctx, files:list,vars:str="",is_debug:bool=False,is_shebang:bool=False,open_browser:bool=False,compatibility:bool=False,comp_convert:bool=False,need_help:bool=False,switchs:list=[]) -> int:
 
 
     files = list(chain.from_iterable([glob.glob(i,recursive=True) for i in files]))
@@ -246,8 +247,8 @@ def reqman(ctx, files:list,vars:str="",show_env:bool=False,is_debug:bool=False,i
             return 0
         o = asyncio.run(r.execute(*switchs))
 
-        if show_env:
-            print(cy("Final environment:"))
+        if is_debug:
+            print(cy("Environment:"))
             print(r.env)
 
         if o.error:
