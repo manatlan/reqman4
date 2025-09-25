@@ -43,8 +43,8 @@ cw = lambda t: colorize(Fore.WHITE, t)
 
 
 class Output:
-    def __init__(self,switch:str|None):
-        self.switch = switch
+    def __init__(self,switchs:list):
+        self.switchs = switchs
         self.nb_tests=0
         self.nb_tests_ok=0
         self.nb_req=0
@@ -82,7 +82,7 @@ class Output:
         pass
 
     def end_tests(self):
-        self.htmls.append( output.generate_final( self.switch, self.nb_tests_ok, self.nb_tests) )
+        self.htmls.append( output.generate_final( self.switchs, self.nb_tests_ok, self.nb_tests) )
 
         if self.error:
             print(cr(f"SCENARIO ERROR: {self.error}"))
@@ -163,9 +163,9 @@ class ExecutionTests:
     #         if "END" in self.env:
     #             print("END", scenario.StepCall(s, {scenario.OP.CALL:"END"}, self.env) )
 
-    async def execute(self,switch:str|None=None) -> Output:
+    async def execute(self,*switchs) -> Output:
         """ Run all tests in files, return number of failed tests """
-        output = Output(switch)
+        output = Output(switchs)
 
         for file in self.files:
             output.begin_scenario(file)
@@ -223,10 +223,9 @@ def command(ctx,**p):
 (More info on https://github.com/manatlan/reqman4) """
     files = [f for f in p["files"] if not f.startswith("--")]
     switchs = [f[2:] for f in p["files"] if f.startswith("--")]
-    p["switch"] = switchs[0] if switchs else None
     return reqman(ctx,**p)
 
-def reqman(ctx, files:list,vars:str="",show_env:bool=False,is_debug:bool=False,is_view:bool=False,is_shebang:bool=False,open_browser:bool=False,compatibility:bool=False,comp_convert:bool=False,need_help:bool=False,switch:str|None=None) -> int:
+def reqman(ctx, files:list,vars:str="",show_env:bool=False,is_debug:bool=False,is_view:bool=False,is_shebang:bool=False,open_browser:bool=False,compatibility:bool=False,comp_convert:bool=False,need_help:bool=False,switchs:list=[]) -> int:
 
 
     files = list(chain.from_iterable([glob.glob(i,recursive=True) for i in files]))
@@ -272,7 +271,7 @@ def reqman(ctx, files:list,vars:str="",show_env:bool=False,is_debug:bool=False,i
             r.view()
             return 0
         else:
-            o = asyncio.run(r.execute(switch))
+            o = asyncio.run(r.execute(*switchs))
 
             if show_env:
                 print(cy("Final environment:"))
