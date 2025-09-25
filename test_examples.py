@@ -53,16 +53,10 @@ async def test_scenarios_ok(example_file):
 
     assert validate_yaml(example_file,"schema.json")
 
-    e=env.Env()
-    s=scenario.Scenario(example_file)
-    s.compile(e,update=True)
-    print(s) # test repr
-    for step in s:
-        print(step) # test step.__repr__
-    async for echange in s.execute(e):
-        if echange:
-            for tr in echange.tests:
-                assert tr.ok, f"Test failed: {tr.text}"
+    et=main.ExecutionTests( [example_file] )
+    o = await et.execute()
+    assert o.nb_tests_ko == 0
+
 
 
 
@@ -73,15 +67,11 @@ async def test_scenarios_err(example_file):
     
     good,error_message = attendings(example_file)
 
-    with pytest.raises(Exception) as excinfo:
-        e=env.Env()
-        s=scenario.Scenario(example_file)
-        s.compile(e,update=True)
+    et=main.ExecutionTests( [example_file] )
+    o = await et.execute()
 
-        async for echange in s.execute(e):
-                ...
     assert not good
-    assert error_message in str(excinfo.value)
+    assert error_message in str(o.error)
 
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/ko/*.yml")) )
 def test_scenarios_ko(example_file):

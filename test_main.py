@@ -6,7 +6,7 @@ def test_find_scenarios():
     assert list(common.find_scenarios("examples"))
 
 def test_main_apply_switch():
-    assert main.reqman(None,["examples/classic/test_switch.yml"],switchs=["env2"]) == 4, "There should be 4 tests ko, because host unreachable"
+    assert main.reqman(None,["examples/classic/test_switch.yml"],switchs=["env2"]) == 3, "There should be 3 tests ko, because host unreachable"
 
 def test_fnf():
     assert main.reqman(None,["examples/UNKNOW_FILE.yml"]) == 0

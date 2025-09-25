@@ -232,9 +232,9 @@ class Scenario(list):
         return self.ys.conf
 
     def compile(self,env:env.Env, update:bool):
-        if update:
-            env.update( self.ys._conf ) # this override a reqman.yml env !
-        self.extend( self._feed( env, self.ys._steps ) )
+        # if update:
+        #     env.update( self.ys._conf ) # this override a reqman.yml env !
+        ...
 
 
 
@@ -275,6 +275,9 @@ class Scenario(list):
         return super().__repr__()
     
     async def execute(self,env,with_begin:bool=False,with_end:bool=False) -> AsyncGenerator:
+        self.clear()
+        self.extend( self._feed( env, self.ys._steps ) )
+
         step=None
         try:
 

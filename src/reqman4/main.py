@@ -108,7 +108,7 @@ class ExecutionTests:
     def __init__(self,files:list,vars:dict={},is_debug=False, compatibility:int=0):
         self.files=common.expand_files(files)
         self.is_debug=is_debug
-        self.compatibility=compatibility
+        self.env=None
 
         # init the conf
         reqman_conf = common.guess_reqman_conf(self.files)
@@ -123,8 +123,6 @@ class ExecutionTests:
 
         # update with vars from command line
         self.conf_global.update(vars)
-
-        self.env = env.Env( **self.conf_global )
 
 
         self.scenarios=[]
@@ -151,11 +149,18 @@ class ExecutionTests:
 
     async def execute(self,*switchs) -> Output:
         """ Run all tests in files, return number of failed tests """
+
+        self.conf_global.apply(*switchs)
+
+        self.env = env.Env( **self.conf_global )
+
         output = Output(switchs)
 
         for idx,scenar in enumerate(self.scenarios):
             output.begin_scenario(scenar.file_path)
 
+            self.env.update( scenar.conf.apply(*switchs) )
+    
             try:
                 scenar.compile( self.env, update=False)
                 async for req in scenar.execute( self.env, with_begin=(idx==0), with_end=(idx==len(self.scenarios)) ):
@@ -206,8 +211,9 @@ def command(ctx,**p):
     """Test an http service with pre-made scenarios, whose are simple yaml files
 (More info on https://github.com/manatlan/reqman4) """
     files = [f for f in p["files"] if not f.startswith("--")]
-    switchs = [f[2:] for f in p["files"] if f.startswith("--")]
-    return reqman(ctx,**p)
+    p["switchs"] = [f[2:] for f in p["files"] if f.startswith("--")]
+    p["files"] = files
+    sys.exit( reqman(ctx,**p) )
 
 def reqman(ctx, files:list,vars:str="",show_env:bool=False,is_debug:bool=False,is_shebang:bool=False,open_browser:bool=False,compatibility:bool=False,comp_convert:bool=False,need_help:bool=False,switchs:list=[]) -> int:
 
@@ -250,7 +256,6 @@ def reqman(ctx, files:list,vars:str="",show_env:bool=False,is_debug:bool=False,i
             for k,v in r.switchs.items():
                 click.echo(f"  --{k}      {v.get('doc','??')}")
             return 0
-
         o = asyncio.run(r.execute(*switchs))
 
         if show_env:
@@ -261,7 +266,7 @@ def reqman(ctx, files:list,vars:str="",show_env:bool=False,is_debug:bool=False,i
             rc = -1
         else:
             rc = o.nb_tests_ko
-
+            
         if open_browser:
             o.open_browser()
 
