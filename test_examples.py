@@ -1,6 +1,9 @@
-import pytest,os
-import glob,io,sys,re
-from src.reqman4 import scenario,main,common,env
+import pytest
+import glob
+import io
+import sys
+import re
+from src.reqman4 import main,common
 from validate import validate_yaml
 
 
@@ -24,7 +27,7 @@ def simulate(example_file: str,compatibility=0): #THE FUTURE for all tests
     try:
         error=None
         rc = main.reqman(None,[example_file],compatibility=True if compatibility else False)
-    except Exception as error:
+    except Exception:
         pass
     finally:
         sys.stdout = sys_stdout

@@ -1,7 +1,6 @@
 import pytest
-from src.reqman4 import main, common, output
+from src.reqman4 import main
 import respx
-import html
 
 @pytest.mark.asyncio
 @respx.mock

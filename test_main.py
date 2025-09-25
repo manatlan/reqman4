@@ -1,5 +1,5 @@
 from src.reqman4 import main,common
-import pytest,os
+import pytest
 
 
 def test_find_scenarios():

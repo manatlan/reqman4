@@ -6,7 +6,8 @@
 #
 # https://github.com/manatlan/reqman4
 # #############################################################################
-import os,io,sys
+import os
+import io
 import httpx
 from dataclasses import dataclass
 import datetime

@@ -6,7 +6,8 @@
 #
 # https://github.com/manatlan/reqman4
 # #############################################################################
-import os,time
+import os
+import time
 import httpx
 from typing import Any, AsyncGenerator
 
@@ -16,7 +17,6 @@ from .common import assert_syntax
 from . import env
 from . import ehttp
 
-from . import compat
 
 import logging
 logger = logging.getLogger(__name__)

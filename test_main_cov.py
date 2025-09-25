@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
-import os
 import sys
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from src.reqman4 import main,common
 
 @pytest.fixture

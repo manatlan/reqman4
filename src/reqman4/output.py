@@ -7,7 +7,9 @@
 # https://github.com/manatlan/reqman4
 # #############################################################################
 import logging
-import json,html,httpx
+import json
+import html
+import httpx
 from urllib.parse import unquote
 
 # reqman imports
