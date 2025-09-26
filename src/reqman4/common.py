@@ -21,6 +21,13 @@ from ruamel.yaml.comments import CommentedMap as YDict,CommentedSeq as YList
 yaml = ruamel.yaml.YAML() # typ=rt
 yaml.allow_duplicate_keys = True
 
+# from ruamel.yaml.scalarstring import ScalarString, DoubleQuotedScalarString
+# def my_new(cls, value, anchor=None):
+#     value = value.encode('latin_1').decode('utf-8') 
+#     return ScalarString.__new__(cls, value, anchor=anchor)
+
+# ScalarString.__new__ = my_new
+
 def yload(y):
     if isinstance(y,str):
         return yaml.load(y)
@@ -149,17 +156,25 @@ class YScenario:
         self.conf = Conf( self._conf )
 
 
-    def save(self): #TODO: continue here
-        assert self.filename != "buffer"
+    def save(self) -> str|None: #TODO: continue here
+        
         base=self._conf
         base["RUN"] = self._steps
         base.yaml_set_start_comment(f"Converted from {self.filename} {datetime.datetime.now()}")
+        yaml.width = 200
         yaml.indent(mapping=2, sequence=2, offset=0)
         # shutil.copy2(self.filename,self.filename)
-        new_file=self.filename+".new.yml"
-        with open(new_file,"w+") as fid:
-            yaml.dump(base, fid)
-        print("CREATE NEW REQMAN4 FILE:",new_file)
+
+        if self.filename != "buffer":
+            new_file=self.filename+".new.yml"
+            with open(new_file,"w+") as fid:
+                yaml.dump(base, fid)
+            print("CREATE NEW REQMAN4 FILE:",new_file)
+        else:
+            f = io.StringIO()
+            yaml.dump(base, f)
+            f.seek(0)
+            return str(f.read())
 
     def __str__(self):
         return f"YScenario '{self.filename}'\n* DICT:{self._conf}\n* LIST:{self._steps}"
