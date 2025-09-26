@@ -13,6 +13,8 @@ root: 1
 --put2:
     root: 2
 """)
+    assert "put2" in ys.conf.switchs.keys()
+    
     assert ys.conf["root"]==1
     ys.conf.apply("put2")
     assert ys.conf["root"]==2
