@@ -24,3 +24,7 @@ RUN:
     r = main.ExecutionTests([str(scenario_file)])
     o = await r.execute("dev")
     assert o.nb_tests_ko == 0
+
+if __name__=="__main__":
+    import asyncio,pathlib
+    asyncio.run( test_standalone_switch( pathlib.Path("/tmp")) )

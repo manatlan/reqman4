@@ -19,17 +19,56 @@ root: 1
 
 
 def test_scenar_encoding():
+    # utf8 file
     yml = 'root: "çébô" '
     ys=common.YScenario(yml)
     assert ys.conf["root"]=="çébô"      # the internal str stay in utf8
+    assert b"\xc3\xa7\xc3\xa9b\xc3\xb4" in ys.save()
 
-    e=lambda x: x.encode("utf8").decode("cp1252")
-    d=lambda x: x.encode("cp1252").decode("utf8")
-    yml = e('root: "çébô" ')
+    # cp1252 file
+    yml = 'root: "çébô" '.encode("utf8").decode("cp1252")
     ys=common.YScenario(yml)
-    assert d(ys.conf["root"])=="çébô"   # the internal str stay in cp1252
+    assert ys.conf["root"]=="çébô"   # the internal str stay in utf8
+    assert b"\xe7\xe9b\xf4" in ys.save()
 
-    assert "çébô" in d(ys.save())   # the file stay in cp252 !
+def test_YScenario_encoding():
+    assert common.YScenario("a: 'éé'".encode("utf8").decode("cp1252")).encoding == "cp1252"
+    assert common.YScenario("a: 1111".encode("utf8").decode("cp1252")).encoding == "utf8"   #no strange carac, can be utf8 !
+
+def _valid_tests(string:str,ll:list):
+    for obj in ll:
+        b = common.BytesUtf8(obj)
+        print(type(obj),b.encoding, [obj])
+        d=common.YamlObject().load( b )
+        assert d["val"]==string # UTF8
+        assert isinstance(d["val"],str)
+
+        t=lambda x: x.encode(b.encoding)
+        assert t(d['val']) == t(string)
+
+
+def test_eurostring():
+    string = "cébô 50£ où 50$ oü 50€" # Europe occidentale
+
+    ll=[
+        f'val: {string}'.encode('cp1252'),
+        f'val: {string}'.encode('utf8'),
+        f'val: {string}',
+        f'val: {string}'.encode('utf8').decode('cp1252'),
+    ]
+
+    _valid_tests(string,ll)
+
+def test_utfstring():
+    string = "cébô ⭐🔥$£€ тест テスト 測試 امتحان"
+
+    ll=[
+        f'val: {string}'.encode('utf8'),
+        f'val: {string}',
+    ]
+
+    _valid_tests(string,ll)
+
 
 
 if __name__=="__main__":

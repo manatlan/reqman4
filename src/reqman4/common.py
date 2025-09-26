@@ -18,24 +18,74 @@ REQMAN_CONF='reqman.yml'
 
 import ruamel.yaml
 from ruamel.yaml.comments import CommentedMap as YDict,CommentedSeq as YList
-yaml = ruamel.yaml.YAML() # typ=rt
-yaml.allow_duplicate_keys = True
 
-# from ruamel.yaml.scalarstring import ScalarString, DoubleQuotedScalarString
-# def my_new(cls, value, anchor=None):
-#     value = value.encode('latin_1').decode('utf-8') 
-#     return ScalarString.__new__(cls, value, anchor=anchor)
 
-# ScalarString.__new__ = my_new
 
-def yload(y):
-    if isinstance(y,str):
-        return yaml.load(y)
-    elif isinstance(y,io.TextIOWrapper):
+class BytesUtf8(bytes):
+    """A bytes subclass that normalizes input strings/bytes to UTF-8 encoding.
+    it stores the original encoding used for input in the 'encoding' attribute.
+    """
+    LATIN = "cp1252" # Windows Western Europe
+    UTF8 = "utf8"
+
+    encoding: str  # "utf8" or "latin_1"
+
+    def __new__(cls, x: str | bytes):
+        # Returns an instance of bytes (immutable) after normalization + approximate encoding detection.
+        if isinstance(x, str):
+            # Heuristic: detect UTF-8 mojibake decoded as latin-1 (presence of typical Ã, Â characters).
+            try:
+                candidate = x.encode(BytesUtf8.LATIN)
+            except UnicodeEncodeError:
+                # Character not representable in latin-1: consider the source as already correct UTF-8.
+                value = x.encode(BytesUtf8.UTF8)
+                enc = BytesUtf8.UTF8
+            else:
+                if any(ch in x for ch in ('Ã', 'Â')):
+                    value = candidate  # bytes assumed to be the original UTF-8 incorrectly decoded before
+                    enc = BytesUtf8.LATIN
+                else:
+                    value = x.encode(BytesUtf8.UTF8)
+                    enc = BytesUtf8.UTF8
+        elif isinstance(x, bytes):
+            # Try UTF-8, otherwise assume latin-1 and re-encode in UTF-8 for uniformity.
+            try:
+                x.decode(BytesUtf8.UTF8)
+                value = x
+                enc = BytesUtf8.UTF8
+            except UnicodeDecodeError:
+                value = x.decode(BytesUtf8.LATIN).encode(BytesUtf8.UTF8)
+                enc = BytesUtf8.LATIN
+        else:
+            raise TypeError(type(x))
+        obj = super().__new__(cls, value)
+        obj.encoding = enc
+        return obj
+
+class YamlObject(ruamel.yaml.YAML):
+    def __init__(self):
+        ruamel.yaml.YAML.__init__(self)
+        self.default_flow_style = False
+        self.block_seq_indent = 2
+        self.indent = 4
+        self.allow_unicode = True
+        self.allow_duplicate_keys = True        
+        self.encoding = 'utf-8'
+
+def yload(y) -> YDict|YList:
+    if isinstance(y,str) or isinstance(y,bytes):
+        b=BytesUtf8(y)
+        yml = YamlObject().load(b)
+        yml._encoding = b.encoding
+        return yml
+    elif isinstance(y,io.TextIOWrapper) or isinstance(y,io.BufferedReader):
         with y:
-            return yaml.load(y)
+            b=BytesUtf8(y.read())
+            yml= YamlObject().load(b)
+            yml._encoding = b.encoding
+            return yml
     else:
-        raise Exception("????")
+        raise Exception(f"yload error {y=}")
         
 class Conf(dict):
     """ Manage Configuration dict, with support for --switch keys """
@@ -120,13 +170,13 @@ def get_url_content(url:str) -> str:
     return r.text
 
 
-
-
 class YScenario:
-    def __init__(self, yml:str|io.TextIOWrapper,compatibility:int=0):
+    def __init__(self, yml:str|io.TextIOWrapper|io.BufferedReader,compatibility:int=0):
+        self.encoding ="utf-8"
 
-        def load_scenar( yml_thing:str|io.TextIOWrapper) -> tuple[YDict,YList]:
+        def load_scenar( yml_thing:str|io.TextIOWrapper|io.BufferedReader) -> tuple[YDict,YList]:
             yml = yload(yml_thing)
+            self.encoding = yml._encoding
 
             if isinstance(yml, YDict):
                 # new reqman4 (yml is a dict, and got a RUN section)
@@ -155,33 +205,31 @@ class YScenario:
                 self.save()
         self.conf = Conf( self._conf )
 
-
-    def save(self) -> str|None: #TODO: continue here
+    def save(self) -> bytes|None: #TODO: continue here
         
         base=self._conf
         base["RUN"] = self._steps
         base.yaml_set_start_comment(f"Converted from {self.filename} {datetime.datetime.now()}")
+
+        yaml=YamlObject()
         yaml.width = 200
         yaml.indent(mapping=2, sequence=2, offset=0)
+        yaml.encoding = self.encoding
         # shutil.copy2(self.filename,self.filename)
 
         if self.filename != "buffer":
             new_file=self.filename+".new.yml"
-            with open(new_file,"w+") as fid:
+            with open(new_file,"wb+") as fid:
                 yaml.dump(base, fid)
             print("CREATE NEW REQMAN4 FILE:",new_file)
         else:
-            f = io.StringIO()
+            f = io.BytesIO()
             yaml.dump(base, f)
             f.seek(0)
-            return str(f.read())
+            return f.read()
 
     def __str__(self):
-        return f"YScenario '{self.filename}'\n* DICT:{self._conf}\n* LIST:{self._steps}"
+        return f"YScenario '{self.filename}' ({self.encoding})\n* DICT:{self._conf}\n* LIST:{self._steps}"
 
-# if __name__=="__main__":
-#     yaml_file="examples/works_on/old.yml"
-#     ys=YScenario( open(yaml_file,"r") )
-#     # ys.save()    
-#     print(ys)
-
+if __name__=="__main__":
+    ...

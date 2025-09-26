@@ -209,13 +209,13 @@ class Scenario(list):
 
         if file_path.startswith("http"):
             try:
-                yml_str = common.get_url_content(file_path)
+                yml = common.get_url_content(file_path)
             except Exception as ex:
                 raise common.RqException(f"[URI:{file_path}] [http error] [{ex}]")
         else:
             file_path = os.path.relpath(file_path)
             if os.path.isfile(file_path):
-                yml_str = open(file_path, 'r')
+                yml = open(file_path, 'rb')
             else:
                 raise common.RqException(f"[{file_path}] [File not found]")
         self.file_path = file_path
@@ -223,7 +223,7 @@ class Scenario(list):
         list.__init__(self,[])
 
         try:
-            self._ys = common.YScenario(yml_str,is_compatibility)
+            self._ys = common.YScenario(yml,is_compatibility)
         except Exception as ex:
             raise common.RqException(f"[{file_path}] [Bad syntax] [{ex}]")
 
