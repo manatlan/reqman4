@@ -1,3 +1,4 @@
+#! -co
 #RESULT: 2/2
 
 - GET: http://test/test?json={"result":"ok"}

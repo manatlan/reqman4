@@ -24,10 +24,10 @@ def prettify(body:bytes) -> str:
         return ""
     else:
         try:
-            return json.dumps(eval(body.decode()), indent=2, sort_keys=True)
+            return json.dumps(eval(body.decode()), indent=2, sort_keys=True,ensure_ascii=False)
         except:
             try:
-                return json.dumps(json.loads(body), indent=2, sort_keys=True)
+                return json.dumps(json.loads(body), indent=2, sort_keys=True,ensure_ascii=False)
             except:
                 try:
                     return html.escape(body.decode())
@@ -60,6 +60,10 @@ div.final {position:fixed; top:0px;right:0px;background:white;padding:4px;border
 
 def generate_section(file:str) -> str:
     return f"<h2>{file}</h2>"
+
+def generate_error(ex:Exception):
+    return f"<h3 style='color:red'>{html.escape(str(ex))}</h3>"
+
 
 def generate_request(r:common.Result) -> str:
     def h(d:httpx.Headers) -> str:

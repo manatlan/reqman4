@@ -16,6 +16,11 @@ def test_fix_expr():
     assert compat._fix_expr("<<var * 'x'>>") == "<<var * 'x'>>"
 
 
+def test_fix_basics():
+    assert compat._fix_expr("<<json.toto>>") == "<<R.json.toto>>"
+    assert compat._fix_expr("<<status>>") == "<<R.status>>"
+
+
 def test_fix_tests_base():
     d=common.yload("""
 tests:
@@ -103,4 +108,6 @@ tests:
     assert compat.fix_tests(d["tests"]) == ['R.status != 200', 'R.status <= 200', '"ok" in R.json.result', '"ko" not in R.json.result']
 
 if __name__ == "__main__":
-    test_fix_tests_comparaison()
+    # test_fix_tests_comparaison()
+    x=compat._fix_expr("<<json>>")
+    print(x)

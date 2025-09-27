@@ -1,5 +1,22 @@
-#RESULT: 1/1
+#! -cod
+#RESULT: 4/4
 
-- GET: http://test/test
+- GET: +http://test/test    # test '+' trick (no effect in rq4)
   tests:
     - status: 200
+  save: jo    # save all in 'jo'
+
+- GET: http://test/test?json={"result":[1,2,3],"mot":"héhé"}
+  doc: <<jo>>
+  tests:
+    - status: 200
+  save:
+    var: <<json.result>>  # save partial response in "var"
+
+#=================================== reqman4
+- GET: http://test/test
+  doc: JUST FOR TEST (this is reqman4 syntax)
+  tests:
+    - jo.status == 200
+    - var == [1,2,3]
+#=================================== reqman4

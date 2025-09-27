@@ -1,4 +1,5 @@
-#RESULT: 5/5
+#! -co
+#RESULT: 6/6
 # test scenar as list
 
 - METHOD:
@@ -6,7 +7,7 @@
     tests:
       - status: .== 200
 
-- GET: http://test/test
+- GET: /test
   tests:
     - status: .>= 200
   foreach:
@@ -20,6 +21,10 @@
 
 - GET: http://test/test
   tests:
-    - status: .== 200
+    - status: 200
 
 - call: METHOD
+
+- call: 
+  - METHOD
+  - METHOD

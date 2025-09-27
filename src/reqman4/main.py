@@ -72,9 +72,9 @@ class Output:
                     self.nb_tests_ok += 1
             print()
             self.htmls.append( output.generate_request(r) )
-
+            
     def write_an_error(self,ex:Exception):
-        self.htmls.append( f"<h3 style='color:red'>{ex}</h3>")
+        self.htmls.append( output.generate_error(ex) )
         self.error = ex
 
 
