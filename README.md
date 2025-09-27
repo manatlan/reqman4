@@ -68,6 +68,20 @@ This project use "uv":
  - use "uv sync --dev" to setup the ".venv" 
  - use "uv run pytest" to validate all unittests
 
+## reqman4 built with nuitka
+To test, create file `cmdline.py`
+```python3
+from src.reqman4 import main
+if __name__=="__main__":
+    main.command()
+```
+and in console:
+```
+uv pip install nuitka
+uv run nuitka cmdline.py 
+```
+it will produce a executable `cmdline.bin`, which works !
+
 ## Majors changes from reqman3
 
 If you come from reqman v3
