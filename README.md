@@ -8,18 +8,18 @@
 A complete rewrite of [reqman](https://github.com/manatlan/reqman). __It's a **prototype/poc**__ ! Don't know yet if it will replace the original, but I wanted to have a new/cleaner/simpler version, 
 with all good ideas from the original. 
 
-**MAJOR CHANGES**: This prototype is more python based for vars & tests, and can display html in http-verb's doc (to be able to make human readable html reports). Syntax is simpler/cleaner (to be able to have a json-schema to valid yml/rml). And debugging is simpler.
+**MAJOR REASONS**: This prototype is more python based for vars & tests, and can display html in http-verb's doc (to be able to make human readable html reports). Syntax is simpler/cleaner (to be able to have a json-schema to valid yml/rml). And debugging is simpler. Switch mechanism is simpler (and no more trouble with defaults, coz the first switch is selected by default). Reqman conf is now "reqman.yml".
 
 Currently, the package provide a `rq` command (but will be `reqman` in the future)
 
-Major differences :
+Major technical differences :
 - licence gnu gpl v2 -> MIT
 - "uv" & (a lot) simpler (less features)
 - use httpx !
 - options are inverted (--i -> -i & (switch) -dev --> --dev)
 - step operator is always in uppercase (SET, CALL, 'VERB-HTTP' ).
 - reqman.conf -> reqman.yml, renamed !
-- switch mechanism based on "--key" in reqman.yml / scenars
+- switch mechanism based on "--key" in reqman.yml / scenars ... first one will be the default
 - scenars(*.yml) & reqman.yml are yaml/dict only !
 - scenars must(/can for compat) have a "RUN:" section (others keys are the global env)
 - tests are simple python statements
@@ -68,6 +68,3 @@ This project use "uv":
  - use "uv sync --dev" to setup the ".venv" 
  - use "uv run pytest" to validate all unittests
 
-
-# test
-test
