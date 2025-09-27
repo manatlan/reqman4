@@ -204,8 +204,8 @@ def command(ctx,**p):
         p["need_help"] = True
     sys.exit( reqman(ctx,**p) )
 
-def reqman(ctx, files:list,vars:str="",is_debug:bool=False,is_shebang:bool=False,open_browser:bool=False,compatibility:bool=False,comp_convert:bool=False,need_help:bool=False,switchs:list=[]) -> int:
-
+def reqman(ctx, files:list,switchs:list|None=None,vars:str="",is_debug:bool=False,is_shebang:bool=False,open_browser:bool=False,compatibility:bool=False,comp_convert:bool=False,need_help:bool=False) -> int:
+    if switchs is None: switchs=[]
 
     files = list(chain.from_iterable([glob.glob(i,recursive=True) for i in files]))
 
