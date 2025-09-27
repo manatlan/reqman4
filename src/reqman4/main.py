@@ -185,7 +185,7 @@ def patch_docstring(f):
 @click.argument('files', nargs=-1, required=False ) #help="Scenarios yml/rml (local or http)"
 @click.option('-d',"is_debug",is_flag=True,default=False,help="Debug mode")
 @click.option('-s',"vars",help="Set variables (ex: -s token=DEADBEAF,id=42)")
-@click.option('-i',"is_shebang",is_flag=True,default=False,help="Interactif mode (with shebang)")
+@click.option('-i',"is_shebang",is_flag=True,default=False,help="Interactive mode (with shebang)")
 @click.option('-o',"open_browser",is_flag=True,default=False,help="Open a report in an html page")
 @click.option('-c',"compatibility",is_flag=True,default=False,help="Accept old reqman3 scenarios")
 @click.option('-cc',"comp_convert",is_flag=True,default=False,help="Accept old reqman3 and generate new version")
