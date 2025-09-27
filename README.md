@@ -68,7 +68,7 @@ This project use "uv":
  - use "uv sync --dev" to setup the ".venv" 
  - use "uv run pytest" to validate all unittests
 
-## Doc
+## Majors changes from reqman3
 
 If you come from reqman v3
 
@@ -95,11 +95,11 @@ to
 ...
 ```
 
-It's simpler, clearer ... and the first one will be auto-selected as the default one !
+It's simpler, clearer ... and the first one will be auto-selected (if nos supplied) as the default one !
 
-### everything in <<var>> or {{var}} is python3 evaluated
+### everything in `<<var>>` or `{{var}}` is python3 evaluated
 
-no more own language ... everything is python3
+no more "own substitution language" ... everything is python3
 
 ```yaml
 ...
@@ -115,10 +115,43 @@ to
 ...
 ```
 
+### tests are python3 evaluated
+
+no more "own test language" ... everything is python3
+
+```yaml
+...
+- GET: /path
+  tests:
+    - json.value: "toto"
+...
+```
+to
+```yaml
+...
+- GET: /path
+  tests:
+    - R.json.value == "toto"
+...
+```
+
+`R` is always the last http response.
+
 ### "call" is now "CALL"
 
 todo ...
 
 ### no more "save" in http or call
 
-todo ...
+use a new step `SET`, like that
+
+```yaml
+...
+- GET: /path
+  tests:
+    - R.json.value == "toto"
+
+- SET:
+    saved_value: <<R.json.value>>
+...
+```
