@@ -1,4 +1,3 @@
-root: http://test
 
 SCENAR:
   - GET: /test?json=[1,2,3]
@@ -38,7 +37,7 @@ END:
 
 --env1:
     doc: for dev
-    root: http://dev/
+    root: http://test
 
 --env2:
     doc: for verification

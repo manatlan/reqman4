@@ -115,7 +115,7 @@ class ExecutionTests:
         if reqman_conf is None:
             self.conf_global = common.Conf({})
         else:
-            print(cy(f"Using {os.path.relpath(reqman_conf)}"))
+            print(cy(f"Using conf : {os.path.relpath(reqman_conf)}"))
             self.conf_global = common.Conf(common.load_reqman_conf(reqman_conf))
 
         # init with the switchs from conf
@@ -238,12 +238,20 @@ def reqman(ctx, files:list,vars:str="",is_debug:bool=False,is_shebang:bool=False
     else:
         logging.basicConfig(level=logging.ERROR)
 
+
     try:
         r = ExecutionTests( files,dvars, is_debug, comp_mode)
+        if r.switchs and not switchs:
+            # when switchs configured, and no switch in command line
+            # defaulting to the first one
+            switchs.append( list(r.switchs.keys())[0] )
+            
+
         if need_help:
             click.echo(ctx.get_help())
-            for k,v in r.switchs.items():
-                click.echo(f"  --{k}      {v.get('doc','??')}")
+            for idx,(k,v) in enumerate(r.switchs.items()):
+                d="(default) " if idx==0 else ""
+                click.echo(f"  --{k}      {d}{v.get('doc','??')}")
             return 0
         o = asyncio.run(r.execute(*switchs))
 

@@ -12,13 +12,6 @@ def simple_scenario():
 def switch_scenario():
     return "examples/classic/test_switch.yml"
 
-# def test_reqman_view_mode(simple_scenario, capsys):
-#     """Test reqman in view mode (-v)."""
-#     assert main.reqman(None,[simple_scenario], is_view=True) == 0
-#     captured = capsys.readouterr()
-#     assert "Analyse examples/ok/simple.yml" in captured.out
-#     assert "Step GET:/test?json={{ toto }}" in captured.out
-
 def test_reqman_show_env(simple_scenario, capsys):
     """Test reqman with show environment flag (-e)."""
     assert main.reqman(None,[simple_scenario], is_debug=True) == 0 # respx mock will make it pass
@@ -88,12 +81,22 @@ def test_debug_mode(simple_scenario):
 
 
 
-def test_reqman_own_switch(tmp_path):
-    """Test reqman with shebang support (-i)."""
-    p_ok = tmp_path / "ok.yml"
-    p_ok.write_text("""
-root: http://test
 
+
+
+
+
+
+
+
+def _create(tmp_path):
+    p_ok = tmp_path / "scenar_with_switchs.yml"
+    p_ok.write_text("""
+                    
+--default:                  #<- default one (forced on command line!)
+    doc: default one
+    root: http://test
+                    
 --env1:
     doc: for dev
     root: http://dev/
@@ -103,26 +106,27 @@ RUN:
   - GET: /test?json=[1,2,3]
     tests:
       - len(R.json) == 3
-                    """)
+    """)
 
-    original_argv = sys.argv
-    sys.argv = ['reqman', str(p_ok)]
-    try:
-        with patch('src.reqman4.main.command') as mock_cmd:
-            rc=main.reqman(None,files=[str(p_ok)])
-            assert rc==0
-    finally:
-        sys.argv = original_argv
+    return p_ok
 
-    original_argv = sys.argv
-    sys.argv = ['reqman', str(p_ok),"--env1"]
-    try:
-        with patch('src.reqman4.main.command') as mock_cmd:
-            rc=main.reqman(None,files=[str(p_ok)],switchs=["env1"])
-            assert rc != 0
-    finally:
-        sys.argv = original_argv
+def test_reqman_own_switch_default(tmp_path):
+    yml_file=_create(tmp_path)
+    nb_ko=main.reqman(None,files=[str(yml_file)])
+    assert nb_ko==0
+
+def test_reqman_own_switch_default_forced(tmp_path):
+    yml_file=_create(tmp_path)
+    nb_ko=main.reqman(None,files=[str(yml_file)],switchs=["default"])
+    assert nb_ko==0
+
+def test_reqman_own_switch_env1(tmp_path):
+    yml_file=_create(tmp_path)
+    nb_ko=main.reqman(None,files=[str(yml_file)],switchs=["env1"])
+    assert nb_ko == 1
 
 if __name__=="__main__":
     from pathlib import Path
-    test_reqman_own_switch( Path("/tmp/"))
+    test_reqman_own_switch_default_forced( Path("/tmp/"))
+    test_reqman_own_switch_env1( Path("/tmp/"))
+    test_reqman_own_switch_default( Path("/tmp/"))
