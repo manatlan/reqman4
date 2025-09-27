@@ -206,9 +206,13 @@ def command(ctx,**p):
 
 def reqman(ctx, files:list,switchs:list|None=None,vars:str="",is_debug:bool=False,is_shebang:bool=False,open_browser:bool=False,compatibility:bool=False,comp_convert:bool=False,need_help:bool=False) -> int:
     if switchs is None: switchs=[]
+    if is_debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.ERROR)
 
-    files = list(chain.from_iterable([glob.glob(i,recursive=True) for i in files]))
-
+    files = list(chain.from_iterable([glob.glob(i,recursive=True) if not i.startswith("http") else [i] for i in files]))
+    logger.info("Files: %s",files)
     if compatibility:
         comp_mode=1
     elif comp_convert:
@@ -230,13 +234,10 @@ def reqman(ctx, files:list,switchs:list|None=None,vars:str="",is_debug:bool=Fals
             print(cy(f"Use shebang {' '.join(options)}"))
             cmd,*fuck_all_params = sys.argv
             sys.argv=[ cmd, files[0] ] + options
+            logger.info("USE SHEBANG: %s",sys.argv)
             return command() #redo click parsing !
 
 
-    if is_debug:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.ERROR)
 
 
     try:
@@ -244,7 +245,9 @@ def reqman(ctx, files:list,switchs:list|None=None,vars:str="",is_debug:bool=Fals
         if r.switchs and not switchs:
             # when switchs configured, and no switch in command line
             # defaulting to the first one
-            switchs.append( list(r.switchs.keys())[0] )
+            default = list(r.switchs.keys())[0]
+            logger.info("No switch in commandline, set default to %s",default)
+            switchs.append( default )
             
 
         if need_help:
