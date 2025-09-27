@@ -68,3 +68,57 @@ This project use "uv":
  - use "uv sync --dev" to setup the ".venv" 
  - use "uv run pytest" to validate all unittests
 
+## Doc
+
+If you come from reqman v3
+
+### rename `reqman.conf` to `reqman.yml`
+
+now, the conf is in an yml file
+
+### translate "switchs"
+
+```yaml
+...
+switchs:
+    env1:
+        doc: test the env 1
+        root: http://localhost
+...
+```
+to
+```yaml
+...
+--env1:
+    doc: test the env 1
+    root: http://localhost
+...
+```
+
+It's simpler, clearer ... and the first one will be auto-selected as the default one !
+
+### everything in <<var>> or {{var}} is python3 evaluated
+
+no more own language ... everything is python3
+
+```yaml
+...
+- GET: /path?var=<<value|method>>
+  doc: test
+...
+```
+to
+```yaml
+...
+- GET: /path?var=<<method(value)>>
+  doc: test
+...
+```
+
+### "call" is now "CALL"
+
+todo ...
+
+### no more "save" in http or call
+
+todo ...
