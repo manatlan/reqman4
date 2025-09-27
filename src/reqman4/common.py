@@ -131,9 +131,7 @@ def find_scenarios(path_folder: str, filters=(".yml",)):
     for folder, subs, files in os.walk(path_folder):
         if (folder in [".", ".."]) or ( not os.path.basename(folder).startswith((".", "_"))):
             for filename in files:
-                if filename.lower().endswith(
-                    filters
-                ) and not filename.startswith((".", "_")):
+                if filename.lower().endswith(filters) and not filename.startswith((".", "_")) and filename != REQMAN_CONF:
                     yield os.path.join(folder, filename)
 
 def expand_files(files:list[str]) -> list[str]:
