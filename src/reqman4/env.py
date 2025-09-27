@@ -107,12 +107,12 @@ def jzon_dumps(o,indent:int|None=2):
 
 class Env:
     def __init__(self, /, **kwargs):
-        self._data={}
+        self._data=MyDict()
         self.__params_scopes: list = []
-        self.update( kwargs )
+        self.update( _convert(kwargs) )
 
     def __setitem__(self, key, value):
-        self.update( {key:value} )
+        self.update( MyDict({key:value}) )
 
     def update(self, dico):
         self._data.update(_convert(dico))
@@ -200,14 +200,18 @@ class Env:
                     text = text.replace(l, jzon_dumps(val, indent=None))
         return text
 
-    def substitute_in_object(self, o: Any, raise_error: bool = True) -> Any:
+    def resolv(self):
+        """ try to resolv max variables in env """
+        self._data = self.substitute_in_object( self._data, False)
+
+    def substitute_in_object(self, o: Any, raise_error: bool) -> Any:
         def _sub_in_object(o: Any) -> Any:
             if isinstance(o, str):
                 return self.substitute(o,raise_error)
             elif isinstance(o, dict):
-                return {k: _sub_in_object(v) for k, v in o.items()}
+                return MyDict({k: _sub_in_object(v) for k, v in o.items()})
             elif isinstance(o, list):
-                return [_sub_in_object(v) for v in o]
+                return MyList([_sub_in_object(v) for v in o])
             else:
                 return o
 
@@ -218,18 +222,18 @@ class Env:
             if before == after:
                 return o
 
-    @property
-    def switchs(self) -> dict:
-        d = {}
-        for i in ["switch", "switches", "switchs"]:   #TODO: compat rq & reqman
-            if i in self._data:
-                switchs = self._data.get(i, {})
-                assert_syntax(isinstance(switchs, dict), "switch must be a dictionary")
-                for k, v in switchs.items():
-                    assert_syntax(isinstance(v, dict), "switch item must be a dictionary")
-                    d[k] = v
-                return d
-        return d
+    # @property
+    # def switchs(self) -> dict:
+    #     d = {}
+    #     for i in ["switch", "switches", "switchs"]:   #TODO: compat rq & reqman
+    #         if i in self._data:
+    #             switchs = self._data.get(i, {})
+    #             assert_syntax(isinstance(switchs, dict), "switch must be a dictionary")
+    #             for k, v in switchs.items():
+    #                 assert_syntax(isinstance(v, dict), "switch item must be a dictionary")
+    #                 d[k] = v
+    #             return d
+    #     return d
 
     def set_R_response(self, response: httpx.Response, time):
         self._data["R"] = R(response.status_code, MyHeaders(response.headers), response.content, time)

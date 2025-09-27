@@ -1,0 +1,20 @@
+#! -oe
+
+# WARN: $USER needs to be "me"
+
+data:
+    val: <<USER>>
+    sub:
+      val: <<USER>>
+
+do: |
+  return x.val
+
+
+RUN:
+    - GET: http://test/test?json={"retour":"<<do(data)>>"}
+      tests:
+          - data.val == "me"
+          - data.sub.val == "me"
+          - R.json.retour == "me"
+          

@@ -42,7 +42,7 @@ class Step:
 
         assert_syntax( isinstance(params, list),"params must be a list of dict")
         assert_syntax( all( isinstance(p, dict) for p in params ),"params must be a list of dict")
-        return e.substitute_in_object(params)
+        return e.substitute_in_object(params,True)
 
 
 class StepCall(Step):
@@ -122,7 +122,7 @@ class StepHttp(Step):
 
         headers = env.get("headers", {}) or {}
         headers.update(self.headers)
-        headers = env.substitute_in_object(headers)
+        headers = env.substitute_in_object(headers,True)
         # httpx requires header values to be strings, so convert them all
         headers = {k: str(v) for k, v in headers.items()}
 
@@ -131,7 +131,7 @@ class StepHttp(Step):
             if isinstance(body, str):
                 body = env.substitute(body)
             elif isinstance(body, (dict, list)):
-                body = env.substitute_in_object(body)
+                body = env.substitute_in_object(body,True)
 
         return url, headers, body
 
@@ -167,6 +167,8 @@ class StepHttp(Step):
         return common.Result(response.request, response, results, doc=doc)
 
     async def process(self, e: env.Env) -> AsyncGenerator:
+        e.resolv()  # try to resolv max variables in env, before running http test
+
         params = self.extract_params(e)
 
         for param in params:
@@ -196,7 +198,7 @@ class StepSet(Step):
         self.dico = dico
 
     async def process(self,e:env.Env) -> AsyncGenerator:
-        e.update( e.substitute_in_object(self.dico,raise_error=True) )
+        e.update( e.substitute_in_object(self.dico,True) )
         yield None
 
     def __repr__(self):
@@ -271,26 +273,25 @@ class Scenario(list):
     def __repr__(self):
         return super().__repr__()
     
-    async def execute(self,env,with_begin:bool=False,with_end:bool=False) -> AsyncGenerator:
+    async def execute(self,enw:env.Env,with_begin:bool=False,with_end:bool=False) -> AsyncGenerator:
         self.clear()
-        self.extend( self._feed( env, self.steps ) )
-
+        self.extend( self._feed( enw, self.steps ) )
         step=None
         try:
 
-            if with_begin and env.get("BEGIN"):
+            if with_begin and enw.get("BEGIN"):
                 logger.debug("Execute BEGIN statement")
-                async for i in StepCall(self, {OP.CALL:"BEGIN"}, env).process(env):
+                async for i in StepCall(self, {OP.CALL:"BEGIN"}, enw).process(enw):
                     yield i
 
             for step in self:
                 logger.debug("Execute STEP %s",step)
-                async for i in step.process(env):
+                async for i in step.process(enw):
                     yield i
 
-            if with_end and env.get("END"):
+            if with_end and enw.get("END"):
                 logger.debug("Execute END statement")
-                async for i in StepCall(self, {OP.CALL:"END"}, env ).process(env):
+                async for i in StepCall(self, {OP.CALL:"END"}, enw ).process(enw):
                     yield i
 
         except Exception as ex:

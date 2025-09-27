@@ -58,7 +58,7 @@ def test_dotenv():
 def test_substitute_in_object():
     e=Env( v=42 )
     d=dict( kiki="<< v*2 >>" )
-    d=e.substitute_in_object(d)
+    d=e.substitute_in_object(d,True)
     assert d["kiki"] == 84
 
 def test_inc():
@@ -70,7 +70,7 @@ def test_inc():
     e=Env( v=1 )
     assert e["v"]==1
     d=dict( v="<< v+1 >>" )
-    e=e.substitute_in_object(d)
+    e=e.substitute_in_object(d,True)
     assert e["v"]==2
 
 
