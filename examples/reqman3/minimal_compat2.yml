@@ -1,5 +1,5 @@
 #! -co
-#RESULT: 6/6
+#RESULT: 9/9
 # test scenar as list
 
 - METHOD:
@@ -24,7 +24,13 @@
     - status: 200
 
 - call: METHOD
+  foreach:
+    - i: 1
+    - i: 2
 
 - call: 
   - METHOD
   - METHOD
+  params:
+    - i: 1
+    - i: 2

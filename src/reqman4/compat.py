@@ -52,20 +52,25 @@ def fix_scenar( conf:dict, steps:list ) -> tuple[dict,list]:
                     assert "tests" not in step, "no 'tests:' in CALL !"
                     assert "doc" not in step, "no 'doc:' in CALL !"
                     logger.info(" - FIX call") 
-                    old=step["call"]
+                    names=step["call"]
                     del step["call"]
 
                     if "foreach" in step: 
-                        logger.info(" - FIX foreach") 
-                        old=step["foreach"]
+                        logger.info(" - FIX call/foreach") 
+                        params=step["foreach"]
                         del step["foreach"]
-                        params=dict(params=old)
+                        params=dict(params=params)
+                    elif "params" in step: 
+                        logger.info(" - FIX call/params") 
+                        params=step["params"]
+                        del step["params"]
+                        params=dict(params=params)
                     else:
                         params={}
 
-                    if isinstance(old,str):
-                        old=[old]
-                    for name in old:
+                    if isinstance(names,str):
+                        names=[names]
+                    for name in names:
                         new_steps.append( {**dict(CALL=name),**params} )
 
                 # old http to new one
@@ -82,9 +87,9 @@ def fix_scenar( conf:dict, steps:list ) -> tuple[dict,list]:
 
                     if "foreach" in step: 
                         logger.info(" - FIX foreach") 
-                        old=step["foreach"]
+                        names=step["foreach"]
                         del step["foreach"]
-                        step["params"] = old
+                        step["params"] = names
 
                     if "save" in step:
                         save=step["save"]
