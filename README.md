@@ -12,6 +12,8 @@ with all good ideas from the original.
 
 Currently, the package provide a `rq` command (but will be `reqman` in the future)
 
+Here is the [JSON SCHEMA](https://github.com/manatlan/reqman4/blob/main/schema.json) of the new scenario (DSL)).
+
 Major technical differences :
 - licence gnu gpl v2 -> MIT
 - "uv" & (a lot) simpler (less features)
