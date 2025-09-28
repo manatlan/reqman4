@@ -181,31 +181,76 @@ def patch_docstring(f):
     f.__doc__+= f"Version:{VERSION}"
     return f
 
-@cli.command(context_settings=dict(allow_extra_args=True, ignore_unknown_options=True))
-@click.argument('files', nargs=-1, required=False ) #help="Scenarios yml/rml (local or http)"
+
+def options_from_files(opt_name: str):
+    files = [i for i in sys.argv[1:] if not i.startswith("-")]  # guess files
+    files_expanded = []
+    for i in files:
+        expanded = glob.glob(i, recursive=True)
+        if not expanded and not i.startswith( ("http:","https:") ):
+            #raise click.FileError(i, hint="File not found")
+            options_from_files.error = f"File not found '{i}'"
+            return lambda f:f
+
+        files_expanded.extend(expanded if expanded else [i])
+
+    files = common.expand_files([i for i in files_expanded if os.path.exists(i)])  # skip http files
+
+    if not files:
+        #raise click.MissingParameter(param_type='argument', param=click.Argument(['files']))
+        options_from_files.error = "Missing argument 'FILES...'"
+        return lambda f:f
+
+    reqman_conf = common.guess_reqman_conf(files)
+    if reqman_conf:
+        files = [reqman_conf] + files
+    d = {}
+    for i in files:
+        content = common.yload(open(i, "rb"))
+        if isinstance(content, common.YDict):
+            d.update(common.Conf(content).switchs)
+
+    ll = [dict(name=k, switch=f"--{k}", help=v.get("doc", "???")) for k, v in d.items()]
+
+    def decorator(function):
+        for p in reversed(ll):
+            click.option(
+                p['switch'], opt_name,
+                is_flag=True,
+                flag_value=p['name'],
+                required=False,
+                help=p['help'],
+                multiple=True
+            )(function)
+        return function
+    return decorator
+options_from_files.error=None
+
+@cli.command(context_settings=dict(help_option_names=['-h', '--help']))
+@click.argument('files', nargs=-1, required=True ) #help="Scenarios yml/rml (local or http)"
+@options_from_files("switchs")
 @click.option('-d',"is_debug",is_flag=True,default=False,help="Debug mode")
 @click.option('-s',"vars",help="Set variables (ex: -s token=DEADBEAF,id=42)")
 @click.option('-i',"is_shebang",is_flag=True,default=False,help="Interactive mode (with shebang)")
 @click.option('-o',"open_browser",is_flag=True,default=False,help="Open a report in an html page")
 @click.option('-c',"compatibility",is_flag=True,default=False,help="Accept old reqman3 scenarios")
 @click.option('-cc',"comp_convert",is_flag=True,default=False,help="Accept old reqman3 and generate new version")
-@click.option("-h",'--help',"need_help",is_flag=True,default=False,help="Display this help")
 @click.pass_context
-
-
 @patch_docstring
-def command(ctx,**p):
+def command(ctx:click.Context,**p):
     """Test an http service with pre-made scenarios, whose are simple yaml files
 (More info on https://github.com/manatlan/reqman4) """
-    files = [f for f in p["files"] if not f.startswith("--")]
-    p["switchs"] = [f[2:] for f in p["files"] if f.startswith("--")]
-    p["files"] = files
-    if not files:
-        p["need_help"] = True
-    sys.exit( reqman(ctx,**p) )
+    if options_from_files.error:
+        ctx.fail(options_from_files.error)
+    else:
+        sys.exit( reqman(ctx,**p) )
 
-def reqman(ctx, files:list,switchs:list|None=None,vars:str="",is_debug:bool=False,is_shebang:bool=False,open_browser:bool=False,compatibility:bool=False,comp_convert:bool=False,need_help:bool=False) -> int:
-    if switchs is None: switchs=[]
+def reqman(ctx, files:list,switchs:list|None=None,vars:str="",is_debug:bool=False,is_shebang:bool=False,open_browser:bool=False,compatibility:bool=False,comp_convert:bool=False) -> int:
+    if not switchs:
+        switchs=[]
+    else:
+        switchs=list(switchs)
+
     if is_debug:
         logging.basicConfig(level=logging.DEBUG)
     else:
@@ -249,13 +294,6 @@ def reqman(ctx, files:list,switchs:list|None=None,vars:str="",is_debug:bool=Fals
             logger.info("No switch in commandline, set default to %s",default)
             switchs.append( default )
             
-
-        if need_help:
-            click.echo(ctx.get_help())
-            for idx,(k,v) in enumerate(r.switchs.items()):
-                d="(default) " if idx==0 else ""
-                click.echo(f"  --{k}      {d}{v.get('doc','??')}")
-            return 0
         o = asyncio.run(r.execute(*switchs))
 
         if is_debug:
