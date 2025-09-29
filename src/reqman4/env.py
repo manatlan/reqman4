@@ -44,22 +44,32 @@ class R:
             return ""
 
 class MyDict(dict):
+    """
+    d = MyDict(items=[1,2,3])
+    assert isinstance( d, dict) and "items" in d
+    assert isinstance( d.items, list)
+    assert len(d.items) == 3
+    assert d.items[1] == 2
+    # common methods are hidden surrounded by '_'
+    assert list(d._items_()) == [('items', [1, 2, 3])]
+    assert d._pop_("items") == [1,2,3]
+    assert d == {}
+    
+    """
     forbidden = {"items", "clear", "copy", "pop", "popitem", "update", "setdefault"}
 
     def __init__(self, *args, **kwargs):
         super(MyDict, self).__init__(*args, **kwargs)
 
-    # def __getattribute__(self, name:str):
-    #     if name in object.__getattribute__(self, 'forbidden'):
-    #         raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
-    #     return super().__getattribute__(name)
-
+    def __getattribute__(self, name):
+        if name in object.__getattribute__(self, 'forbidden'):
+            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+        return super().__getattribute__(name)
 
     def __getattr__(self, key):
-        # if key.startswith("_my_"):
-        #     # return self[key[4:]]
-        #     return getattr(super(),key[4:])
-
+        for real in object.__getattribute__(self, 'forbidden'):
+            if key == "_%s_" % real:
+                return getattr(super(), real )
         if key in self:
             return self[key]
         if "_" in key:
@@ -67,6 +77,8 @@ class MyDict(dict):
             if okey in self:
                 return self[okey]
         raise AttributeError(f"'MyDict' object has no attribute '{key}'")
+    
+
     
 
 class MyList(list):
