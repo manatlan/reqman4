@@ -62,19 +62,29 @@ async def test_scenarios_ok(example_file):
 
 
 
-
-@pytest.mark.asyncio
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/err/*.yml")) )
-async def test_scenarios_err(example_file):
+def test_scenarios_err(example_file,capsys):
     #assert not validate_yaml(example_file,"schema.json")
     
     good,error_message = attendings(example_file)
 
-    et=main.ExecutionTests( [example_file] )
-    o = await et.execute()
+    # from click.testing import CliRunner
+    # runner = CliRunner()
+    # result = runner.invoke(main.cli, ["command",example_file,  ])
+    # print(result.output)
+    # print("$? =",result.exit_code)
 
+
+    # import subprocess
+    # result = subprocess.run([sys.executable, "-m", "src.reqman4", example_file], capture_output=True, text=True)
+    # assert result.returncode != 0
+    # assert error_message in result.stdout
+
+    assert main.reqman(None,[example_file]) == -1 
+    captured = capsys.readouterr()
     assert not good
-    assert error_message in str(o.error)
+    assert error_message in captured.out
+
 
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/ko/*.yml")) )
 def test_scenarios_ko(example_file):
@@ -92,4 +102,5 @@ def test_scenarios_reqman3(example_file):
 
 if __name__ == "__main__":
     ...
-    test_scenarios_reqman3("examples/reqman3/simplest.yml")
+    # test_scenarios_reqman3("examples/reqman3/simplest.yml")
+    # test_scenarios_err("examples/err/bad_yaml.yml",None)

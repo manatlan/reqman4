@@ -18,9 +18,10 @@ def test_fnf():
 def test_switch_apply_unknown():
     assert main.reqman(None,["examples/classic/test_switch.yml"],switchs=["toto"]) == -1
 
+# import os
 # @pytest.mark.skipif(os.getenv("CI") == "true", reason="No internet on CI")
 # def test_the_scenario_example():
-#     assert main.reqman(["scenario.yml"]) == 0
+#     assert main.reqman(None,["scenario.yml"]) == 0
 
 def test_cli_no_files():
     # Execute the CLI tool as a subprocess without arguments

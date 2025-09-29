@@ -124,7 +124,7 @@ class StepHttp(Step):
         headers.update(self.headers)
         headers = env.substitute_in_object(headers,True)
         # httpx requires header values to be strings, so convert them all
-        headers = {k: str(v) for k, v in headers.items()}
+        headers = {k: str(v) for k, v in dict(headers).items()}
 
         body = self.body
         if body:
@@ -141,7 +141,7 @@ class StepHttp(Step):
         response = await ehttp.call(
             self.method,
             url,
-            body,
+            common.force_dict(body),
             headers=httpx.Headers(headers),
             proxy=env.get("proxy", None),
             timeout=env.get("timeout", 60_000) or 60_000,  # 60 sec
@@ -156,7 +156,7 @@ class StepHttp(Step):
             try:
                 ok, dico = enw.eval(t, with_context=True)
                 context = "Variables:\n"
-                for k, v in dico.items():
+                for k, v in dict(dico).items():
                     context += f"  {k}: {env.jzon_dumps(v, indent=None)}\n"
                 results.append(common.TestResult(bool(ok), t, context))
             except Exception as ex:
@@ -167,7 +167,6 @@ class StepHttp(Step):
         return common.Result(response.request, response, results, doc=doc)
 
     async def process(self, e: env.Env) -> AsyncGenerator:
-        e.resolv()  # try to resolv max variables in env, before running http test
 
         params = self.extract_params(e)
 
@@ -198,8 +197,6 @@ class StepSet(Step):
         self.dico = dico
 
     async def process(self,e:env.Env) -> AsyncGenerator:
-        e.resolv()  # try to resolv max variables in env, before running http test
-        
         e.update( e.substitute_in_object(self.dico,True) )
         yield None
 
@@ -277,6 +274,8 @@ class Scenario(list):
         return super().__repr__()
     
     async def execute(self,enw:env.Env,with_begin:bool=False,with_end:bool=False) -> AsyncGenerator:
+        enw.resolv()  # try to resolv max variables in env, before running http test
+
         self.clear()
         self.extend( self._feed( enw, self.steps ) )
         step=common.YDict()

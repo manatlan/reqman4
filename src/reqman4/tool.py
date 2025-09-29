@@ -10,7 +10,7 @@ def tablize(ll:list[list],titles:list[str]=[]) -> HTML:
         for row in ll:
             h.append("<tr>")
             if isinstance(row,dict):
-                for item in row.items():
+                for item in dict(row).items():
                     h.append(f"<td>{item}</td>")
             else:
                 for item in row:

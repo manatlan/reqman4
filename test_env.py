@@ -1,4 +1,4 @@
-from src.reqman4.env import Env, _convert, MyList,jzon_dumps,httpx
+from src.reqman4.env import Env, _convert, MyDict, MyList,jzon_dumps,httpx
 
 def test_jzon_dumps():
     assert jzon_dumps( dict(method = lambda x: x * 39,headers=httpx.Headers() ) )
@@ -120,13 +120,23 @@ def test_protect_scope():
     assert d["z"]==99
     assert d["x"]==dict(z=2,l=list("ZA"))
 
-    print(jzon_dumps(d))
-
     # revert all before update ^
     d.scope_revert( param )
     assert d["a"]==42
     assert d["z"]==1
     assert d["x"]==dict(z=1,l=list("AZ"))    
+
+def test_mydict():
+    d = MyDict(items=[1,2,3])
+    assert isinstance( d, dict) and "items" in d
+    assert isinstance( d.items, list)
+    assert len(d.items) == 3
+    assert d.items[1] == 2
+    # common methods are hidden surrounded by '_'
+    assert list(d._items_()) == [('items', [1, 2, 3])]
+    assert d._pop_("items") == [1,2,3]
+    assert d == {}
+    
 
 if __name__=="__main__":
     ...      

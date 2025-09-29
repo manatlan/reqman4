@@ -206,7 +206,11 @@ def options_from_files(opt_name: str):
         files = [reqman_conf] + files
     d = {}
     for i in files:
-        content = common.yload(open(i, "rb"))
+        try:
+            content = common.yload(open(i, "rb"))
+        except Exception as e:
+            options_from_files.error = f"File '{i}' is not yaml : {e}"
+            return lambda f:f            
         if isinstance(content, common.YDict):
             d.update(common.Conf(content).switchs)
 
@@ -241,7 +245,7 @@ def command(ctx:click.Context,**p):
     """Test an http service with pre-made scenarios, whose are simple yaml files
 (More info on https://github.com/manatlan/reqman4) """
     if options_from_files.error:
-        ctx.fail(options_from_files.error)
+        ctx.fail( options_from_files.error )
     else:
         sys.exit( reqman(ctx,**p) )
 

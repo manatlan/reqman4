@@ -191,7 +191,7 @@ def fix_tests(tests:dict|list) -> list[str]:
             if isinstance(dico, str):
                 new_tests.append( dico )
             elif isinstance(dico, dict):
-                for k,v in dico.items():
+                for k,v in dict(dico).items():
                     new_tests.append( fix_comp(k,v) )
             else:
                 raise Exception(f"Bad test item {dico}")

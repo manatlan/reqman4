@@ -25,6 +25,15 @@ logger = logging.getLogger(__name__)
 
 REQMAN_CONF='reqman.yml'
 
+def force_dict(obj):
+    """Recursively convert all dict-like objects to dicts inside obj."""
+    if isinstance(obj, dict):
+        return {k: force_dict(v) for k, v in dict(obj).items()}
+    elif isinstance(obj, list):
+        return [force_dict(v) for v in obj]
+    else:
+        return obj
+
 
 class BytesUtf8(bytes):
     """A bytes subclass that normalizes input strings/bytes to UTF-8 encoding.

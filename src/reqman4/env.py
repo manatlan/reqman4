@@ -16,7 +16,7 @@ from dataclasses import dataclass
 import logging
 
 # reqman imports
-from .common import assert_syntax, RqException,is_python
+from .common import assert_syntax, RqException,is_python,force_dict
 from . import tool
 from .ehttp import MyHeaders
 
@@ -44,19 +44,9 @@ class R:
             return ""
 
 class MyDict(dict):
-    """
-    d = MyDict(items=[1,2,3])
-    assert isinstance( d, dict) and "items" in d
-    assert isinstance( d.items, list)
-    assert len(d.items) == 3
-    assert d.items[1] == 2
-    # common methods are hidden surrounded by '_'
-    assert list(d._items_()) == [('items', [1, 2, 3])]
-    assert d._pop_("items") == [1,2,3]
-    assert d == {}
-    
-    """
-    forbidden = {"items", "clear", "copy", "pop", "popitem", "update", "setdefault"}
+    #Theses are dict methods whose can't be used directly
+    #you must use md._items_() in place of regular md.items()
+    forbidden = {"items","pop","copy","clear"}
 
     def __init__(self, *args, **kwargs):
         super(MyDict, self).__init__(*args, **kwargs)
@@ -78,8 +68,7 @@ class MyDict(dict):
                 return self[okey]
         raise AttributeError(f"'MyDict' object has no attribute '{key}'")
     
-
-    
+   
 
 class MyList(list):
     def __init__(self, liste: list):
@@ -89,7 +78,7 @@ class MyList(list):
 def _convert(obj) -> Any:
     if isinstance(obj, dict):
         dico = {}
-        for k,v in obj.items():
+        for k,v in dict(obj).items():
             dico[k]=_convert(v)
         return MyDict(dico)
     elif isinstance(obj, list):
@@ -100,16 +89,22 @@ def _convert(obj) -> Any:
     else:
         return obj
 
+
 def jzon_dumps(o,indent:int|None=2):
+
+    o=force_dict(o)
+
     def default(obj):
         if callable(obj):
             return f"<function {getattr(obj, '__name__', str(obj))}>"
+        elif isinstance(obj, MyDict):
+            return jzon_dumps(dict(obj))
         elif isinstance(obj, httpx.Headers):
             return jzon_dumps(dict(obj))
         elif isinstance(obj, set):
             return jzon_dumps(list(obj))            
         elif isinstance(obj, Env):
-            return jzon_dumps(obj._data)            
+            return jzon_dumps( dict(obj._data) )            
         elif isinstance(obj,R):
             return dict(status=obj.status, headers=dict(obj.headers), time=obj.time, content=f"<<{obj.content and len(obj.content) or '0'} bytes>>")
         raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
@@ -220,7 +215,7 @@ class Env:
             if isinstance(o, str):
                 return self.substitute(o,raise_error)
             elif isinstance(o, dict):
-                return MyDict({k: _sub_in_object(v) for k, v in o.items()})
+                return MyDict({k: _sub_in_object(v) for k, v in dict(o).items()})
             elif isinstance(o, list):
                 return MyList([_sub_in_object(v) for v in o])
             else:
@@ -232,19 +227,6 @@ class Env:
             after = jzon_dumps(o)
             if before == after:
                 return o
-
-    # @property
-    # def switchs(self) -> dict:
-    #     d = {}
-    #     for i in ["switch", "switches", "switchs"]:   #TODO: compat rq & reqman
-    #         if i in self._data:
-    #             switchs = self._data.get(i, {})
-    #             assert_syntax(isinstance(switchs, dict), "switch must be a dictionary")
-    #             for k, v in switchs.items():
-    #                 assert_syntax(isinstance(v, dict), "switch item must be a dictionary")
-    #                 d[k] = v
-    #             return d
-    #     return d
 
     def set_R_response(self, response: httpx.Response, time):
         self._data["R"] = R(response.status_code, MyHeaders(response.headers), response.content, time)
@@ -261,7 +243,7 @@ class Env:
         if params:
             if self.__params_scopes:
                 scope = self.__params_scopes.pop()
-                for k, v in scope.items():
+                for k, v in dict(scope).items():
                     # restore the same keys before scope_update()
                     if v is None:
                         del self._data[k]
@@ -273,7 +255,7 @@ class Env:
         """ Compile python method found in the dict and children """
         def declare_methods(d):
             if isinstance(d, dict):
-                for k, v in d.items():
+                for k, v in dict(d).items():
                     code = is_python(k, v)
                     if code:
                         # logger.warning(f"Security warning: Compiling and executing python method '{k}'. Ensure that the code is from a trusted source.")
