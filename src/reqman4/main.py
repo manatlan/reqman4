@@ -82,7 +82,7 @@ class Output:
         pass
 
     def end_tests(self):
-        self.htmls.append( output.generate_final( self.switchs, self.nb_tests_ok, self.nb_tests) )
+        self.htmls.append( output.generate_final( self.switchs, self.nb_tests_ok, self.nb_tests, self.error) )
 
         if self.error:
             print(cr(f"SCENARIO ERROR: {self.error}"))
@@ -154,7 +154,7 @@ class ExecutionTests:
             try:
                 async for req in scenar.execute( self.env, with_begin=(idx==0), with_end=(idx==len(self.scenarios)) ):
                     output.write_a_test(req)
-            except common.RqException as ex:
+            except common.ExeError as ex:
                 if self.is_debug:
                     traceback.print_exc()
 

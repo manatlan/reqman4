@@ -62,7 +62,14 @@ def generate_section(file:str) -> str:
     return f"<h2>{file}</h2>"
 
 def generate_error(ex:Exception):
-    return f"<h3 style='color:red'>{html.escape(str(ex))}</h3>"
+    if isinstance(ex,common.ExeError):
+        return f"""
+            <h3 style='color:red;border-left:8px solid red;padding-left:8px'>{html.escape(ex.message)}
+                <div style='color:black;font-size:0.9em'>in "{html.escape(ex.filename)}" at line {ex.line}</div>
+            </h3>
+        """
+    else:
+        return f"<h3 style='color:red'>{html.escape(str(ex))}</h3>"
 
 
 def generate_request(r:common.Result) -> str:
@@ -117,9 +124,14 @@ def generate_request(r:common.Result) -> str:
 </div>
 """
 
-def generate_final(switchs:tuple, nb_ok:int, nb_tests:int) -> str:
+def generate_final(switchs:tuple, nb_ok:int, nb_tests:int, error) -> str:
     switch = ", ".join(switchs)
-    title = f"<title>{switch or ''} {nb_ok}/{nb_tests}</title>"
-    return f"<div class='final'>{switch+'<br>' if switch else ''}{nb_ok}/{nb_tests}</div>" + title
+    if error:
+        msg="ERROR"
+    else:
+        msg=f"{nb_ok}/{nb_tests}"
+
+    title = f"<title>{switch or ''} {msg}</title>"
+    return f"<div class='final'>{switch+'<br>' if switch else ''}{msg}</div>" + title
 
 

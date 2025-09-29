@@ -109,6 +109,17 @@ class Conf(dict):
 class RqException(Exception): 
     pass
 
+class ExeError(Exception):
+    def __init__(self,filename:str,line:int, message:str):
+        line = line if line else 0
+
+        self.filename=filename
+        self.line=line+1 if line>0 else 0
+        self.message=message
+    def __str__(self):
+        return f"[{self.filename}:{self.line}] {self.message}"
+
+
 def assert_syntax( condition:bool, msg:str):
     if not condition: raise RqException( msg )
 

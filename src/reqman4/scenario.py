@@ -237,9 +237,9 @@ class Scenario(list):
     def steps(self) -> list:
         return self._ys._steps
 
-    def _feed(self, env:env.Env, liste:list[dict]) -> list[Step]:
+    def _feed(self, env:env.Env, liste:list[common.YDict]) -> list[Step]:
         try:
-            step=None
+            step=common.YDict()
             assert_syntax(isinstance(liste, list),"RUN must be a list")
 
             ll = []
@@ -266,9 +266,10 @@ class Scenario(list):
                             raise common.RqException(f"Bad Dict {step}")
             return ll
         except common.RqException as ex:
-            # this is an ERROR at compilation time
-            line_info = f":{step.lc.line+1}" if hasattr(step, 'lc') and step.lc else ""
-            raise common.RqException(f"[{self.file_path}{line_info}] [Bad {step}] [{ex}]")
+            # line_info = f":{step.lc.line+1}" if hasattr(step, 'lc') and step.lc else ""
+            # raise common.RqException(f"[{self.file_path}{line_info}] [Bad {step}] [{ex}]")
+            line = step.lc.line if hasattr(step, 'lc') and step.lc else 0
+            raise common.ExeError(self.file_path, line, str(ex))
     
     def __repr__(self):
         return super().__repr__()
@@ -276,7 +277,7 @@ class Scenario(list):
     async def execute(self,enw:env.Env,with_begin:bool=False,with_end:bool=False) -> AsyncGenerator:
         self.clear()
         self.extend( self._feed( enw, self.steps ) )
-        step=None
+        step=common.YDict()
         try:
 
             if with_begin and enw.get("BEGIN"):
@@ -296,8 +297,9 @@ class Scenario(list):
 
         except Exception as ex:
             # this is an ERROR at execution time
-            line_info = f":{step.line+1}" if hasattr(step, 'line') and step.line else ""
-            raise common.RqException(f"[{self.file_path}{line_info}] [Error {step}] [{ex}]")
+            # line_info = f":{step.line+1}" if hasattr(step, 'line') and step.line else ""
+            # raise common.RqException(f"[{self.file_path}{line_info}] [Error {step}] [{ex}]")
+            raise common.ExeError(self.file_path, step.line if hasattr(step, 'line') else 0, str(ex))
 
 
 
