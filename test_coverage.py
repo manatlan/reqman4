@@ -55,7 +55,8 @@ def test_main_with_rqexception(tmp_path, monkeypatch):
     (tmp_path / "reqman.yml").write_text("- not a dict")
     monkeypatch.chdir(tmp_path)
     ctx = click.Context(main.command)
-    assert main.reqman(ctx, files=["a.yml"]) == -1
+    with pytest.raises(Exception):
+        main.reqman(ctx, files=["a.yml"])
 
 def test_main_with_generic_exception(tmp_path, monkeypatch):
     """Test the main error handler for generic exceptions."""
@@ -63,7 +64,8 @@ def test_main_with_generic_exception(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     with patch("reqman4.main.ExecutionTests.__init__", side_effect=Exception("generic error")):
         ctx = click.Context(main.command)
-        assert main.reqman(ctx, files=["a.yml"]) == -1
+        with pytest.raises(Exception):
+            main.reqman(ctx, files=["a.yml"])
 
 @patch("reqman4.main.command")
 def test_main_shebang(mock_command, tmp_path, monkeypatch):

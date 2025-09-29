@@ -183,6 +183,7 @@ def patch_docstring(f):
 
 
 def options_from_files(opt_name: str):
+    options_from_files.error=None
     files = [i for i in sys.argv[1:] if not i.startswith("-")]  # guess files
     files_expanded = []
     for i in files:
@@ -245,9 +246,20 @@ def command(ctx:click.Context,**p):
     """Test an http service with pre-made scenarios, whose are simple yaml files
 (More info on https://github.com/manatlan/reqman4) """
     if options_from_files.error:
-        ctx.fail( options_from_files.error )
+        # ctx.fail( options_from_files.error )
+        click.echo( options_from_files.error )
+        ctx.exit(-1)
     else:
-        sys.exit( reqman(ctx,**p) )
+        try:
+            rc = reqman(ctx,**p)
+        except Exception as ex:
+            # everything that happen here is an real bug/error
+            # and will need a fix !
+            if p["is_debug"]:
+                traceback.print_exc()
+            print(cr(f"BUG ERROR: {ex}"))
+            rc = -1
+        ctx.exit( rc )
 
 def reqman(ctx, files:list,switchs:list|None=None,vars:str="",is_debug:bool=False,is_shebang:bool=False,open_browser:bool=False,compatibility:bool=False,comp_convert:bool=False) -> int:
     if not switchs:
@@ -286,41 +298,30 @@ def reqman(ctx, files:list,switchs:list|None=None,vars:str="",is_debug:bool=Fals
             logger.info("USE SHEBANG: %s",sys.argv)
             return command() #redo click parsing !
 
+    r = ExecutionTests( files,dvars, is_debug, comp_mode)
+    if r.switchs and not switchs:
+        # when switchs configured, and no switch in command line
+        # defaulting to the first one
+        default = list(r.switchs.keys())[0]
+        logger.info("No switch in commandline, set default to %s",default)
+        switchs.append( default )
+        
+    o = asyncio.run(r.execute(*switchs))
 
+    if is_debug:
+        print(cy("Environment:"))
+        print(r.env)
 
+    if o.error:
+        rc = -1
+    else:
+        rc = o.nb_tests_ko
 
-    try:
-        r = ExecutionTests( files,dvars, is_debug, comp_mode)
-        if r.switchs and not switchs:
-            # when switchs configured, and no switch in command line
-            # defaulting to the first one
-            default = list(r.switchs.keys())[0]
-            logger.info("No switch in commandline, set default to %s",default)
-            switchs.append( default )
-            
-        o = asyncio.run(r.execute(*switchs))
+    if open_browser:
+        o.open_browser()
 
-        if is_debug:
-            print(cy("Environment:"))
-            print(r.env)
+    return rc
 
-        if o.error:
-            rc = -1
-        else:
-            rc = o.nb_tests_ko
-
-        if open_browser:
-            o.open_browser()
-
-        return rc
-
-    except Exception as ex:
-        # everything that happen here is an real bug/error
-        # and will need a fix !
-        if is_debug:
-            traceback.print_exc()
-        print(cr(f"BUG ERROR: {ex}"))
-        return -1
 
 
     

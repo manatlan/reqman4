@@ -1,11 +1,11 @@
 import pytest
 import glob
-import io
+import io,os
 import sys
 import re
 from src.reqman4 import main,common
 from validate import validate_yaml
-
+from conftest import run_command
 
 def attendings(example_file:str): #THE FUTURE for all tests
     with open(example_file, "r") as f:
@@ -62,28 +62,14 @@ async def test_scenarios_ok(example_file):
 
 
 
-@pytest.mark.parametrize("example_file", sorted(glob.glob("examples/err/*.yml")) )
+@pytest.mark.parametrize("example_file", [i for i in sorted(glob.glob("examples/err/*.yml")) if os.path.basename(i)[0]!="_"] )
 def test_scenarios_err(example_file,capsys):
     #assert not validate_yaml(example_file,"schema.json")
-    
     good,error_message = attendings(example_file)
 
-    # from click.testing import CliRunner
-    # runner = CliRunner()
-    # result = runner.invoke(main.cli, ["command",example_file,  ])
-    # print(result.output)
-    # print("$? =",result.exit_code)
-
-
-    # import subprocess
-    # result = subprocess.run([sys.executable, "-m", "src.reqman4", example_file], capture_output=True, text=True)
-    # assert result.returncode != 0
-    # assert error_message in result.stdout
-
-    assert main.reqman(None,[example_file]) == -1 
-    captured = capsys.readouterr()
+    result=run_command( example_file )
     assert not good
-    assert error_message in captured.out
+    assert error_message in result.output
 
 
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/ko/*.yml")) )
