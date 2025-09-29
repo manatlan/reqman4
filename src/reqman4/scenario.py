@@ -301,19 +301,4 @@ class Scenario(list):
 
 
 
-if __name__ == "__main__":
-    ...
-    # logging.basicConfig(level=logging.DEBUG)
 
-    # async def run_a_test(f:str):
-    #     t=Scenario(f)
-    #     async for i in t.execute():
-    #         if i:
-    #             print(f"{i.request.method} {i.request.url} -> {i.response.status_code}")
-    #             for tr in i.tests:
-    #                 print(" -",tr.ok and "OK" or "KO",":", tr.text)
-    #             print()
-
-
-    # # asyncio.run( run_a_test("examples/ok/simple.yml") )
-    # asyncio.run( run_a_test("examples/ok/test1.yml") )

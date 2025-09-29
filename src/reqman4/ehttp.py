@@ -157,12 +157,3 @@ async def call(method, url:str,body:bytes|None=None, headers:httpx.Headers = htt
     logger.debug(f"RESPONSE {r.status_code} {r.headers} {r.content}")
     return r
 
-if __name__ == "__main__":
-    ...
-    # logging.basicConfig(level=logging.DEBUG)
-    # import asyncio
-    # async def main():
-    #     x=await call("GET", "https://tools-httpstatus.pickup-services.com/500")
-    #     assert x.status_code==500
-    # asyncio.run(main())
-

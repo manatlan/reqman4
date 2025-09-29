@@ -8,13 +8,14 @@
 # #############################################################################
 import os
 import io
-import httpx
+import shutil
 from dataclasses import dataclass
 import datetime
 import ast
 from types import CodeType
 import logging
 
+import httpx
 import ruamel.yaml
 from ruamel.yaml.comments import CommentedMap as YDict,CommentedSeq as YList
 
@@ -217,13 +218,12 @@ class YScenario:
         yaml.width = 200
         yaml.indent(mapping=2, sequence=2, offset=0)
         yaml.encoding = self.encoding
-        # shutil.copy2(self.filename,self.filename)
+        
 
         if self.filename != "buffer":
-            new_file=self.filename+".new.yml"
-            with open(new_file,"wb+") as fid:
+            shutil.copy2(self.filename,self.filename+".reqman3.yml")
+            with open(self.filename,"wb+") as fid:
                 yaml.dump(base, fid)
-            print("CREATE NEW REQMAN4 FILE:",new_file)
         else:
             f = io.BytesIO()
             yaml.dump(base, f)
@@ -246,7 +246,7 @@ def is_python(k,v) -> CodeType|None:
     if isinstance(v,str) and "return" in v:
         err=check_python_code(v)
         if not err:
-            
+
             def declare(k:str,code:str) -> str:
                 return f"def {k}(x=None):\n" + ("\n".join(["  " + i for i in code.splitlines()]))
 

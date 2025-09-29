@@ -278,10 +278,3 @@ class Env:
     def __repr__(self):
         return jzon_dumps(self._data)
 
-if __name__ == "__main__":
-    ...
-    # logging.basicConfig(level=logging.DEBUG)
-
-    # e=Env( method = lambda x: x * 39 )
-    # x=e.eval("method(3)")
-    # assert x == 117

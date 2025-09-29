@@ -10,11 +10,7 @@
 import re
 import json
 from ruamel.yaml.comments import CommentedSeq as YList
-"""
-to be able to run old reqman files with new rq4 engine
 
-TODO: redo better
-"""
 import logging
 logger = logging.getLogger(__name__)
 

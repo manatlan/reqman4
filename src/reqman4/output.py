@@ -122,20 +122,4 @@ def generate_final(switchs:tuple, nb_ok:int, nb_tests:int) -> str:
     title = f"<title>{switch or ''} {nb_ok}/{nb_tests}</title>"
     return f"<div class='final'>{switch+'<br>' if switch else ''}{nb_ok}/{nb_tests}</div>" + title
 
-if __name__ == "__main__":
-    ...
-    # logging.basicConfig(level=logging.DEBUG)
-
-    # body=dict(var=42,val=[1,2,3])
-
-    # import httpx
-    # rq=httpx.Request("GET", "https://fqfdsfds/gfdsgfd?fd=15", headers={"content-type": "application/json"}, json=body)
-    # rp=httpx.Response(
-    #     status_code=201,
-    #     headers={"content-type": "application/json"},
-    #     json=body,
-    # )    
-    
-    # r = scenario.Result(rq,rp,[("status == 200",True)],doc="tet a la con")
-    # print(generate_request(r))
 
