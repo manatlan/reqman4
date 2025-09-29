@@ -198,6 +198,8 @@ class StepSet(Step):
         self.dico = dico
 
     async def process(self,e:env.Env) -> AsyncGenerator:
+        e.resolv()  # try to resolv max variables in env, before running http test
+        
         e.update( e.substitute_in_object(self.dico,True) )
         yield None
 
