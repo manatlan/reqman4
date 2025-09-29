@@ -1,5 +1,5 @@
 from src.reqman4 import common
-import os
+import os,pytest
 def test_config():
     assert common.load_reqman_conf("examples/classic/reqman.yml")
 
@@ -70,6 +70,35 @@ def test_utfstring():
     ]
 
     _valid_tests(string,ll)
+
+def test_python():
+    code="return 42"
+    assert common.is_python("name",code)
+    code="42"
+    assert not common.is_python("name",code)
+    code="return jaja jojo"
+    assert not common.is_python("name",code)
+
+def test_check_python():
+    # ensure python statement
+    code="return 42"
+    assert common.check_python_code(code) == ""
+    code="42"
+    assert common.check_python_code(code) == ""
+    code="kiki"
+    assert common.check_python_code(code) == ""
+    code="return kiki"
+    assert common.check_python_code(code) == ""
+
+    # but the last one will fail at runtime, of course
+    method = common.is_python("name",code)
+    assert method
+    with pytest.raises(Exception):
+        method()
+
+    # it's not python statement
+    code="koko kiki"
+    assert common.check_python_code(code)
 
 
 

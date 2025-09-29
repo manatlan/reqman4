@@ -16,8 +16,7 @@ from dataclasses import dataclass
 import logging
 
 # reqman imports
-from . import pycode
-from .common import assert_syntax, RqException
+from .common import assert_syntax, RqException,is_python
 from . import tool
 from .ehttp import MyHeaders
 
@@ -263,7 +262,7 @@ class Env:
         def declare_methods(d):
             if isinstance(d, dict):
                 for k, v in d.items():
-                    code = pycode.is_python(k, v)
+                    code = is_python(k, v)
                     if code:
                         # logger.warning(f"Security warning: Compiling and executing python method '{k}'. Ensure that the code is from a trusted source.")
                         scope = {}

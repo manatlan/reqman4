@@ -11,14 +11,18 @@ import io
 import httpx
 from dataclasses import dataclass
 import datetime
-from . import compat
-FIX_SCENAR = compat.fix_scenar
-
-REQMAN_CONF='reqman.yml'
+import ast
+from types import CodeType
+import logging
 
 import ruamel.yaml
 from ruamel.yaml.comments import CommentedMap as YDict,CommentedSeq as YList
 
+from . import compat
+
+logger = logging.getLogger(__name__)
+
+REQMAN_CONF='reqman.yml'
 
 
 class BytesUtf8(bytes):
@@ -198,7 +202,7 @@ class YScenario:
             self.filename = "buffer"
         self._conf,self._steps = load_scenar(yml)
         if compatibility>0:
-            self._conf,self._steps=FIX_SCENAR(self._conf,self._steps)
+            self._conf,self._steps=compat.fix_scenar(self._conf,self._steps)
             if compatibility>1:
                 self.save()
         self.conf = Conf( self._conf )
@@ -228,6 +232,32 @@ class YScenario:
 
     def __str__(self):
         return f"YScenario '{self.filename}' ({self.encoding})\n* DICT:{self._conf}\n* LIST:{self._steps}"
+
+
+def check_python_code(s: str) -> str:
+    """ check if str is python code, return '' if ok else return the error """
+    try:
+        ast.parse(s)
+        return ""
+    except SyntaxError as e:
+        return str(e)
+
+def is_python(k,v) -> CodeType|None:
+    if isinstance(v,str) and "return" in v:
+        err=check_python_code(v)
+        if not err:
+            
+            def declare(k:str,code:str) -> str:
+                return f"def {k}(x=None):\n" + ("\n".join(["  " + i for i in code.splitlines()]))
+
+            try:
+                logger.info("*** DECLARE METHOD PYTHON: %s",k)
+                return compile(declare(k,v), f"method '{k}'", "exec")
+            except Exception as e:
+                raise RqException(f"Python Compilation Error : {e}")
+        else:
+            logger.warning("Method '%s'() feels like python, but doesn't compile (%s)", k, err)
+
 
 if __name__=="__main__":
     ...
