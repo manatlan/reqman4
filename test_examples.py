@@ -18,7 +18,7 @@ def attendings(example_file:str): #THE FUTURE for all tests
             return (True, line[len("#RESULT:"):].strip() ) # ex (True, "4/5")
     return (None,None)        
 
-def simulate(example_file: str,compatibility=0): #THE FUTURE for all tests
+def simulate(example_file: str,*args): #THE FUTURE for all tests
     """
     it will run a scenario (yaml file)
     and will check if the result is the one expected
@@ -26,10 +26,8 @@ def simulate(example_file: str,compatibility=0): #THE FUTURE for all tests
     """
     good,info = attendings(example_file)
 
-    args = [example_file]
-    if compatibility:
-        args.append("-c")
-    r = run_command(*args)
+    arguments = [example_file] + list(args)
+    r = run_command(*arguments)
 
     match = re.search(r"(\d+/\d+)", r.output)
     result = match.group(0) if match else None
@@ -59,12 +57,9 @@ def test_scenarios_ok(example_file):
     assert validate_yaml(example_file,"schema.json")
     simulate(example_file)
 
-
-
 @pytest.mark.parametrize("example_file", [i for i in sorted(glob.glob("examples/err/*.yml")) if os.path.basename(i)[0]!="_"] )
 def test_scenarios_err(example_file):
     simulate(example_file)
-
 
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/ko/*.yml")) )
 def test_scenarios_ko(example_file):
@@ -72,7 +67,7 @@ def test_scenarios_ko(example_file):
 
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reqman3/*.yml")) )
 def test_scenarios_reqman3(example_file):
-    simulate(example_file,1)
+    simulate(example_file,"-c")
 
 # @pytest.mark.skipif(os.getenv("CI") == "true", reason="No internet on CI")
 # @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/reals/*.yml")) )
