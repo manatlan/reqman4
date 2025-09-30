@@ -19,44 +19,34 @@ def attendings(example_file:str): #THE FUTURE for all tests
     return (None,None)        
 
 def simulate(example_file: str,compatibility=0): #THE FUTURE for all tests
+    """
+    it will run a scenario (yaml file)
+    and will check if the result is the one expected
+    (in the comment of the file)
+    """
     good,info = attendings(example_file)
-    print(good,info)
-    stdout = io.StringIO()
-    sys_stdout = sys.stdout
-    sys.stdout = stdout
-    try:
-        error=None
-        rc = main.reqman(None,[example_file],compatibility=True if compatibility else False)
-    except Exception:
-        pass
-    finally:
-        sys.stdout = sys_stdout
-    output = stdout.getvalue()
-    last_line = output.strip().rsplit('\n', 1)[-1]
-    result=re.search( r"(\d+/\d+)",last_line).group(0)
 
-    if good:
-        assert rc>=0
-        assert result == info
-    else:
-        assert rc == -1
-        assert error
+    args = [example_file]
+    if compatibility:
+        args.append("-c")
+    r = run_command(*args)
+
+    match = re.search(r"(\d+/\d+)", r.output)
+    result = match.group(0) if match else None
+
+    if good is True:
+        # A "good" file (with #RESULT) should not crash.
+        # It can have failing tests (exit_code > 0) or pass (exit_code == 0).
+        assert r.exit_code >= 0, f"Expected exit code >= 0 for a #RESULT test, but got {r.exit_code}. Output:\n{r.output}"
+        assert result == info, f"Expected result '{info}' but got '{result}'. Output:\n{r.output}"
+    elif good is False:
+        # A "bad" file (with #ERROR) is expected to fail with a non-zero exit code.
+        assert r.exit_code != 0, f"Expected non-zero exit code for an #ERROR test, but got 0. Output:\n{r.output}"
         if info:
-            assert info in str(error)    
-    # good,info = attendings(example_file)
-
-    # r=run_command( example_file,"-c" if compatibility else "" )
-    # last_line = r.output.strip().rsplit('\n', 1)[-1]
-    # match = re.search(r"(\d+/\d+)", last_line)
-    # result = match.group(0) if match else None
-
-    # if good:
-    #     assert r.exit_code>=0
-    #     assert result == info
-    # else:
-    #     assert r.exit_code == 255
-    #     if info:
-    #         assert info in r.output
+            assert info in r.output, f"Expected error message '{info}' not found in output. Output:\n{r.output}"
+    else: # good is None
+        # A standard file without special tags. Expected to pass completely.
+        assert r.exit_code == 0, f"Expected exit code 0 for an OK test, but got {r.exit_code}. Output:\n{r.output}"
 
 
 def test_no_reqman_conf():
@@ -64,26 +54,16 @@ def test_no_reqman_conf():
     scenarios tested in examples folder """
     assert common.guess_reqman_conf([".","examples"]) is None
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/ok/*.yml")) )
-async def test_scenarios_ok(example_file):
-
+def test_scenarios_ok(example_file):
     assert validate_yaml(example_file,"schema.json")
-
-    et=main.ExecutionTests( [example_file] )
-    o = await et.execute()
-    assert o.nb_tests_ko == 0
+    simulate(example_file)
 
 
 
 @pytest.mark.parametrize("example_file", [i for i in sorted(glob.glob("examples/err/*.yml")) if os.path.basename(i)[0]!="_"] )
-def test_scenarios_err(example_file,capsys):
-    #assert not validate_yaml(example_file,"schema.json")
-    good,error_message = attendings(example_file)
-
-    result=run_command( example_file )
-    assert not good
-    assert error_message in result.output
+def test_scenarios_err(example_file):
+    simulate(example_file)
 
 
 @pytest.mark.parametrize("example_file", sorted(glob.glob("examples/ko/*.yml")) )
