@@ -42,7 +42,21 @@ def simulate(example_file: str,compatibility=0): #THE FUTURE for all tests
         assert rc == -1
         assert error
         if info:
-            assert info in str(error)
+            assert info in str(error)    
+    # good,info = attendings(example_file)
+
+    # r=run_command( example_file,"-c" if compatibility else "" )
+    # last_line = r.output.strip().rsplit('\n', 1)[-1]
+    # match = re.search(r"(\d+/\d+)", last_line)
+    # result = match.group(0) if match else None
+
+    # if good:
+    #     assert r.exit_code>=0
+    #     assert result == info
+    # else:
+    #     assert r.exit_code == 255
+    #     if info:
+    #         assert info in r.output
 
 
 def test_no_reqman_conf():
